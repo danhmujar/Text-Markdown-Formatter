@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { SyntaxWarning } from '../types';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
+import { getNextListPrefix } from '../utils/markdownFormatter';
 
 interface EditorCellProps {
   rowIndex: number;
@@ -42,6 +43,45 @@ export const EditorCell: React.FC<EditorCellProps> = ({
   onPasteOnCell
 }) => {
   const [showWarningsDrawer, setShowWarningsDrawer] = useState<boolean>(false);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+
+    const ta = e.currentTarget;
+    const val = ta.value;
+    const cursor = ta.selectionStart;
+
+    const lineStart = val.lastIndexOf('\n', Math.max(0, cursor - 1)) + 1;
+    const lineToCursor = val.substring(lineStart, cursor);
+    const nextNewline = val.indexOf('\n', cursor);
+    const lineEnd = nextNewline === -1 ? val.length : nextNewline;
+    const fullLine = val.substring(lineStart, lineEnd);
+
+    const nextPrefixInfo = getNextListPrefix(lineToCursor);
+    if (!nextPrefixInfo) return;
+
+    e.preventDefault();
+
+    const { indent, nextPrefix, currentPrefix, isOnlyPrefix } = nextPrefixInfo;
+
+    if (isOnlyPrefix && fullLine.trim() === currentPrefix.trim()) {
+      const before = val.substring(0, lineStart);
+      const after = val.substring(lineEnd);
+      const newVal = before + after;
+      onCellChange(rowIndex, colIndex, newVal, false);
+      setTimeout(() => { ta.selectionStart = lineStart; ta.selectionEnd = lineStart; }, 0);
+      return;
+    }
+
+    const insertion = '\n' + indent + nextPrefix;
+    const before = val.substring(0, cursor);
+    const after = val.substring(cursor);
+    const newVal = before + insertion + after;
+    const newPos = cursor + insertion.length;
+
+    onCellChange(rowIndex, colIndex, newVal, false);
+    setTimeout(() => { ta.selectionStart = newPos; ta.selectionEnd = newPos; }, 0);
+  };
 
   // Dynamic character, word, and line counts
   const charCount = cellValue.length;
@@ -264,6 +304,7 @@ export const EditorCell: React.FC<EditorCellProps> = ({
           id={`cell-textarea-${rowIndex}-${colIndex}`}
           value={cellValue}
           onChange={(e) => onCellChange(rowIndex, colIndex, e.target.value, true)}
+          onKeyDown={handleKeyDown}
           onPaste={(e) => onPasteOnCell(e, rowIndex, colIndex)}
           placeholder={`Type or paste markdown in ${label}...`}
           className={`w-full h-full p-3 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none custom-scrollbar ${
