@@ -1,0 +1,6 @@
+{
+  "name": "Text & Markdown Formatter",
+  "description": "Convert input text and Markdown with custom line breaks, nested lists, tables, real-time syntax warnings, and dynamic character counters into formatted output for Word and Outlook.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
