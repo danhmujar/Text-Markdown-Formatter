@@ -47,9 +47,9 @@ export function prepareCopiedText(outputText: string, originalInputText: string)
   return outputText;
 }
 
-export function sanitizeInputText(raw: string): string {
+export function sanitizeInputText(raw: string, isTyping = false): string {
   if (!raw) return '';
-  return smartCleanupMarkdown(raw).cleaned;
+  return smartCleanupMarkdown(raw, { isTyping }).cleaned;
 }
 
 export interface SmartCleanupReport {
@@ -70,7 +70,11 @@ export interface SmartCleanupReport {
  * 2. Standardizes quote characters (smart quotes, curly apostrophes, guillemets -> straight quotes).
  * 3. Fixes common Markdown syntax errors (headings without spaces, bullets without spaces, bold/italic inner spaces, broken tables, etc.).
  */
-export function smartCleanupMarkdown(raw: string): SmartCleanupReport {
+export function smartCleanupMarkdown(
+  raw: string,
+  options?: { isTyping?: boolean },
+): SmartCleanupReport {
+  const isTyping = options?.isTyping ?? false;
   if (!raw) {
     return {
       cleaned: '',
@@ -226,20 +230,22 @@ export function smartCleanupMarkdown(raw: string): SmartCleanupReport {
     }
 
     // Auto-close unbalanced bold (**) on self-contained lines (e.g., list items or bullet lines)
-    const lineStars = line.match(/\*\*/g) || [];
-    if (lineStars.length % 2 !== 0 && !line.endsWith('\\')) {
-      // If the line opens a bold tag without closing it, close it at the end of the line
-      line = `${line}**`;
-      markdownFixed = true;
-      fixesCount++;
-    }
+    if (!isTyping) {
+      const lineStars = line.match(/\*\*/g) || [];
+      if (lineStars.length % 2 !== 0 && !line.endsWith('\\')) {
+        // If the line opens a bold tag without closing it, close it at the end of the line
+        line = `${line}**`;
+        markdownFixed = true;
+        fixesCount++;
+      }
 
-    // Auto-close unbalanced strikethrough (~~)
-    const lineTildes = line.match(/~~/g) || [];
-    if (lineTildes.length % 2 !== 0) {
-      line = `${line}~~`;
-      markdownFixed = true;
-      fixesCount++;
+      // Auto-close unbalanced strikethrough (~~)
+      const lineTildes = line.match(/~~/g) || [];
+      if (lineTildes.length % 2 !== 0) {
+        line = `${line}~~`;
+        markdownFixed = true;
+        fixesCount++;
+      }
     }
 
     // I. Normalize redundant internal spaces (preserve leading indentation and table row spacing)
@@ -293,19 +299,21 @@ export function smartCleanupMarkdown(raw: string): SmartCleanupReport {
     fixesCount++;
   }
 
-  // 8. Global Check: If odd number of ** remains across entire text, append closing **
-  const remainingDoubleStars = joined.match(/\*\*/g) || [];
-  if (remainingDoubleStars.length % 2 !== 0) {
-    joined = `${joined}**`;
-    markdownFixed = true;
-    fixesCount++;
-  }
+  // 8. Global Check: If odd number of ** remains across entire text, append closing ** (only when not typing)
+  if (!isTyping) {
+    const remainingDoubleStars = joined.match(/\*\*/g) || [];
+    if (remainingDoubleStars.length % 2 !== 0) {
+      joined = `${joined}**`;
+      markdownFixed = true;
+      fixesCount++;
+    }
 
-  // If unclosed code fence remains, close it
-  if (inCodeBlock) {
-    joined = `${joined}\n\`\`\``;
-    markdownFixed = true;
-    fixesCount++;
+    // If unclosed code fence remains, close it
+    if (inCodeBlock) {
+      joined = `${joined}\n\`\`\``;
+      markdownFixed = true;
+      fixesCount++;
+    }
   }
 
   const finalCleaned = joined.trim();

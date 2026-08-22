@@ -4,8 +4,14 @@ import DOMPurify from 'dompurify';
 // Runs BEFORE buildInlineStyledHtml injects trusted inline styles.
 DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
   if (data.attrName.startsWith('on')) data.keepAttr = false;
-  if (data.attrName === 'href' || data.attrName === 'src' || data.attrName === 'xlink:href') {
-    if (/^\s*javascript:/i.test(data.attrValue) || /^\s*data:text\/html/i.test(data.attrValue)) {
+  if (
+    data.attrName === 'href' ||
+    data.attrName === 'src' ||
+    data.attrName === 'xlink:href' ||
+    data.attrName === 'action' ||
+    data.attrName === 'formaction'
+  ) {
+    if (/^\s*(javascript|data:text\/html|vbscript):/i.test(data.attrValue)) {
       data.keepAttr = false;
     }
   }

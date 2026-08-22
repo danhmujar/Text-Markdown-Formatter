@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
+import { ToastContainer } from './components/Toast';
 import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
 import { useCopy } from './hooks/useCopy';
@@ -41,14 +42,14 @@ export default function App() {
   const isDark = options.theme === 'dark';
 
   // Toggle Focus Mode between split and active container
-  const handleToggleFocusMode = () => {
+  const handleToggleFocusMode = useCallback(() => {
     setFocusMode((prev) => {
       if (prev === 'split') {
         return activePanel;
       }
       return 'split';
     });
-  };
+  }, [activePanel]);
 
   // Global Keyboard Shortcuts:
   // - Undo: Ctrl+Z / ⌘Z
@@ -95,47 +96,62 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, focusMode, activePanel]);
+  }, [undo, redo, focusMode, handleToggleFocusMode]);
 
   // Get current effective content for output cell:
   // If the cell was edited in output layer, return override;
   // otherwise return the input cell with <br> tags converted to clean line breaks.
-  const getOutputContent = (rowIndex: number, colIndex: number): string => {
-    const key = `${rowIndex}-${colIndex}`;
-    if (outputOverrides[key] !== undefined) {
-      return outputOverrides[key];
-    }
-    const rawInput = grid[rowIndex]?.[colIndex] || '';
-    if (hasBrTags(rawInput)) {
-      return convertBrToNewlines(rawInput);
-    }
-    return rawInput;
-  };
+  const getOutputContent = useCallback(
+    (rowIndex: number, colIndex: number): string => {
+      if (rowIndex < 0 || colIndex < 0 || !grid[rowIndex]) {
+        return '';
+      }
+      const key = `${rowIndex}-${colIndex}`;
+      if (outputOverrides[key] !== undefined) {
+        return outputOverrides[key];
+      }
+      const rawInput = grid[rowIndex]?.[colIndex] || '';
+      if (hasBrTags(rawInput)) {
+        return convertBrToNewlines(rawInput);
+      }
+      return rawInput;
+    },
+    [grid, outputOverrides],
+  );
 
-  const hasOverride = (rowIndex: number, colIndex: number): boolean => {
-    const key = `${rowIndex}-${colIndex}`;
-    return outputOverrides[key] !== undefined;
-  };
+  const hasOverride = useCallback(
+    (rowIndex: number, colIndex: number): boolean => {
+      const key = `${rowIndex}-${colIndex}`;
+      return outputOverrides[key] !== undefined;
+    },
+    [outputOverrides],
+  );
 
   // Allow manual edit on output container
-  const handleOutputChange = (rowIndex: number, colIndex: number, val: string, isTyping = true) => {
-    updateOutputOverrides(
-      (prev) => ({
-        ...prev,
-        [`${rowIndex}-${colIndex}`]: val,
-      }),
-      isTyping,
-    );
-  };
+  const handleOutputChange = useCallback(
+    (rowIndex: number, colIndex: number, val: string, isTyping = true) => {
+      updateOutputOverrides(
+        (prev) => ({
+          ...prev,
+          [`${rowIndex}-${colIndex}`]: val,
+        }),
+        isTyping,
+      );
+    },
+    [updateOutputOverrides],
+  );
 
   // Reset output cell to sync with input
-  const handleResetOutputCell = (rowIndex: number, colIndex: number) => {
-    updateOutputOverrides((prev) => {
-      const next = { ...prev };
-      delete next[`${rowIndex}-${colIndex}`];
-      return next;
-    }, false);
-  };
+  const handleResetOutputCell = useCallback(
+    (rowIndex: number, colIndex: number) => {
+      updateOutputOverrides((prev) => {
+        const next = { ...prev };
+        delete next[`${rowIndex}-${colIndex}`];
+        return next;
+      }, false);
+    },
+    [updateOutputOverrides],
+  );
 
   const { copiedCell, copiedAll, handleCopyCell, handleCopyAllGrid } = useCopy({
     grid,
@@ -144,9 +160,12 @@ export default function App() {
   });
 
   // Grid updater: clears any stale override on that modified cell
-  const handleGridChange = (newGrid: string[][], isTyping = false) => {
-    updateGrid(newGrid, isTyping);
-  };
+  const handleGridChange = useCallback(
+    (newGrid: string[][], isTyping = false) => {
+      updateGrid(newGrid, isTyping);
+    },
+    [updateGrid],
+  );
 
   return (
     <div
@@ -226,6 +245,7 @@ export default function App() {
           />
         </section>
       </main>
+      <ToastContainer />
     </div>
   );
 }

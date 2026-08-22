@@ -24,7 +24,7 @@ interface HeaderProps {
   onToggleFocusMode?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const Header: React.FC<HeaderProps> = React.memo(function Header({
   options,
   setOptions,
   canUndo = false,
@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
   focusMode = 'split',
   activePanel = 'input',
   onToggleFocusMode,
-}) => {
+}) {
   const isDark = options.theme === 'dark';
   const isSanitizeActive = options.sanitizeOutput !== false;
   const isFocused = focusMode !== 'split';
@@ -286,4 +286,4 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
     </header>
   );
-};
+});

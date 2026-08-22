@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Copy, Check, RotateCcw, Eye, Edit3 } from 'lucide-react';
 import { StyleOptions } from '../types';
@@ -29,7 +29,7 @@ interface OutputCellProps {
   onApplyInlineFormat: (wrapper: string, label: string) => void;
 }
 
-export const OutputCell: React.FC<OutputCellProps> = ({
+export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputCell({
   rowIndex: r,
   colIndex: c,
   outputText,
@@ -49,13 +49,25 @@ export const OutputCell: React.FC<OutputCellProps> = ({
   onSmartClean,
   onApplyNumbering,
   onApplyInlineFormat,
-}) => {
+}) {
   const isDark = options.theme === 'dark';
   const isEditMode = cellMode === 'edit';
-  const htmlFormatted = buildInlineStyledHtml(outputText, options, false);
+  const htmlFormatted = useMemo(() => {
+    try {
+      return buildInlineStyledHtml(outputText, options, false);
+    } catch {
+      return '<p class="text-rose-400 italic text-xs">Preview failed to render</p>';
+    }
+  }, [outputText, options]);
   const charCount = outputText.length;
-  const wordCount = outputText.trim() ? outputText.trim().split(/\s+/).length : 0;
-  const lineCount = outputText ? outputText.split(/\r?\n/).length : 0;
+  const wordCount = useMemo(
+    () => (outputText.trim() ? outputText.trim().split(/\s+/).length : 0),
+    [outputText],
+  );
+  const lineCount = useMemo(
+    () => (outputText ? outputText.split(/\r?\n/).length : 0),
+    [outputText],
+  );
 
   return (
     <div
@@ -251,4 +263,4 @@ export const OutputCell: React.FC<OutputCellProps> = ({
       </div>
     </div>
   );
-};
+});

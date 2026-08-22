@@ -1,11 +1,10 @@
 import { sanitizeInputText } from './cleanup';
 import { logger } from './logger';
+import { sanitizeHtml } from './security/sanitize';
 
 export function tsvToMarkdownTable(tsv: string): string {
-  const lines = tsv
-    .trim()
-    .split(/\r?\n/)
-    .filter((line) => line.length > 0);
+  if (!tsv) return '';
+  const lines = tsv.split(/\r?\n/).filter((line) => line.length > 0);
   if (lines.length === 0) return tsv;
 
   // Check if at least one line contains a tab
@@ -15,7 +14,7 @@ export function tsvToMarkdownTable(tsv: string): string {
   const rows = lines.map((line) =>
     line.split('\t').map((cell) => cell.trim().replace(/\|/g, '\\|')),
   );
-  const maxCols = Math.max(...rows.map((r) => r.length));
+  const maxCols = Math.max(1, ...rows.map((r) => r.length));
   if (maxCols < 1) return tsv;
 
   // Normalize all rows to maxCols
@@ -47,8 +46,9 @@ export function tsvToMarkdownTable(tsv: string): string {
 export function htmlTableToMarkdown(html: string): string | null {
   if (!html || !html.includes('<table')) return null;
   try {
+    const sanitizedHtml = sanitizeHtml(html);
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+    const doc = parser.parseFromString(sanitizedHtml, 'text/html');
     const table = doc.querySelector('table');
     if (!table) return null;
 
@@ -61,7 +61,7 @@ export function htmlTableToMarkdown(html: string): string | null {
           .replace(/\n/g, ' ')
           .trim();
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = text;
+        tempDiv.innerHTML = sanitizeHtml(text);
         cells.push(tempDiv.textContent?.trim().replace(/\|/g, '\\|') || '');
       });
       if (cells.length > 0) {
@@ -133,8 +133,9 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
   // First check HTML table if available
   if (html && html.includes('<table')) {
     try {
+      const sanitizedHtml = sanitizeHtml(html);
       const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+      const doc = parser.parseFromString(sanitizedHtml, 'text/html');
       const table = doc.querySelector('table');
       if (table) {
         const rows: string[][] = [];
@@ -146,7 +147,7 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
               .replace(/\r?\n/g, ' ')
               .trim();
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = cellHtml;
+            tempDiv.innerHTML = sanitizeHtml(cellHtml);
             cells.push(tempDiv.innerHTML.trim());
           });
           if (cells.length > 0) {
@@ -182,16 +183,15 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
     if (hasTabs) {
       // It's a tab-separated grid (e.g. copied left and right cells or multi-column table)
       const rows = rawLines.map((line) => line.split('\t').map((c) => c.trim()));
-      const maxCols = Math.max(...rows.map((r) => r.length));
+      const maxCols = Math.max(1, ...rows.map((r) => r.length));
       return rows.map((r) => {
         const copy = [...r];
         while (copy.length < maxCols) copy.push('');
         return copy;
       });
     } else if (rawLines.length > 1) {
-      // Multiple lines without tabs -> can be treated as vertical cells (up and down) if pasted as grid
-      // If user pasted multiple lines, we can check if it looks like distinct items or just multi-line text
-      // We will provide a helper function or trigger
+      // Multiple lines without tabs -> treat each line as a single-col row
+      return rawLines.map((l) => [l]);
     }
   }
 

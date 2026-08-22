@@ -119,21 +119,26 @@ export function useGridActions({ grid, onChangeGrid, numRows, numCols }: UseGrid
       const sanitizedMatrix = parsedMatrix.map((row) => row.map((cell) => sanitizeInputText(cell)));
       onChangeGrid(sanitizedMatrix, false);
       showCleanupNotification('Pasted and cleaned table matrix');
-    } else if (text) {
-      // Check if text contains metadata, encoded entities, or excessive spaces
-      const sanitized = sanitizeInputText(text);
-      if (sanitized !== text) {
-        e.preventDefault();
-        const textarea = e.currentTarget;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const currentVal = grid[rowIndex]?.[colIndex] || '';
-        const newVal = currentVal.substring(0, start) + sanitized + currentVal.substring(end);
-        handleCellChange(rowIndex, colIndex, newVal, false);
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start + sanitized.length, start + sanitized.length);
-        }, 0);
+    } else {
+      if (parsedMatrix === null && html && html.includes('<table')) {
+        showCleanupNotification('Table parse fallback: using plain text paste');
+      }
+      if (text) {
+        // Check if text contains metadata, encoded entities, or excessive spaces
+        const sanitized = sanitizeInputText(text);
+        if (sanitized !== text) {
+          e.preventDefault();
+          const textarea = e.currentTarget;
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const currentVal = grid[rowIndex]?.[colIndex] || '';
+          const newVal = currentVal.substring(0, start) + sanitized + currentVal.substring(end);
+          handleCellChange(rowIndex, colIndex, newVal, false);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + sanitized.length, start + sanitized.length);
+          }, 0);
+        }
       }
     }
   };

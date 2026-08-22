@@ -15,6 +15,25 @@ export default defineConfig(() => {
     test: {
       environment: 'jsdom',
     },
+    build: {
+      sourcemap: false,
+      minify: 'esbuild' as const,
+      chunkSizeWarningLimit: 600,
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            marked: ['marked'],
+            ui: ['lucide-react'],
+            purify: ['dompurify'],
+          },
+        },
+      },
+    },
+    esbuild: {
+      drop: ['console', 'debugger'] as ('console' | 'debugger')[],
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

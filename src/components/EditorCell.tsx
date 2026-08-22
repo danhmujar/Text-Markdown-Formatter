@@ -29,7 +29,7 @@ interface EditorCellProps {
   ) => void;
 }
 
-export const EditorCell: React.FC<EditorCellProps> = ({
+export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorCell({
   rowIndex,
   colIndex,
   cellValue,
@@ -39,7 +39,7 @@ export const EditorCell: React.FC<EditorCellProps> = ({
   onClearCell,
   onSmartCleanupCell,
   onPasteOnCell,
-}) => {
+}) {
   const [showWarningsDrawer, setShowWarningsDrawer] = useState<boolean>(false);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -384,4 +384,4 @@ export const EditorCell: React.FC<EditorCellProps> = ({
       </div>
     </div>
   );
-};
+});

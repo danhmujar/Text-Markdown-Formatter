@@ -24,14 +24,14 @@ interface EditorProps {
   onSwitchFocus?: () => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({
+export const Editor: React.FC<EditorProps> = React.memo(function Editor({
   grid,
   onChangeGrid,
   theme = 'dark',
   isFocusMode = false,
   onExitFocus,
   onSwitchFocus,
-}) => {
+}) {
   const isDark = theme === 'dark';
   const numRows = grid.length;
   const numCols = Math.max(...grid.map((r) => r.length), 1);
@@ -291,4 +291,4 @@ export const Editor: React.FC<EditorProps> = ({
       </div>
     </div>
   );
-};
+});

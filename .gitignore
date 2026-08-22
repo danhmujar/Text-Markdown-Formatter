@@ -7,4 +7,5 @@ coverage/
 .env*
 !.env.example
 .playwright-mcp/
+stats.html
 

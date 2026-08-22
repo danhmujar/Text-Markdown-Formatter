@@ -1,6 +1,9 @@
 import { logger } from './logger';
+import { sanitizeHtml } from './security/sanitize';
 
 export interface SanitizeOptions {
+  security?: boolean;
+  compat?: boolean;
   stripBackgrounds?: boolean;
   stripMetaTags?: boolean;
   stripComments?: boolean;
@@ -13,20 +16,28 @@ export interface SanitizeOptions {
  * Sanitize Output: Automatically strips unwanted background colors, dark mode tints,
  * meta tags, office XML artifacts, and data attributes to ensure maximum compatibility
  * across Google Sheets, Excel, Microsoft Word, Outlook, and Google Docs.
+ * Security sanitization is always enforced by default.
  */
 export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {}): string {
   const {
-    stripBackgrounds = true,
+    security = true,
+    compat = true,
+    stripBackgrounds = compat,
     stripMetaTags = true,
     stripComments = true,
-    ensureLegibleTextColor = true,
-    stripDataAttributes = true,
+    ensureLegibleTextColor = compat,
+    stripDataAttributes = compat,
     cleanWordXml = true,
   } = options;
 
   if (!rawHtml) return '';
 
   let html = rawHtml;
+
+  // Security pass: strip dangerous tags and attributes before proceeding
+  if (security) {
+    html = sanitizeHtml(html);
+  }
 
   // 1. Strip conditional and generic HTML comments
   if (stripComments) {
@@ -55,15 +66,39 @@ export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {
     if (!root) return html;
 
     // Remove any remaining meta, link, script tags in DOM
-    if (stripMetaTags) {
+    if (stripMetaTags || security) {
       root
-        .querySelectorAll('meta, link, script, noscript, style, title')
+        .querySelectorAll('meta, link, script, noscript, style, title, iframe, object, embed, form')
         .forEach((el) => el.remove());
     }
 
     const allElements = root.querySelectorAll('*');
     allElements.forEach((el) => {
       const htmlEl = el as HTMLElement;
+
+      // Security attribute sanitization: strip on*, javascript:, vbscript:, and expression() styles
+      if (security) {
+        Array.from(htmlEl.attributes).forEach((attr) => {
+          if (attr.name.startsWith('on') || /^javascript:/i.test(attr.value)) {
+            htmlEl.removeAttribute(attr.name);
+          }
+          if (
+            ['href', 'src', 'xlink:href', 'action', 'formaction', 'cite', 'data'].includes(
+              attr.name,
+            )
+          ) {
+            if (/^\s*(javascript|data:text\/html|vbscript):/i.test(attr.value)) {
+              htmlEl.removeAttribute(attr.name);
+            }
+          }
+          if (
+            attr.name === 'style' &&
+            (/expression\s*\(/i.test(attr.value) || /javascript:/i.test(attr.value))
+          ) {
+            htmlEl.removeAttribute(attr.name);
+          }
+        });
+      }
 
       // 3. Strip unwanted data attributes and class names for clean spreadsheet paste
       if (stripDataAttributes) {
@@ -157,8 +192,11 @@ export async function copyFormattedTextToClipboard(
   options: { sanitize?: boolean } = { sanitize: true },
 ): Promise<boolean> {
   try {
-    // Automatically sanitize HTML output to strip unwanted backgrounds and meta tags
-    const cleanHtml = options.sanitize !== false ? sanitizeOutputHtml(htmlContent) : htmlContent;
+    // Security sanitization is always enforced (security: true); options.sanitize controls compat stripping
+    const cleanHtml = sanitizeOutputHtml(htmlContent, {
+      security: true,
+      compat: options.sanitize !== false,
+    });
 
     // Full standalone HTML document wrapper tailored for Microsoft Word, Excel, Google Sheets, and Outlook parsing
     const fullHtml = `<!DOCTYPE html>
@@ -196,9 +234,13 @@ ${cleanHtml}
   }
 
   // Fallback for older environments or strict iframe permissions
+  let container: HTMLDivElement | null = null;
   try {
-    const cleanHtml = options.sanitize !== false ? sanitizeOutputHtml(htmlContent) : htmlContent;
-    const container = document.createElement('div');
+    const cleanHtml = sanitizeOutputHtml(htmlContent, {
+      security: true,
+      compat: options.sanitize !== false,
+    });
+    container = document.createElement('div');
     container.setAttribute('contenteditable', 'true');
     container.innerHTML = cleanHtml;
     container.style.position = 'fixed';
@@ -215,11 +257,15 @@ ${cleanHtml}
       selection.addRange(range);
       const successful = document.execCommand('copy');
       selection.removeAllRanges();
-      document.body.removeChild(container);
       return successful;
     }
   } catch (fallbackErr) {
     logger.error('Fallback execCommand copy also failed:', fallbackErr);
+  } finally {
+    if (container && container.parentNode) {
+      container.style.cssText = '';
+      container.parentNode.removeChild(container);
+    }
   }
 
   return false;

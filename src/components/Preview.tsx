@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Copy, Check, Minimize2, ArrowLeft } from 'lucide-react';
 import { StyleOptions } from '../types';
 import { hasBrTags } from '../utils/markdownFormatter';
@@ -23,7 +23,7 @@ interface PreviewProps {
   onSwitchFocus?: () => void;
 }
 
-export const Preview: React.FC<PreviewProps> = ({
+export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
   grid,
   options,
   getOutputContent,
@@ -37,7 +37,7 @@ export const Preview: React.FC<PreviewProps> = ({
   isFocusMode = false,
   onExitFocus,
   onSwitchFocus,
-}) => {
+}) {
   const isDark = options.theme === 'dark';
   const numRows = grid.length;
   const numCols = Math.max(...grid.map((r) => r.length), 1);
@@ -53,18 +53,21 @@ export const Preview: React.FC<PreviewProps> = ({
     handleTextareaKeyDown,
   } = useOutputActions({ getOutputContent, onOutputChange });
 
-  const getCellLabel = (r: number, c: number) => {
-    if (numRows === 1 && numCols === 2) {
-      return c === 0 ? 'Left Output' : 'Right Output';
-    }
-    if (numRows === 2 && numCols === 1) {
-      return r === 0 ? 'Top Output' : 'Bottom Output';
-    }
-    if (numRows === 1 && numCols === 1) {
-      return 'Output Area';
-    }
-    return `Output Cell (${r + 1}, ${c + 1})`;
-  };
+  const getCellLabel = useCallback(
+    (r: number, c: number) => {
+      if (numRows === 1 && numCols === 2) {
+        return c === 0 ? 'Left Output' : 'Right Output';
+      }
+      if (numRows === 2 && numCols === 1) {
+        return r === 0 ? 'Top Output' : 'Bottom Output';
+      }
+      if (numRows === 1 && numCols === 1) {
+        return 'Output Area';
+      }
+      return `Output Cell (${r + 1}, ${c + 1})`;
+    },
+    [numRows, numCols],
+  );
 
   // Total characters across all output containers
   const totalOutputChars = useMemo(() => {
@@ -232,4 +235,4 @@ export const Preview: React.FC<PreviewProps> = ({
       </div>
     </div>
   );
-};
+});

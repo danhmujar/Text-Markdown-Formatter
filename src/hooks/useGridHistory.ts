@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 export interface GridHistoryState {
   grid: string[][];
@@ -6,6 +6,10 @@ export interface GridHistoryState {
 }
 
 export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) {
+  if (!initialState || !Array.isArray(initialState.grid)) {
+    throw new Error('useGridHistory: initialState.grid must be string[][]');
+  }
+
   // Current live state
   const [grid, setGridState] = useState<string[][]>(() => initialState.grid.map((row) => [...row]));
   const [outputOverrides, setOutputOverridesState] = useState<Record<string, string>>(() => ({
@@ -40,6 +44,30 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
   });
 
   const areStatesEqual = (a: GridHistoryState, b: GridHistoryState): boolean => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    if (a.grid.length !== b.grid.length) return false;
+
+    const aOverridesKeys = Object.keys(a.outputOverrides);
+    const bOverridesKeys = Object.keys(b.outputOverrides);
+    if (aOverridesKeys.length !== bOverridesKeys.length) return false;
+
+    for (let r = 0; r < a.grid.length; r++) {
+      if (a.grid[r]?.length !== b.grid[r]?.length) return false;
+    }
+
+    // Fast path: skip heavy serialization on massive payloads > 500,000 chars
+    let totalChars = 0;
+    for (let r = 0; r < a.grid.length; r++) {
+      const row = a.grid[r];
+      if (row) {
+        for (let c = 0; c < row.length; c++) {
+          totalChars += (row[c] || '').length;
+        }
+      }
+    }
+    if (totalChars > 500_000) return false;
+
     return (
       JSON.stringify(a.grid) === JSON.stringify(b.grid) &&
       JSON.stringify(a.outputOverrides) === JSON.stringify(b.outputOverrides)
@@ -65,8 +93,9 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
       });
 
       setHistoryIndex(() => {
-        const nextIdx = indexRef.current + 1;
-        return Math.min(nextIdx, maxHistory - 1);
+        const nextIdx = Math.min(indexRef.current + 1, maxHistory - 1);
+        indexRef.current = nextIdx;
+        return nextIdx;
       });
     },
     [maxHistory],
@@ -88,7 +117,10 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
           clearTimeout(debounceTimerRef.current);
         }
         debounceTimerRef.current = setTimeout(() => {
-          commitSnapshot(newState);
+          commitSnapshot({
+            grid: gridRef.current,
+            outputOverrides: overridesRef.current,
+          });
           debounceTimerRef.current = null;
         }, 500);
       } else {
@@ -192,11 +224,14 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
     };
   }, []);
 
-  const canUndo =
-    historyIndex > 0 ||
-    (historyRef.current[historyIndex] &&
-      !areStatesEqual({ grid, outputOverrides }, historyRef.current[historyIndex]));
-  const canRedo = historyIndex < history.length - 1;
+  const canUndo = useMemo(
+    () =>
+      historyIndex > 0 ||
+      (Boolean(historyRef.current[historyIndex]) &&
+        !areStatesEqual({ grid, outputOverrides }, historyRef.current[historyIndex])),
+    [historyIndex, grid, outputOverrides],
+  );
+  const canRedo = useMemo(() => historyIndex < history.length - 1, [historyIndex, history.length]);
 
   return {
     grid,
