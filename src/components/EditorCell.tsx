@@ -1,15 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Trash2, 
-  Sparkles, 
-  AlertTriangle, 
-  AlertCircle, 
-  CheckCircle2, 
-  ChevronDown, 
+import {
+  Trash2,
+  Sparkles,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
   ChevronUp,
   Info,
-  Layers,
-  AlignLeft
 } from 'lucide-react';
 import { SyntaxWarning } from '../types';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
@@ -27,7 +25,7 @@ interface EditorCellProps {
   onPasteOnCell: (
     e: React.ClipboardEvent<HTMLTextAreaElement>,
     rowIndex: number,
-    colIndex: number
+    colIndex: number,
   ) => void;
 }
 
@@ -40,7 +38,7 @@ export const EditorCell: React.FC<EditorCellProps> = ({
   onCellChange,
   onClearCell,
   onSmartCleanupCell,
-  onPasteOnCell
+  onPasteOnCell,
 }) => {
   const [showWarningsDrawer, setShowWarningsDrawer] = useState<boolean>(false);
 
@@ -69,7 +67,10 @@ export const EditorCell: React.FC<EditorCellProps> = ({
       const after = val.substring(lineEnd);
       const newVal = before + after;
       onCellChange(rowIndex, colIndex, newVal, false);
-      setTimeout(() => { ta.selectionStart = lineStart; ta.selectionEnd = lineStart; }, 0);
+      setTimeout(() => {
+        ta.selectionStart = lineStart;
+        ta.selectionEnd = lineStart;
+      }, 0);
       return;
     }
 
@@ -80,7 +81,10 @@ export const EditorCell: React.FC<EditorCellProps> = ({
     const newPos = cursor + insertion.length;
 
     onCellChange(rowIndex, colIndex, newVal, false);
-    setTimeout(() => { ta.selectionStart = newPos; ta.selectionEnd = newPos; }, 0);
+    setTimeout(() => {
+      ta.selectionStart = newPos;
+      ta.selectionEnd = newPos;
+    }, 0);
   };
 
   // Dynamic character, word, and line counts
@@ -98,9 +102,7 @@ export const EditorCell: React.FC<EditorCellProps> = ({
     return analyzeSyntaxWarnings(cellValue);
   }, [cellValue]);
 
-  const errorCount = warnings.filter(w => w.severity === 'error').length;
-  const warningCount = warnings.filter(w => w.severity === 'warning').length;
-  const infoCount = warnings.filter(w => w.severity === 'info').length;
+  const errorCount = warnings.filter((w) => w.severity === 'error').length;
 
   return (
     <div
@@ -120,13 +122,17 @@ export const EditorCell: React.FC<EditorCellProps> = ({
       }`}
     >
       {/* Cell Header with Label, Real-Time Warnings Badge & Actions */}
-      <div className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 ${
-        isDark ? 'bg-slate-850/90 border-slate-800' : 'bg-slate-50 border-slate-200'
-      }`}>
+      <div
+        className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 ${
+          isDark ? 'bg-slate-850/90 border-slate-800' : 'bg-slate-50 border-slate-200'
+        }`}
+      >
         <div className="flex items-center gap-2 overflow-hidden">
-          <span className={`font-medium text-[11px] flex items-center gap-1.5 shrink-0 ${
-            isDark ? 'text-slate-300' : 'text-slate-700'
-          }`}>
+          <span
+            className={`font-medium text-[11px] flex items-center gap-1.5 shrink-0 ${
+              isDark ? 'text-slate-300' : 'text-slate-700'
+            }`}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
             {label}
           </span>
@@ -158,9 +164,12 @@ export const EditorCell: React.FC<EditorCellProps> = ({
               )}
             </button>
           ) : cellValue.trim().length > 0 ? (
-            <span className={`hidden sm:flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-              isDark ? 'text-emerald-400/80 bg-emerald-950/40' : 'text-emerald-700 bg-emerald-50'
-            }`} title="No syntax warnings detected in this cell">
+            <span
+              className={`hidden sm:flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                isDark ? 'text-emerald-400/80 bg-emerald-950/40' : 'text-emerald-700 bg-emerald-50'
+              }`}
+              title="No syntax warnings detected in this cell"
+            >
               <CheckCircle2 className="w-3 h-3" />
               <span>Valid</span>
             </span>
@@ -277,9 +286,7 @@ export const EditorCell: React.FC<EditorCellProps> = ({
                   </div>
                 </div>
 
-                <p className="text-[10.5px] opacity-90 pl-4">
-                  {warn.description}
-                </p>
+                <p className="text-[10.5px] opacity-90 pl-4">{warn.description}</p>
 
                 {warn.snippet && (
                   <div className="mt-0.5 ml-4 px-1.5 py-0.5 rounded font-mono text-[10px] bg-black/25 text-slate-300 truncate">
@@ -308,8 +315,8 @@ export const EditorCell: React.FC<EditorCellProps> = ({
           onPaste={(e) => onPasteOnCell(e, rowIndex, colIndex)}
           placeholder={`Type or paste markdown in ${label}...`}
           className={`w-full h-full p-3 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none custom-scrollbar ${
-            isDark 
-              ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600' 
+            isDark
+              ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600'
               : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
           }`}
           spellCheck={false}
@@ -320,20 +327,21 @@ export const EditorCell: React.FC<EditorCellProps> = ({
       <div
         id={`cell-counter-footer-${rowIndex}-${colIndex}`}
         className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
-          isDark ? 'bg-slate-900/90 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
+          isDark
+            ? 'bg-slate-900/90 border-slate-800 text-slate-400'
+            : 'bg-slate-50 border-slate-200 text-slate-500'
         }`}
       >
         <div className="flex items-center gap-3">
           <span
             id={`cell-char-count-${rowIndex}-${colIndex}`}
             className={`font-semibold ${
-              charCount > 0
-                ? isDark ? 'text-slate-200' : 'text-slate-800'
-                : 'opacity-60'
+              charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'
             }`}
             title="Total character count"
           >
-            {charCount.toLocaleString()} <span className="font-sans font-normal text-[10px] text-slate-400">chars</span>
+            {charCount.toLocaleString()}{' '}
+            <span className="font-sans font-normal text-[10px] text-slate-400">chars</span>
           </span>
 
           <span
@@ -363,7 +371,9 @@ export const EditorCell: React.FC<EditorCellProps> = ({
             title="Toggle warning details"
           >
             <AlertTriangle className="w-3 h-3" />
-            <span>{warnings.length} issue{warnings.length > 1 ? 's' : ''}</span>
+            <span>
+              {warnings.length} issue{warnings.length > 1 ? 's' : ''}
+            </span>
           </button>
         ) : charCount > 0 ? (
           <span className="text-[10px] font-sans text-emerald-500/80 flex items-center gap-0.5">

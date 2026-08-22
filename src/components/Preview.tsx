@@ -1,27 +1,27 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { 
-  Copy, 
-  Check, 
-  RotateCcw, 
-  Minimize2, 
-  ArrowLeft, 
-  Eye, 
-  Edit3, 
-  ListOrdered, 
-  List, 
-  Bold, 
-  Italic, 
-  Sparkles 
+import {
+  Copy,
+  Check,
+  RotateCcw,
+  Minimize2,
+  ArrowLeft,
+  Eye,
+  Edit3,
+  ListOrdered,
+  List,
+  Bold,
+  Italic,
+  Sparkles,
 } from 'lucide-react';
 import { StyleOptions } from '../types';
-import { 
-  hasBrTags, 
-  buildInlineStyledHtml, 
-  applyNumberingToText, 
+import {
+  hasBrTags,
+  buildInlineStyledHtml,
+  applyNumberingToText,
   applyInlineFormatToText,
   smartCleanupMarkdown,
   getNextListPrefix,
-  NumberingFormat 
+  NumberingFormat,
 } from '../utils/markdownFormatter';
 
 interface PreviewProps {
@@ -53,11 +53,11 @@ export const Preview: React.FC<PreviewProps> = ({
   copiedAll,
   isFocusMode = false,
   onExitFocus,
-  onSwitchFocus
+  onSwitchFocus,
 }) => {
   const isDark = options.theme === 'dark';
   const numRows = grid.length;
-  const numCols = Math.max(...grid.map(r => r.length), 1);
+  const numCols = Math.max(...grid.map((r) => r.length), 1);
 
   // Track per-cell mode: 'preview' (formatted rich text) or 'edit' (raw editable textarea)
   const [cellModes, setCellModes] = useState<Record<string, 'preview' | 'edit'>>({});
@@ -69,9 +69,9 @@ export const Preview: React.FC<PreviewProps> = ({
   const [cellFeedback, setCellFeedback] = useState<Record<string, string | null>>({});
 
   const showCellFeedback = (cellId: string, msg: string) => {
-    setCellFeedback(prev => ({ ...prev, [cellId]: msg }));
+    setCellFeedback((prev) => ({ ...prev, [cellId]: msg }));
     setTimeout(() => {
-      setCellFeedback(prev => ({ ...prev, [cellId]: null }));
+      setCellFeedback((prev) => ({ ...prev, [cellId]: null }));
     }, 2500);
   };
 
@@ -89,9 +89,9 @@ export const Preview: React.FC<PreviewProps> = ({
   };
 
   const toggleCellMode = (cellKey: string) => {
-    setCellModes(prev => ({
+    setCellModes((prev) => ({
       ...prev,
-      [cellKey]: prev[cellKey] === 'edit' ? 'preview' : 'edit'
+      [cellKey]: prev[cellKey] === 'edit' ? 'preview' : 'edit',
     }));
   };
 
@@ -106,10 +106,14 @@ export const Preview: React.FC<PreviewProps> = ({
     const result = applyNumberingToText(currentVal, start, end, format);
     onOutputChange(r, c, result.text, false);
 
-    const formatLabel = 
-      format === 'roman-parentheses' || format === '(i)' ? '(i) (ii) Roman' :
-      format === 'numeric-dot' || format === '1.' ? '1. 2. Numbered' :
-      format === 'alpha-dot' || format === 'a.' ? 'a. b. Alphabetical' : '• Bullet';
+    const formatLabel =
+      format === 'roman-parentheses' || format === '(i)'
+        ? '(i) (ii) Roman'
+        : format === 'numeric-dot' || format === '1.'
+          ? '1. 2. Numbered'
+          : format === 'alpha-dot' || format === 'a.'
+            ? 'a. b. Alphabetical'
+            : '• Bullet';
     showCellFeedback(cellId, `Applied ${formatLabel}`);
 
     if (ta) {
@@ -163,7 +167,7 @@ export const Preview: React.FC<PreviewProps> = ({
   const handleTextareaKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
     r: number,
-    c: number
+    c: number,
   ) => {
     if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
       return;
@@ -232,22 +236,28 @@ export const Preview: React.FC<PreviewProps> = ({
   }, [grid, getOutputContent]);
 
   return (
-    <div className={`flex flex-col h-full overflow-hidden transition-colors ${
-      isDark ? 'bg-slate-950' : 'bg-slate-100'
-    }`}>
+    <div
+      className={`flex flex-col h-full overflow-hidden transition-colors ${
+        isDark ? 'bg-slate-950' : 'bg-slate-100'
+      }`}
+    >
       {/* Output Header with Focus Badges & Global Copy */}
-      <div className={`h-12 px-4 border-b flex items-center justify-between gap-3 text-xs shrink-0 transition-colors ${
-        isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
-      }`}>
+      <div
+        className={`h-12 px-4 border-b flex items-center justify-between gap-3 text-xs shrink-0 transition-colors ${
+          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
+        }`}
+      >
         <div className="flex items-center gap-2">
           <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
             Output
           </span>
-          <span className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
-            isDark 
-              ? 'bg-slate-800 text-emerald-300 border-slate-700' 
-              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-          }`}>
+          <span
+            className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
+              isDark
+                ? 'bg-slate-800 text-emerald-300 border-slate-700'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}
+          >
             {numRows} × {numCols}
           </span>
           <span
@@ -259,15 +269,18 @@ export const Preview: React.FC<PreviewProps> = ({
             }`}
             title={`Total output characters: ${totalOutputChars.toLocaleString()}`}
           >
-            {totalOutputChars.toLocaleString()} <span className="font-sans font-normal text-[10px] text-slate-400 ml-0.5">chars</span>
+            {totalOutputChars.toLocaleString()}{' '}
+            <span className="font-sans font-normal text-[10px] text-slate-400 ml-0.5">chars</span>
           </span>
           {isFocusMode && (
             <div className="flex items-center gap-1.5 ml-1">
-              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                isDark
-                  ? 'bg-emerald-950/80 border-emerald-600/60 text-emerald-300'
-                  : 'bg-emerald-100/80 border-emerald-300 text-emerald-800'
-              }`}>
+              <span
+                className={`text-[11px] font-medium px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                  isDark
+                    ? 'bg-emerald-950/80 border-emerald-600/60 text-emerald-300'
+                    : 'bg-emerald-100/80 border-emerald-300 text-emerald-800'
+                }`}
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Focus Active
               </span>
@@ -326,14 +339,16 @@ export const Preview: React.FC<PreviewProps> = ({
       </div>
 
       {/* Grid of Output Containers */}
-      <div className={`flex-1 overflow-hidden p-3 transition-colors ${
-        isDark ? 'bg-slate-950/70' : 'bg-slate-100/60'
-      }`}>
+      <div
+        className={`flex-1 overflow-hidden p-3 transition-colors ${
+          isDark ? 'bg-slate-950/70' : 'bg-slate-100/60'
+        }`}
+      >
         <div
           className="grid gap-3 h-full w-full"
           style={{
             gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))`
+            gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))`,
           }}
         >
           {grid.map((row, r) =>
@@ -356,28 +371,35 @@ export const Preview: React.FC<PreviewProps> = ({
                   key={`output-cell-container-${r}-${c}`}
                   id={`output-cell-${r}-${c}`}
                   className={`flex flex-col rounded-lg overflow-hidden border shadow-sm h-full transition focus-within:ring-1 focus-within:ring-blue-500/40 ${
-                    isDark 
-                      ? 'bg-slate-900 border-slate-800 text-slate-100 focus-within:border-blue-500/60' 
+                    isDark
+                      ? 'bg-slate-900 border-slate-800 text-slate-100 focus-within:border-blue-500/60'
                       : 'bg-white border-slate-200 text-slate-800 focus-within:border-blue-500/60'
                   }`}
                 >
                   {/* Container Header */}
-                  <div className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 select-none ${
-                    isDark ? 'bg-slate-850 border-slate-800' : 'bg-slate-50 border-slate-200'
-                  }`}>
+                  <div
+                    className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 select-none ${
+                      isDark ? 'bg-slate-850 border-slate-800' : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
                     <div className="flex items-center gap-1.5">
-                      <span className={`font-medium text-[11px] flex items-center gap-1.5 ${
-                        isDark ? 'text-slate-300' : 'text-slate-700'
-                      }`}>
+                      <span
+                        className={`font-medium text-[11px] flex items-center gap-1.5 ${
+                          isDark ? 'text-slate-300' : 'text-slate-700'
+                        }`}
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
                         {getCellLabel(r, c)}
                       </span>
                       {inputHadBr && (
-                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
-                          isDark
-                            ? 'bg-indigo-950/60 border-indigo-800 text-indigo-300'
-                            : 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                        }`} title="Input contains <br> tags. On Copy, line breaks will automatically convert back to <br> tags.">
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
+                            isDark
+                              ? 'bg-indigo-950/60 border-indigo-800 text-indigo-300'
+                              : 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                          }`}
+                          title="Input contains <br> tags. On Copy, line breaks will automatically convert back to <br> tags."
+                        >
                           &lt;br&gt; Auto-Sync
                         </span>
                       )}
@@ -400,7 +422,7 @@ export const Preview: React.FC<PreviewProps> = ({
                               ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
                               : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
                         }`}
-                        title={isEditMode ? "Switch to Formatted Preview" : "Switch to Edit Mode"}
+                        title={isEditMode ? 'Switch to Formatted Preview' : 'Switch to Edit Mode'}
                       >
                         {isEditMode ? (
                           <>
@@ -443,8 +465,8 @@ export const Preview: React.FC<PreviewProps> = ({
                         }`}
                         title={
                           inputHadBr
-                            ? "Copy formatted text to clipboard (line breaks will convert back to <br> tags)"
-                            : "Copy formatted text for Word & Outlook"
+                            ? 'Copy formatted text to clipboard (line breaks will convert back to <br> tags)'
+                            : 'Copy formatted text for Word & Outlook'
                         }
                       >
                         {isCopied ? (
@@ -467,8 +489,8 @@ export const Preview: React.FC<PreviewProps> = ({
                     <div
                       id={`edit-mode-toolbar-${r}-${c}`}
                       className={`px-2.5 py-1.5 border-b flex items-center justify-between gap-2 text-xs shrink-0 select-none transition-colors ${
-                        isDark 
-                          ? 'bg-slate-900/95 border-indigo-900/40 text-slate-300' 
+                        isDark
+                          ? 'bg-slate-900/95 border-indigo-900/40 text-slate-300'
                           : 'bg-indigo-50/50 border-indigo-100 text-slate-700'
                       }`}
                     >
@@ -603,15 +625,17 @@ export const Preview: React.FC<PreviewProps> = ({
                   <div className="flex-1 relative overflow-hidden">
                     {isEditMode ? (
                       <textarea
-                        ref={(el) => { textareaRefs.current[cellId] = el; }}
+                        ref={(el) => {
+                          textareaRefs.current[cellId] = el;
+                        }}
                         id={`output-textarea-${r}-${c}`}
                         value={outputText}
                         onChange={(e) => onOutputChange(r, c, e.target.value, true)}
                         onKeyDown={(e) => handleTextareaKeyDown(e, r, c)}
                         placeholder={`Edit output for ${getCellLabel(r, c)}... (Press Enter to auto-continue numbering)`}
                         className={`w-full h-full p-3.5 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none custom-scrollbar ${
-                          isDark 
-                            ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600' 
+                          isDark
+                            ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600'
                             : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
                         }`}
                         spellCheck={false}
@@ -631,12 +655,19 @@ export const Preview: React.FC<PreviewProps> = ({
                   <div
                     id={`output-footer-${r}-${c}`}
                     className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
-                      isDark ? 'bg-slate-900/90 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
+                      isDark
+                        ? 'bg-slate-900/90 border-slate-800 text-slate-400'
+                        : 'bg-slate-50 border-slate-200 text-slate-500'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'}`}>
-                        {charCount.toLocaleString()} <span className="font-sans font-normal text-[10px] text-slate-400">chars</span>
+                      <span
+                        className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'}`}
+                      >
+                        {charCount.toLocaleString()}{' '}
+                        <span className="font-sans font-normal text-[10px] text-slate-400">
+                          chars
+                        </span>
                       </span>
                       <span className="flex items-center gap-1">
                         <span>{wordCount.toLocaleString()}</span>
@@ -654,7 +685,7 @@ export const Preview: React.FC<PreviewProps> = ({
                   </div>
                 </div>
               );
-            })
+            }),
           )}
         </div>
       </div>

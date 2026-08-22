@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Custom subtle scrollbars for balanced containers */
 .custom-scrollbar::-webkit-scrollbar {

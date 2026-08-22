@@ -12,7 +12,7 @@ export const DEFAULT_PRESETS = [
 *   **Column Header:** Notes
     *   **Expected value (from source):** Reima Rytsölä should be classified as independent from major shareholders, and he should not be identified as having stepped down from the role of "chair of the board".
     *   **Recommended correction:** Update the Notes field for Reima Rytsölä to state: "(i) Independence: a) Independent from the company and its management, b) independent from major shareholders. (ii) Reima Rytsölä stepped down as a member of the board on 24th of March 2026 after the financial year-end."
-    *   **Supporting citation:** Stora Enso Annual Report 2025, page 4 (which explicitly lists only Håkan Buskhe and Richard Nilsson as exceptions to significant shareholder independence) and page 13 (which lists Reima Rytsölä's title as "Member of Stora Enso’s Board of Directors", not Chair).`
+    *   **Supporting citation:** Stora Enso Annual Report 2025, page 4 (which explicitly lists only Håkan Buskhe and Richard Nilsson as exceptions to significant shareholder independence) and page 13 (which lists Reima Rytsölä's title as "Member of Stora Enso’s Board of Directors", not Chair).`,
   },
   {
     id: 'audit-table-and-list',
@@ -34,7 +34,7 @@ export const DEFAULT_PRESETS = [
     *   **Action 1.2:** Re-publish amended schedule of committee memberships.
 *   **Documentation Cross-Reference**
     *   **Source File:** Stora Enso Annual Report 2025 (Pages 4 & 13)
-    *   **Auditor Sign-off:** Governance & Ethics Committee`
+    *   **Auditor Sign-off:** Governance & Ethics Committee`,
   },
   {
     id: 'executive-brief',
@@ -48,17 +48,23 @@ export const DEFAULT_PRESETS = [
     *   **Remediation:** Single disclosure typo corrected on page 4 footnotes.
 *   **Next Steps for Legal & IR:**
     *   Distribute updated briefing to statutory auditors before March 31, 2026.
-    *   Archive audit trail in the company secretary repository.`
-  }
+    *   Archive audit trail in the company secretary repository.`,
+  },
 ];
 
 export const FONT_OPTIONS = [
-  { label: 'Aptos (New Microsoft Default)', value: `'Aptos', 'Segoe UI', Calibri, Arial, sans-serif` },
+  {
+    label: 'Aptos (New Microsoft Default)',
+    value: `'Aptos', 'Segoe UI', Calibri, Arial, sans-serif`,
+  },
   { label: 'Calibri (Classic Office)', value: `'Calibri', 'Segoe UI', Arial, sans-serif` },
-  { label: 'Segoe UI (Modern Windows)', value: `'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif` },
+  {
+    label: 'Segoe UI (Modern Windows)',
+    value: `'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif`,
+  },
   { label: 'Arial (Universal Clean)', value: `Arial, Helvetica, sans-serif` },
   { label: 'Georgia (Editorial Serif)', value: `Georgia, 'Times New Roman', serif` },
-  { label: 'Times New Roman (Formal)', value: `'Times New Roman', Times, serif` }
+  { label: 'Times New Roman (Formal)', value: `'Times New Roman', Times, serif` },
 ];
 
 /**
@@ -79,9 +85,7 @@ export function convertBrToNewlines(text: string): string {
 
   // Replace <br> followed immediately by an existing \r?\n so we don't produce double blank lines,
   // and then replace any standalone <br> with \n
-  return text
-    .replace(/<br\s*\/?>\r?\n/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n');
+  return text.replace(/<br\s*\/?>\r?\n/gi, '\n').replace(/<br\s*\/?>/gi, '\n');
 }
 
 /**
@@ -105,24 +109,24 @@ export function convertNewlinesToBr(text: string): string {
 export function prepareCopiedText(outputText: string, originalInputText: string): string {
   if (!outputText) return '';
   const inputHadBr = hasBrTags(originalInputText);
-  
+
   if (inputHadBr) {
     return convertNewlinesToBr(outputText);
   }
   return outputText;
 }
 
-export type NumberingFormat = 
-  | 'roman-parentheses' 
-  | 'numeric-dot' 
-  | 'numeric-parentheses' 
-  | 'alpha-dot' 
-  | 'alpha-parentheses' 
+export type NumberingFormat =
+  | 'roman-parentheses'
+  | 'numeric-dot'
+  | 'numeric-parentheses'
+  | 'alpha-dot'
+  | 'alpha-parentheses'
   | 'bullet'
-  | '1.' 
-  | '1)' 
-  | '(i)' 
-  | 'a.' 
+  | '1.'
+  | '1)'
+  | '(i)'
+  | 'a.'
   | '(a)';
 
 /**
@@ -130,9 +134,19 @@ export type NumberingFormat =
  */
 export function intToRoman(num: number): string {
   const romanMap: [number, string][] = [
-    [1000, 'm'], [900, 'cm'], [500, 'd'], [400, 'cd'],
-    [100, 'c'], [90, 'xc'], [50, 'l'], [40, 'xl'],
-    [10, 'x'], [9, 'ix'], [5, 'v'], [4, 'iv'], [1, 'i']
+    [1000, 'm'],
+    [900, 'cm'],
+    [500, 'd'],
+    [400, 'cd'],
+    [100, 'c'],
+    [90, 'xc'],
+    [50, 'l'],
+    [40, 'xl'],
+    [10, 'x'],
+    [9, 'ix'],
+    [5, 'v'],
+    [4, 'iv'],
+    [1, 'i'],
   ];
   let result = '';
   let n = Math.max(1, Math.floor(num));
@@ -150,8 +164,20 @@ export function intToRoman(num: number): string {
  */
 export function romanToInt(roman: string): number {
   const romanMap: Record<string, number> = {
-    i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000,
-    I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000
+    i: 1,
+    v: 5,
+    x: 10,
+    l: 50,
+    c: 100,
+    d: 500,
+    m: 1000,
+    I: 1,
+    V: 5,
+    X: 10,
+    L: 50,
+    C: 100,
+    D: 500,
+    M: 1000,
   };
   let total = 0;
   let prev = 0;
@@ -251,7 +277,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -268,7 +294,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -285,7 +311,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -301,7 +327,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -322,7 +348,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -343,7 +369,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -359,7 +385,7 @@ export function getNextListPrefix(line: string): NextListPrefixResult | null {
       indent,
       nextPrefix: currentPrefix,
       currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0
+      isOnlyPrefix: rest.trim().length === 0,
     };
   }
 
@@ -374,7 +400,7 @@ export function applyNumberingToText(
   fullText: string,
   selectionStart: number,
   selectionEnd: number,
-  format: NumberingFormat
+  format: NumberingFormat,
 ): { text: string; newSelectionStart: number; newSelectionEnd: number } {
   if (!fullText) {
     const prefix = getNumberingPrefix(format, 0);
@@ -384,7 +410,7 @@ export function applyNumberingToText(
   const hasSelection = selectionStart !== selectionEnd;
 
   // Determine line boundaries
-  let lineStart = fullText.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
+  const lineStart = fullText.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
   let lineEnd = fullText.indexOf('\n', selectionEnd);
   if (lineEnd === -1) lineEnd = fullText.length;
 
@@ -399,15 +425,17 @@ export function applyNumberingToText(
   const lines = targetText.split(/\r?\n/);
 
   // Check if target lines are already numbered with this exact requested format (toggle off check)
-  const nonBlankLines = lines.filter(l => l.trim().length > 0);
-  const isTargetAlreadyThisFormat = nonBlankLines.length > 0 && nonBlankLines.every((line, idx) => {
-    const prefix = getNumberingPrefix(format, idx).trim();
-    const trimmed = line.trimStart();
-    return trimmed.startsWith(prefix);
-  });
+  const nonBlankLines = lines.filter((l) => l.trim().length > 0);
+  const isTargetAlreadyThisFormat =
+    nonBlankLines.length > 0 &&
+    nonBlankLines.every((line, idx) => {
+      const prefix = getNumberingPrefix(format, idx).trim();
+      const trimmed = line.trimStart();
+      return trimmed.startsWith(prefix);
+    });
 
   let itemIndex = 0;
-  const newLines = lines.map(line => {
+  const newLines = lines.map((line) => {
     if (!line.trim()) {
       return line; // Keep empty lines intact
     }
@@ -419,7 +447,7 @@ export function applyNumberingToText(
     // Strip existing list prefixes: bullets (*, -, +), numbers (1., 1)), roman ((i), (ii)), alpha (a., (a))
     const strippedContent = trimmedContent.replace(
       /^(?:[-*+•◦▪]\s+|\d+[\.\)]\s+|\(\d+\)\s+|\([a-zA-Z0-9ivxlcdmIVXLCDM]+\)\s+|[a-zA-Z][\.\)]\s+)/,
-      ''
+      '',
     );
 
     if (isTargetAlreadyThisFormat) {
@@ -441,7 +469,7 @@ export function applyNumberingToText(
   return {
     text: resultText,
     newSelectionStart,
-    newSelectionEnd
+    newSelectionEnd,
   };
 }
 
@@ -452,7 +480,7 @@ export function applyInlineFormatToText(
   fullText: string,
   selectionStart: number,
   selectionEnd: number,
-  wrapper: string
+  wrapper: string,
 ): { text: string; newSelectionStart: number; newSelectionEnd: number } {
   const before = fullText.substring(0, selectionStart);
   const selected = fullText.substring(selectionStart, selectionEnd);
@@ -468,35 +496,47 @@ export function applyInlineFormatToText(
     return {
       text: before + unwrapped + after,
       newSelectionStart: selectionStart,
-      newSelectionEnd: selectionStart + unwrapped.length
+      newSelectionEnd: selectionStart + unwrapped.length,
     };
   }
 
-  const defaultPlaceholder = wrapper === '**' ? 'bold text' : wrapper === '*' ? 'italic text' : wrapper === '~~' ? 'strikethrough' : 'text';
+  const defaultPlaceholder =
+    wrapper === '**'
+      ? 'bold text'
+      : wrapper === '*'
+        ? 'italic text'
+        : wrapper === '~~'
+          ? 'strikethrough'
+          : 'text';
   const contentToWrap = selected || defaultPlaceholder;
   const wrapped = `${wrapper}${contentToWrap}${wrapper}`;
-  
+
   return {
     text: before + wrapped + after,
     newSelectionStart: selectionStart + wrapper.length,
-    newSelectionEnd: selectionStart + wrapper.length + contentToWrap.length
+    newSelectionEnd: selectionStart + wrapper.length + contentToWrap.length,
   };
 }
 
 export function tsvToMarkdownTable(tsv: string): string {
-  const lines = tsv.trim().split(/\r?\n/).filter(line => line.length > 0);
+  const lines = tsv
+    .trim()
+    .split(/\r?\n/)
+    .filter((line) => line.length > 0);
   if (lines.length === 0) return tsv;
 
   // Check if at least one line contains a tab
-  const hasTabs = lines.some(line => line.includes('\t'));
+  const hasTabs = lines.some((line) => line.includes('\t'));
   if (!hasTabs) return tsv;
 
-  const rows = lines.map(line => line.split('\t').map(cell => cell.trim().replace(/\|/g, '\\|')));
-  const maxCols = Math.max(...rows.map(r => r.length));
+  const rows = lines.map((line) =>
+    line.split('\t').map((cell) => cell.trim().replace(/\|/g, '\\|')),
+  );
+  const maxCols = Math.max(...rows.map((r) => r.length));
   if (maxCols < 1) return tsv;
 
   // Normalize all rows to maxCols
-  const normalizedRows = rows.map(r => {
+  const normalizedRows = rows.map((r) => {
     const copy = [...r];
     while (copy.length < maxCols) copy.push('');
     return copy;
@@ -515,7 +555,7 @@ export function tsvToMarkdownTable(tsv: string): string {
 
   let md = `| ${headerRow.join(' | ')} |\n| ${separatorRow.join(' | ')} |\n`;
   if (dataRows.length > 0) {
-    md += dataRows.map(r => `| ${r.join(' | ')} |`).join('\n');
+    md += dataRows.map((r) => `| ${r.join(' | ')} |`).join('\n');
   }
 
   return md;
@@ -530,10 +570,13 @@ export function htmlTableToMarkdown(html: string): string | null {
     if (!table) return null;
 
     const rows: string[][] = [];
-    table.querySelectorAll('tr').forEach(tr => {
+    table.querySelectorAll('tr').forEach((tr) => {
       const cells: string[] = [];
-      tr.querySelectorAll('th, td').forEach(cell => {
-        let text = cell.innerHTML.replace(/<br\s*\/?>/gi, '<br>').replace(/\n/g, ' ').trim();
+      tr.querySelectorAll('th, td').forEach((cell) => {
+        const text = cell.innerHTML
+          .replace(/<br\s*\/?>/gi, '<br>')
+          .replace(/\n/g, ' ')
+          .trim();
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = text;
         cells.push(tempDiv.textContent?.trim().replace(/\|/g, '\\|') || '');
@@ -544,8 +587,8 @@ export function htmlTableToMarkdown(html: string): string | null {
     });
 
     if (rows.length === 0) return null;
-    const maxCols = Math.max(...rows.map(r => r.length));
-    const normalizedRows = rows.map(r => {
+    const maxCols = Math.max(...rows.map((r) => r.length));
+    const normalizedRows = rows.map((r) => {
       const copy = [...r];
       while (copy.length < maxCols) copy.push('');
       return copy;
@@ -563,7 +606,7 @@ export function htmlTableToMarkdown(html: string): string | null {
 
     let md = `| ${headerRow.join(' | ')} |\n| ${separatorRow.join(' | ')} |\n`;
     if (dataRows.length > 0) {
-      md += dataRows.map(r => `| ${r.join(' | ')} |`).join('\n');
+      md += dataRows.map((r) => `| ${r.join(' | ')} |`).join('\n');
     }
 
     return md;
@@ -602,7 +645,12 @@ export function smartCleanupMarkdown(raw: string): SmartCleanupReport {
       cleaned: '',
       hasChanges: false,
       fixesCount: 0,
-      details: { spacesCleaned: false, quotesStandardized: false, markdownFixed: false, entitiesCleaned: false }
+      details: {
+        spacesCleaned: false,
+        quotesStandardized: false,
+        markdownFixed: false,
+        entitiesCleaned: false,
+      },
     };
   }
 
@@ -840,8 +888,8 @@ export function smartCleanupMarkdown(raw: string): SmartCleanupReport {
       spacesCleaned,
       quotesStandardized,
       markdownFixed,
-      entitiesCleaned
-    }
+      entitiesCleaned,
+    },
   };
 }
 
@@ -884,10 +932,10 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
       const table = doc.querySelector('table');
       if (table) {
         const rows: string[][] = [];
-        table.querySelectorAll('tr').forEach(tr => {
+        table.querySelectorAll('tr').forEach((tr) => {
           const cells: string[] = [];
-          tr.querySelectorAll('th, td').forEach(cell => {
-            let cellHtml = cell.innerHTML
+          tr.querySelectorAll('th, td').forEach((cell) => {
+            const cellHtml = cell.innerHTML
               .replace(/<br\s*\/?>/gi, '<br>')
               .replace(/\r?\n/g, ' ')
               .trim();
@@ -900,9 +948,9 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
           }
         });
         if (rows.length > 0) {
-          const maxCols = Math.max(...rows.map(r => r.length));
+          const maxCols = Math.max(...rows.map((r) => r.length));
           if (rows.length > 1 || maxCols > 1) {
-            return rows.map(r => {
+            return rows.map((r) => {
               const copy = [...r];
               while (copy.length < maxCols) copy.push('');
               return copy;
@@ -923,13 +971,13 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
       rawLines.pop();
     }
 
-    const hasTabs = rawLines.some(line => line.includes('\t'));
+    const hasTabs = rawLines.some((line) => line.includes('\t'));
 
     if (hasTabs) {
       // It's a tab-separated grid (e.g. copied left and right cells or multi-column table)
-      const rows = rawLines.map(line => line.split('\t').map(c => c.trim()));
-      const maxCols = Math.max(...rows.map(r => r.length));
-      return rows.map(r => {
+      const rows = rawLines.map((line) => line.split('\t').map((c) => c.trim()));
+      const maxCols = Math.max(...rows.map((r) => r.length));
+      return rows.map((r) => {
         const copy = [...r];
         while (copy.length < maxCols) copy.push('');
         return copy;
@@ -944,9 +992,13 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
   return null;
 }
 
-export function buildGridHtml(grid: string[][], options: StyleOptions, isForWordCopy: boolean = false): string {
+export function buildGridHtml(
+  grid: string[][],
+  options: StyleOptions,
+  isForWordCopy: boolean = false,
+): string {
   const numRows = grid.length;
-  const numCols = Math.max(...grid.map(r => r.length), 1);
+  const numCols = Math.max(...grid.map((r) => r.length), 1);
 
   if (numRows === 1 && numCols === 1) {
     return buildInlineStyledHtml(grid[0][0] || '', options, isForWordCopy);
@@ -954,7 +1006,6 @@ export function buildGridHtml(grid: string[][], options: StyleOptions, isForWord
 
   const isDarkTheme = options.theme === 'dark';
   const tableBorder = isDarkTheme && !isForWordCopy ? '#374151' : '#cbd5e1';
-  const cellBg = isDarkTheme && !isForWordCopy ? '#181a1f' : '#ffffff';
   const fontFam = options.fontFamily;
   const baseSize = options.fontSize;
 
@@ -963,7 +1014,7 @@ export function buildGridHtml(grid: string[][], options: StyleOptions, isForWord
   for (let r = 0; r < numRows; r++) {
     tableHtml += `  <tr>\n`;
     for (let c = 0; c < numCols; c++) {
-      const cellContent = (grid[r] && grid[r][c]) ? grid[r][c] : '';
+      const cellContent = grid[r] && grid[r][c] ? grid[r][c] : '';
       const renderedCell = buildInlineStyledHtml(cellContent, options, isForWordCopy);
       tableHtml += `    <td style="border: 1px solid ${tableBorder}; padding: 10pt 12pt; vertical-align: top; width: ${Math.round(100 / numCols)}%;">\n${renderedCell}\n    </td>\n`;
     }
@@ -974,10 +1025,14 @@ export function buildGridHtml(grid: string[][], options: StyleOptions, isForWord
   return tableHtml;
 }
 
-export function buildInlineStyledHtml(rawMarkdown: string, options: StyleOptions, isForWordCopy: boolean = false): string {
+export function buildInlineStyledHtml(
+  rawMarkdown: string,
+  options: StyleOptions,
+  isForWordCopy: boolean = false,
+): string {
   marked.setOptions({
     gfm: true,
-    breaks: true
+    breaks: true,
   });
 
   const processedMarkdown = preprocessMarkdownWithTsv(rawMarkdown);
@@ -990,7 +1045,7 @@ export function buildInlineStyledHtml(rawMarkdown: string, options: StyleOptions
   if (!container) return '';
 
   const isDarkTheme = options.theme === 'dark';
-  
+
   // Theme color definitions
   const textColor = isDarkTheme && !isForWordCopy ? '#f3f4f6' : '#1e293b';
   const headingColor = isDarkTheme && !isForWordCopy ? '#ffffff' : '#0f172a';
@@ -998,7 +1053,7 @@ export function buildInlineStyledHtml(rawMarkdown: string, options: StyleOptions
   const codeBg = isDarkTheme && !isForWordCopy ? '#262f3d' : '#f1f5f9';
   const codeColor = isDarkTheme && !isForWordCopy ? '#e2e8f0' : '#0f172a';
   const strongColor = isDarkTheme && !isForWordCopy ? '#ffffff' : '#0f172a';
-  
+
   const fontFam = options.fontFamily;
   const baseSize = options.fontSize;
   const lineH = options.lineHeight;
@@ -1007,26 +1062,31 @@ export function buildInlineStyledHtml(rawMarkdown: string, options: StyleOptions
   container.style.cssText = `font-family: ${fontFam}; font-size: ${baseSize}pt; line-height: ${lineH}; color: ${textColor}; word-break: break-word;`;
 
   // Style Headings
-  container.querySelectorAll('h1').forEach(el => {
-    (el as HTMLElement).style.cssText = `font-family: ${fontFam}; font-size: ${baseSize + 8}pt; font-weight: 700; color: ${headingColor}; margin: 0; line-height: 1.25;`;
+  container.querySelectorAll('h1').forEach((el) => {
+    (el as HTMLElement).style.cssText =
+      `font-family: ${fontFam}; font-size: ${baseSize + 8}pt; font-weight: 700; color: ${headingColor}; margin: 0; line-height: 1.25;`;
   });
-  container.querySelectorAll('h2').forEach(el => {
-    (el as HTMLElement).style.cssText = `font-family: ${fontFam}; font-size: ${baseSize + 5}pt; font-weight: 700; color: ${headingColor}; margin: 0; line-height: 1.3;`;
+  container.querySelectorAll('h2').forEach((el) => {
+    (el as HTMLElement).style.cssText =
+      `font-family: ${fontFam}; font-size: ${baseSize + 5}pt; font-weight: 700; color: ${headingColor}; margin: 0; line-height: 1.3;`;
   });
-  container.querySelectorAll('h3').forEach(el => {
-    (el as HTMLElement).style.cssText = `font-family: ${fontFam}; font-size: ${baseSize + 2.5}pt; font-weight: 700; color: ${headingColor}; margin: 0; line-height: 1.3;`;
+  container.querySelectorAll('h3').forEach((el) => {
+    (el as HTMLElement).style.cssText =
+      `font-family: ${fontFam}; font-size: ${baseSize + 2.5}pt; font-weight: 700; color: ${headingColor}; margin: 0; line-height: 1.3;`;
   });
-  container.querySelectorAll('h4, h5, h6').forEach(el => {
-    (el as HTMLElement).style.cssText = `font-family: ${fontFam}; font-size: ${baseSize + 1}pt; font-weight: 600; color: ${headingColor}; margin: 0; line-height: 1.3;`;
+  container.querySelectorAll('h4, h5, h6').forEach((el) => {
+    (el as HTMLElement).style.cssText =
+      `font-family: ${fontFam}; font-size: ${baseSize + 1}pt; font-weight: 600; color: ${headingColor}; margin: 0; line-height: 1.3;`;
   });
 
   // Style Paragraphs
-  container.querySelectorAll('p').forEach(el => {
-    (el as HTMLElement).style.cssText = `font-family: ${fontFam}; font-size: ${baseSize}pt; line-height: ${lineH}; color: ${textColor}; margin: 0;`;
+  container.querySelectorAll('p').forEach((el) => {
+    (el as HTMLElement).style.cssText =
+      `font-family: ${fontFam}; font-size: ${baseSize}pt; line-height: ${lineH}; color: ${textColor}; margin: 0;`;
   });
 
   // Style Strong / Bold
-  container.querySelectorAll('strong, b').forEach(el => {
+  container.querySelectorAll('strong, b').forEach((el) => {
     (el as HTMLElement).style.cssText = `font-weight: 700; color: ${strongColor};`;
   });
 
@@ -1036,80 +1096,100 @@ export function buildInlineStyledHtml(rawMarkdown: string, options: StyleOptions
   // Level 3: Square (▪)
   const processList = (listEl: HTMLElement, level: number) => {
     const isOrdered = listEl.tagName.toLowerCase() === 'ol';
-    
+
     let listStyle = 'disc';
     if (isOrdered) {
       listStyle = level === 1 ? 'decimal' : level === 2 ? 'lower-alpha' : 'lower-roman';
     } else {
-      listStyle = level === 1 ? options.bulletLevel1 : level === 2 ? options.bulletLevel2 : options.bulletLevel3;
+      listStyle =
+        level === 1
+          ? options.bulletLevel1
+          : level === 2
+            ? options.bulletLevel2
+            : options.bulletLevel3;
     }
 
     const paddingLeft = level === 1 ? '20pt' : '18pt';
-    
+
     listEl.style.cssText = `margin: 0; padding-left: ${paddingLeft}; list-style-type: ${listStyle}; color: ${textColor};`;
 
     const children = Array.from(listEl.children);
-    children.forEach(child => {
+    children.forEach((child) => {
       if (child.tagName.toLowerCase() === 'li') {
         const li = child as HTMLElement;
         li.style.cssText = `margin: 0; line-height: ${lineH}; font-size: ${baseSize}pt; color: ${textColor}; font-family: ${fontFam};`;
 
         // Check for nested lists
-        li.querySelectorAll(':scope > ul, :scope > ol').forEach(nested => {
+        li.querySelectorAll(':scope > ul, :scope > ol').forEach((nested) => {
           processList(nested as HTMLElement, level + 1);
         });
       }
     });
   };
 
-  container.querySelectorAll(':scope > ul, :scope > ol').forEach(rootList => {
+  container.querySelectorAll(':scope > ul, :scope > ol').forEach((rootList) => {
     processList(rootList as HTMLElement, 1);
   });
 
   // Style Tables (Clean, uncolored table format - explicit #ffffff overrides default spreadsheet grey)
   const copyBg = isForWordCopy ? '#ffffff' : 'transparent';
-  container.querySelectorAll('table').forEach(tbl => {
+  container.querySelectorAll('table').forEach((tbl) => {
     tbl.style.cssText = `border-collapse: collapse; width: 100%; margin: 0; font-family: ${fontFam}; font-size: ${baseSize - 0.5}pt; border: 1px solid ${tableBorder}; background-color: ${copyBg};`;
-    
+
     const ths = tbl.querySelectorAll('th');
-    ths.forEach(th => {
+    ths.forEach((th) => {
       th.style.cssText = `border: 1px solid ${tableBorder}; color: ${headingColor}; padding: 6pt 10pt; font-weight: 700; text-align: left; vertical-align: middle; background-color: ${copyBg};`;
     });
 
     const rows = tbl.querySelectorAll('tr');
-    rows.forEach(row => {
+    rows.forEach((row) => {
       (row as HTMLElement).style.cssText = `background-color: ${copyBg};`;
-      row.querySelectorAll('td').forEach(td => {
+      row.querySelectorAll('td').forEach((td) => {
         td.style.cssText = `border: 1px solid ${tableBorder}; color: ${textColor}; padding: 6pt 10pt; vertical-align: top; background-color: ${copyBg};`;
       });
     });
   });
 
   // Style Blockquotes
-  container.querySelectorAll('blockquote').forEach(bq => {
+  container.querySelectorAll('blockquote').forEach((bq) => {
     const borderColor = isDarkTheme && !isForWordCopy ? '#4b5563' : '#94a3b8';
     const bqBg = isDarkTheme && !isForWordCopy ? '#1e2633' : '#f8fafc';
     bq.style.cssText = `margin: 0; padding: 6pt 12pt; border-left: 3.5pt solid ${borderColor}; background-color: ${bqBg}; color: ${textColor}; font-style: italic;`;
   });
 
   // Style Code blocks
-  container.querySelectorAll('pre').forEach(pre => {
+  container.querySelectorAll('pre').forEach((pre) => {
     pre.style.cssText = `background-color: ${codeBg}; padding: 8pt 10pt; border-radius: 4pt; font-family: Consolas, 'Courier New', monospace; font-size: ${baseSize - 1}pt; color: ${codeColor}; overflow-x: auto; margin: 0;`;
   });
-  
-  container.querySelectorAll(':not(pre) > code').forEach(code => {
-    (code as HTMLElement).style.cssText = `background-color: ${codeBg}; padding: 1.5pt 4pt; border-radius: 3pt; font-family: Consolas, 'Courier New', monospace; font-size: ${baseSize - 1}pt; color: ${codeColor};`;
+
+  container.querySelectorAll(':not(pre) > code').forEach((code) => {
+    (code as HTMLElement).style.cssText =
+      `background-color: ${codeBg}; padding: 1.5pt 4pt; border-radius: 3pt; font-family: Consolas, 'Courier New', monospace; font-size: ${baseSize - 1}pt; color: ${codeColor};`;
   });
 
   // Style HR
-  container.querySelectorAll('hr').forEach(hr => {
+  container.querySelectorAll('hr').forEach((hr) => {
     hr.style.cssText = `border: none; border-top: 1px solid ${tableBorder}; margin: 0;`;
   });
 
   // Insert explicit <br> tags between adjacent block elements to ensure universal spacing
   // across Browsers, Microsoft Word, and Google Sheets, eliminating margin collapse issues.
-  const blockTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'BLOCKQUOTE', 'PRE', 'TABLE', 'HR'];
-  container.querySelectorAll(blockTags.join(', ')).forEach(block => {
+  const blockTags = [
+    'P',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+    'H5',
+    'H6',
+    'UL',
+    'OL',
+    'BLOCKQUOTE',
+    'PRE',
+    'TABLE',
+    'HR',
+  ];
+  container.querySelectorAll(blockTags.join(', ')).forEach((block) => {
     const next = block.nextElementSibling;
     if (next && blockTags.includes(next.tagName)) {
       const br = doc.createElement('br');
@@ -1134,17 +1214,14 @@ export interface SanitizeOptions {
  * meta tags, office XML artifacts, and data attributes to ensure maximum compatibility
  * across Google Sheets, Excel, Microsoft Word, Outlook, and Google Docs.
  */
-export function sanitizeOutputHtml(
-  rawHtml: string,
-  options: SanitizeOptions = {}
-): string {
+export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {}): string {
   const {
     stripBackgrounds = true,
     stripMetaTags = true,
     stripComments = true,
     ensureLegibleTextColor = true,
     stripDataAttributes = true,
-    cleanWordXml = true
+    cleanWordXml = true,
   } = options;
 
   if (!rawHtml) return '';
@@ -1179,16 +1256,18 @@ export function sanitizeOutputHtml(
 
     // Remove any remaining meta, link, script tags in DOM
     if (stripMetaTags) {
-      root.querySelectorAll('meta, link, script, noscript, style, title').forEach(el => el.remove());
+      root
+        .querySelectorAll('meta, link, script, noscript, style, title')
+        .forEach((el) => el.remove());
     }
 
     const allElements = root.querySelectorAll('*');
-    allElements.forEach(el => {
+    allElements.forEach((el) => {
       const htmlEl = el as HTMLElement;
 
       // 3. Strip unwanted data attributes and class names for clean spreadsheet paste
       if (stripDataAttributes) {
-        Array.from(htmlEl.attributes).forEach(attr => {
+        Array.from(htmlEl.attributes).forEach((attr) => {
           if (
             attr.name.startsWith('data-') ||
             attr.name.startsWith('aria-') ||
@@ -1237,7 +1316,11 @@ export function sanitizeOutputHtml(
 
         if (ensureLegibleTextColor) {
           // If color is white or near-white (from dark theme), replace with dark slate for high contrast
-          if (/color\s*:\s*(?:#fff(?:fff)?|white|rgba?\(\s*255\s*,\s*255\s*,\s*255|#f\d[a-f\d]+)/i.test(style)) {
+          if (
+            /color\s*:\s*(?:#fff(?:fff)?|white|rgba?\(\s*255\s*,\s*255\s*,\s*255|#f\d[a-f\d]+)/i.test(
+              style,
+            )
+          ) {
             style = style.replace(/color\s*:\s*[^;]+;?/gi, '');
             style = `${style}; color: #0f172a;`;
           }
@@ -1246,7 +1329,7 @@ export function sanitizeOutputHtml(
         // Clean up redundant semicolons and whitespace
         style = style
           .split(';')
-          .map(s => s.trim())
+          .map((s) => s.trim())
           .filter(Boolean)
           .join('; ');
 
@@ -1269,9 +1352,9 @@ export function sanitizeOutputHtml(
 }
 
 export async function copyFormattedTextToClipboard(
-  htmlContent: string, 
+  htmlContent: string,
   plainText: string,
-  options: { sanitize?: boolean } = { sanitize: true }
+  options: { sanitize?: boolean } = { sanitize: true },
 ): Promise<boolean> {
   try {
     // Automatically sanitize HTML output to strip unwanted backgrounds and meta tags
@@ -1303,7 +1386,7 @@ ${cleanHtml}
       const textBlob = new Blob([plainText], { type: 'text/plain' });
       const clipboardItem = new ClipboardItem({
         'text/html': htmlBlob,
-        'text/plain': textBlob
+        'text/plain': textBlob,
       });
       await navigator.clipboard.write([clipboardItem]);
       return true;

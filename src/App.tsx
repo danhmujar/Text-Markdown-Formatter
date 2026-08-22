@@ -1,35 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
 import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
-import { 
-  DEFAULT_PRESETS, 
+import {
+  DEFAULT_PRESETS,
   FONT_OPTIONS,
   hasBrTags,
   convertBrToNewlines,
   prepareCopiedText,
   buildInlineStyledHtml,
   buildGridHtml,
-  copyFormattedTextToClipboard
+  copyFormattedTextToClipboard,
 } from './utils/markdownFormatter';
 
 export default function App() {
   // State-based history manager for 2D grid matrix and per-cell output overrides
-  const {
-    grid,
-    outputOverrides,
-    updateGrid,
-    updateOutputOverrides,
-    undo,
-    redo,
-    canUndo,
-    canRedo
-  } = useGridHistory({
-    grid: [[DEFAULT_PRESETS[0].content]],
-    outputOverrides: {}
-  });
+  const { grid, outputOverrides, updateGrid, updateOutputOverrides, undo, redo, canUndo, canRedo } =
+    useGridHistory({
+      grid: [[DEFAULT_PRESETS[0].content]],
+      outputOverrides: {},
+    });
 
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState<boolean>(false);
@@ -52,14 +44,14 @@ export default function App() {
     highlightBoldKeys: true,
     primaryColor: '#2563eb',
     theme: 'dark',
-    sanitizeOutput: true
+    sanitizeOutput: true,
   });
 
   const isDark = options.theme === 'dark';
 
   // Toggle Focus Mode between split and active container
   const handleToggleFocusMode = () => {
-    setFocusMode(prev => {
+    setFocusMode((prev) => {
       if (prev === 'split') {
         return activePanel;
       }
@@ -136,15 +128,18 @@ export default function App() {
 
   // Allow manual edit on output container
   const handleOutputChange = (rowIndex: number, colIndex: number, val: string, isTyping = true) => {
-    updateOutputOverrides(prev => ({
-      ...prev,
-      [`${rowIndex}-${colIndex}`]: val
-    }), isTyping);
+    updateOutputOverrides(
+      (prev) => ({
+        ...prev,
+        [`${rowIndex}-${colIndex}`]: val,
+      }),
+      isTyping,
+    );
   };
 
   // Reset output cell to sync with input
   const handleResetOutputCell = (rowIndex: number, colIndex: number) => {
-    updateOutputOverrides(prev => {
+    updateOutputOverrides((prev) => {
       const next = { ...prev };
       delete next[`${rowIndex}-${colIndex}`];
       return next;
@@ -162,10 +157,14 @@ export default function App() {
     const outputContent = getOutputContent(rowIndex, colIndex);
     const inputContent = grid[rowIndex]?.[colIndex] || '';
     const textToCopy = prepareCopiedText(outputContent, inputContent);
-    const wordExportHtml = buildInlineStyledHtml(outputContent, { ...options, theme: 'light' }, true);
+    const wordExportHtml = buildInlineStyledHtml(
+      outputContent,
+      { ...options, theme: 'light' },
+      true,
+    );
 
     const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-      sanitize: options.sanitizeOutput !== false
+      sanitize: options.sanitizeOutput !== false,
     });
 
     if (success) {
@@ -177,14 +176,12 @@ export default function App() {
   // Copy all containers:
   // Provides rich formatted HTML table/block for Word/Outlook and plain text with <br> reversion if input had <br>.
   const handleCopyAllGrid = async () => {
-    const outputMatrix = grid.map((row, r) =>
-      row.map((_, c) => getOutputContent(r, c))
-    );
+    const outputMatrix = grid.map((row, r) => row.map((_, c) => getOutputContent(r, c)));
     const preparedMatrix = grid.map((row, r) =>
       row.map((inputCell, c) => {
         const outputCell = getOutputContent(r, c);
         return prepareCopiedText(outputCell, inputCell);
-      })
+      }),
     );
 
     const wordExportGridHtml = buildGridHtml(outputMatrix, { ...options, theme: 'light' }, true);
@@ -193,13 +190,11 @@ export default function App() {
     if (preparedMatrix.length === 1 && preparedMatrix[0].length === 1) {
       combinedText = preparedMatrix[0][0];
     } else {
-      combinedText = preparedMatrix
-        .map(row => row.join('\t'))
-        .join('\n\n');
+      combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n\n');
     }
 
     const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
-      sanitize: options.sanitizeOutput !== false
+      sanitize: options.sanitizeOutput !== false,
     });
 
     if (success) {
@@ -209,9 +204,11 @@ export default function App() {
   };
 
   return (
-    <div className={`flex flex-col h-screen w-screen overflow-hidden transition-colors ${
-      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
-    }`}>
+    <div
+      className={`flex flex-col h-screen w-screen overflow-hidden transition-colors ${
+        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
+      }`}
+    >
       {/* Title + Font + Font Size + Undo/Redo + Focus Mode + Theme Toggle Header */}
       <Header
         options={options}
@@ -223,25 +220,24 @@ export default function App() {
         focusMode={focusMode}
         activePanel={activePanel}
         onToggleFocusMode={handleToggleFocusMode}
-        onSetFocusMode={setFocusMode}
       />
 
       {/* Input & Output Panels - In Focus Mode, inactive panel collapses completely */}
-      <main className={`flex-1 overflow-hidden ${
-        focusMode === 'split'
-          ? 'grid grid-cols-1 lg:grid-cols-2'
-          : 'grid grid-cols-1'
-      }`}>
+      <main
+        className={`flex-1 overflow-hidden ${
+          focusMode === 'split' ? 'grid grid-cols-1 lg:grid-cols-2' : 'grid grid-cols-1'
+        }`}
+      >
         {/* Input Panel */}
         <section
           id="input-container-panel"
           onClick={() => setActivePanel('input')}
           onFocusCapture={() => setActivePanel('input')}
-          className={`h-full overflow-hidden ${
-            focusMode === 'output' ? 'hidden' : 'block'
-          } ${
+          className={`h-full overflow-hidden ${focusMode === 'output' ? 'hidden' : 'block'} ${
             focusMode === 'split'
-              ? isDark ? 'border-b lg:border-b-0 lg:border-r border-slate-800' : 'border-b lg:border-b-0 lg:border-r border-slate-200'
+              ? isDark
+                ? 'border-b lg:border-b-0 lg:border-r border-slate-800'
+                : 'border-b lg:border-b-0 lg:border-r border-slate-200'
               : ''
           }`}
         >
@@ -263,9 +259,7 @@ export default function App() {
           id="output-container-panel"
           onClick={() => setActivePanel('output')}
           onFocusCapture={() => setActivePanel('output')}
-          className={`h-full overflow-hidden ${
-            focusMode === 'input' ? 'hidden' : 'block'
-          }`}
+          className={`h-full overflow-hidden ${focusMode === 'input' ? 'hidden' : 'block'}`}
         >
           <Preview
             grid={grid}

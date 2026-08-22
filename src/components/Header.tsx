@@ -1,5 +1,14 @@
 import React from 'react';
-import { Sun, Moon, ShieldCheck, ShieldAlert, Undo2, Redo2, Maximize2, Minimize2 } from 'lucide-react';
+import {
+  Sun,
+  Moon,
+  ShieldCheck,
+  ShieldAlert,
+  Undo2,
+  Redo2,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 import { StyleOptions, FocusMode } from '../types';
 import { FONT_OPTIONS } from '../utils/markdownFormatter';
 
@@ -13,7 +22,6 @@ interface HeaderProps {
   focusMode?: FocusMode;
   activePanel?: 'input' | 'output';
   onToggleFocusMode?: () => void;
-  onSetFocusMode?: (mode: FocusMode) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,36 +34,39 @@ export const Header: React.FC<HeaderProps> = ({
   focusMode = 'split',
   activePanel = 'input',
   onToggleFocusMode,
-  onSetFocusMode
 }) => {
   const isDark = options.theme === 'dark';
   const isSanitizeActive = options.sanitizeOutput !== false;
   const isFocused = focusMode !== 'split';
 
   const toggleTheme = () => {
-    setOptions(prev => ({
+    setOptions((prev) => ({
       ...prev,
-      theme: prev.theme === 'dark' ? 'light' : 'dark'
+      theme: prev.theme === 'dark' ? 'light' : 'dark',
     }));
   };
 
   const toggleSanitize = () => {
-    setOptions(prev => ({
+    setOptions((prev) => ({
       ...prev,
-      sanitizeOutput: prev.sanitizeOutput === false ? true : false
+      sanitizeOutput: prev.sanitizeOutput === false ? true : false,
     }));
   };
 
   return (
-    <header className={`border-b px-6 py-2.5 sticky top-0 z-30 transition-colors ${
-      isDark
-        ? 'bg-slate-900 border-slate-800 text-slate-100'
-        : 'bg-white border-slate-200 text-slate-800 shadow-sm'
-    }`}>
+    <header
+      className={`border-b px-6 py-2.5 sticky top-0 z-30 transition-colors ${
+        isDark
+          ? 'bg-slate-900 border-slate-800 text-slate-100'
+          : 'bg-white border-slate-200 text-slate-800 shadow-sm'
+      }`}
+    >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Title */}
         <div className="flex items-center gap-3">
-          <h1 className={`font-bold text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h1
+            className={`font-bold text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}
+          >
             Text &amp; Markdown Formatter
           </h1>
         </div>
@@ -63,9 +74,11 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Undo/Redo, Focus Mode, Font, Font Size, Sanitize Output, and Theme Toggle Controls */}
         <div className="flex items-center gap-2.5">
           {/* Undo / Redo Control Group */}
-          <div className={`flex items-center rounded-md border p-0.5 shadow-2xs ${
-            isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
-          }`}>
+          <div
+            className={`flex items-center rounded-md border p-0.5 shadow-2xs ${
+              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
             <button
               id="header-undo-btn"
               onClick={onUndo}
@@ -172,16 +185,18 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Font Selector */}
-          <div className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border ${
-            isDark
-              ? 'bg-slate-800 border-slate-700'
-              : 'bg-slate-50 border-slate-200'
-          }`}>
-            <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Font:</span>
+          <div
+            className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border ${
+              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Font:
+            </span>
             <select
               id="font-family-select"
               value={options.fontFamily}
-              onChange={(e) => setOptions(prev => ({ ...prev, fontFamily: e.target.value }))}
+              onChange={(e) => setOptions((prev) => ({ ...prev, fontFamily: e.target.value }))}
               className={`bg-transparent text-xs focus:outline-none cursor-pointer pr-1 ${
                 isDark ? 'text-slate-200' : 'text-slate-800'
               }`}
@@ -199,19 +214,21 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Font Size controls */}
-          <div className={`flex items-center rounded-md border overflow-hidden text-xs ${
-            isDark
-              ? 'bg-slate-800 border-slate-700'
-              : 'bg-slate-50 border-slate-200'
-          }`}>
-            <span className={`px-2.5 py-1.5 text-xs font-medium border-r ${
-              isDark ? 'text-slate-400 border-slate-700' : 'text-slate-500 border-slate-200'
-            }`}>
+          <div
+            className={`flex items-center rounded-md border overflow-hidden text-xs ${
+              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <span
+              className={`px-2.5 py-1.5 text-xs font-medium border-r ${
+                isDark ? 'text-slate-400 border-slate-700' : 'text-slate-500 border-slate-200'
+              }`}
+            >
               Size
             </span>
             <button
               id="font-size-decrease-btn"
-              onClick={() => setOptions(p => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
+              onClick={() => setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
               className={`px-2.5 py-1.5 transition ${
                 isDark
                   ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
@@ -221,16 +238,16 @@ export const Header: React.FC<HeaderProps> = ({
             >
               -
             </button>
-            <span className={`px-2 py-1.5 font-mono border-x ${
-              isDark
-                ? 'text-slate-200 border-slate-700'
-                : 'text-slate-800 border-slate-200'
-            }`}>
+            <span
+              className={`px-2 py-1.5 font-mono border-x ${
+                isDark ? 'text-slate-200 border-slate-700' : 'text-slate-800 border-slate-200'
+              }`}
+            >
               {options.fontSize}pt
             </span>
             <button
               id="font-size-increase-btn"
-              onClick={() => setOptions(p => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))}
+              onClick={() => setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))}
               className={`px-2.5 py-1.5 transition ${
                 isDark
                   ? 'text-slate-300 hover:bg-slate-700 hover:text-white'

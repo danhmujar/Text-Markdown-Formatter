@@ -19,8 +19,9 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
       id: 'unclosed-code-fence',
       severity: 'error',
       title: 'Unclosed Code Block',
-      description: 'Triple-backtick (```) code block is opened but not closed with a matching ``` fence.',
-      fixSuggestion: 'Add closing ``` on a new line.'
+      description:
+        'Triple-backtick (```) code block is opened but not closed with a matching ``` fence.',
+      fixSuggestion: 'Add closing ``` on a new line.',
     });
   }
 
@@ -44,7 +45,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         title: 'Unclosed Inline Code (`...)',
         description: `Line ${lineIdx + 1} has an odd number of backticks (${backticks.length}), which may leave inline code unclosed.`,
         line: lineIdx + 1,
-        snippet: line.trim()
+        snippet: line.trim(),
       });
     }
   });
@@ -57,7 +58,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
   // Also check for unclosed angle bracket tags e.g. <span style="..." at end of line without >
   lines.forEach((line, lineIdx) => {
     if (line.trim().startsWith('```')) return;
-    
+
     // Check unclosed angle bracket
     const openAngleWithoutClose = /<[a-zA-Z][^>\n]*$/;
     if (openAngleWithoutClose.test(line) && !line.includes('>')) {
@@ -67,7 +68,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         title: 'Incomplete HTML Tag',
         description: `Line ${lineIdx + 1} contains an unclosed HTML opening tag (<tag without closing >).`,
         line: lineIdx + 1,
-        snippet: line.trim()
+        snippet: line.trim(),
       });
     }
 
@@ -85,7 +86,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         tagStack.push({ tag: tagName, line: lineIdx + 1 });
       } else {
         // Find matching tag in stack from the top
-        const lastIdx = tagStack.map(t => t.tag).lastIndexOf(tagName);
+        const lastIdx = tagStack.map((t) => t.tag).lastIndexOf(tagName);
         if (lastIdx === -1) {
           warnings.push({
             id: `orphan-closing-tag-${tagName}-${lineIdx + 1}`,
@@ -93,7 +94,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
             title: `Unmatched </${tagName}> Tag`,
             description: `Closing tag </${tagName}> on line ${lineIdx + 1} has no matching <${tagName}> opening tag.`,
             line: lineIdx + 1,
-            snippet: line.trim()
+            snippet: line.trim(),
           });
         } else {
           tagStack.splice(lastIdx, 1);
@@ -111,7 +112,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         title: `Unclosed <${tag}> Tag`,
         description: `<${tag}> opened on line ${line} was not closed with </${tag}>.`,
         line,
-        fixSuggestion: `Add </${tag}> to close the tag.`
+        fixSuggestion: `Add </${tag}> to close the tag.`,
       });
     });
   }
@@ -122,7 +123,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
 
   lines.forEach((line, lineIdx) => {
     if (line.trim().startsWith('```')) return;
-    
+
     // Count **
     const starsDouble = line.match(/\*\*/g) || [];
     totalAsteriskDouble += starsDouble.length;
@@ -143,19 +144,22 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
           description: `Line ${lineIdx + 1} has an odd number of ** delimiters (${starsDouble.length}). Text may stay bold unintentionally.`,
           line: lineIdx + 1,
           snippet: line.trim(),
-          fixSuggestion: 'Ensure ** surrounds the target text on both sides.'
+          fixSuggestion: 'Ensure ** surrounds the target text on both sides.',
         });
       }
     }
   });
 
-  if (totalAsteriskDouble % 2 !== 0 && !warnings.some(w => w.id.startsWith('unbalanced-bold-line'))) {
+  if (
+    totalAsteriskDouble % 2 !== 0 &&
+    !warnings.some((w) => w.id.startsWith('unbalanced-bold-line'))
+  ) {
     warnings.push({
       id: 'unbalanced-global-bold',
       severity: 'warning',
       title: 'Unclosed Bold Formatting (**)',
       description: 'Odd number of ** bold markers found across the cell.',
-      fixSuggestion: 'Check for missing closing **.'
+      fixSuggestion: 'Check for missing closing **.',
     });
   }
 
@@ -165,7 +169,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
       severity: 'warning',
       title: 'Unclosed Strikethrough (~~)',
       description: 'Odd number of ~~ strikethrough markers found in the cell.',
-      fixSuggestion: 'Check for missing closing ~~.'
+      fixSuggestion: 'Check for missing closing ~~.',
     });
   }
 
@@ -180,7 +184,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         title: 'Unclosed Link Parenthesis',
         description: `Line ${lineIdx + 1} has a link destination missing its closing parenthesis ")".`,
         line: lineIdx + 1,
-        snippet: line.trim()
+        snippet: line.trim(),
       });
     }
 
@@ -193,7 +197,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         title: 'Unclosed Link Bracket [',
         description: `Line ${lineIdx + 1} has an unclosed "[" square bracket.`,
         line: lineIdx + 1,
-        snippet: line.trim()
+        snippet: line.trim(),
       });
     }
 
@@ -205,14 +209,13 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
         title: 'Empty Link URL',
         description: `Line ${lineIdx + 1} contains a markdown link with an empty URL ().`,
         line: lineIdx + 1,
-        snippet: line.trim()
+        snippet: line.trim(),
       });
     }
   });
 
   // 6. Check for Malformed Markdown Lists
   let prevIndent = -1;
-  let prevIsOrdered = false;
 
   lines.forEach((line, lineIdx) => {
     const listMatch = line.match(/^(\s*)([*+-]|\d+\.)\s*(.*)$/);
@@ -220,7 +223,6 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
       const indent = listMatch[1].length;
       const marker = listMatch[2];
       const content = listMatch[3];
-      const isOrdered = /^\d+\./.test(marker);
 
       // Empty bullet with no content
       if (!content.trim()) {
@@ -231,7 +233,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
           description: `Line ${lineIdx + 1} has a list bullet "${marker}" with no accompanying text.`,
           line: lineIdx + 1,
           snippet: line.trim(),
-          fixSuggestion: 'Add text or remove the empty list bullet.'
+          fixSuggestion: 'Add text or remove the empty list bullet.',
         });
       }
 
@@ -244,7 +246,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
           description: `Line ${lineIdx + 1} has ${indent} leading spaces. Markdown sub-lists typically use 2 or 4 spaces.`,
           line: lineIdx + 1,
           snippet: line.trim(),
-          fixSuggestion: 'Use 2 or 4 spaces per nesting level.'
+          fixSuggestion: 'Use 2 or 4 spaces per nesting level.',
         });
       }
 
@@ -256,12 +258,11 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
           title: 'Large List Indentation Jump',
           description: `Line ${lineIdx + 1} jumps from ${prevIndent} to ${indent} spaces of indentation.`,
           line: lineIdx + 1,
-          snippet: line.trim()
+          snippet: line.trim(),
         });
       }
 
       prevIndent = indent;
-      prevIsOrdered = isOrdered;
     } else if (line.trim().length > 0) {
       prevIndent = -1;
     }
@@ -291,7 +292,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
 
 function validateTableBlock(
   tableLines: { line: string; idx: number; colCount: number }[],
-  warnings: SyntaxWarning[]
+  warnings: SyntaxWarning[],
 ) {
   if (tableLines.length < 2) return;
 
@@ -307,12 +308,12 @@ function validateTableBlock(
       description: `Table on line ${tableLines[0].idx} is missing a separator row like "| :--- | :--- |" after the header.`,
       line: tableLines[0].idx,
       snippet: tableLines[0].line,
-      fixSuggestion: `Add | ${new Array(headerCols).fill(':---').join(' | ')} | below the header.`
+      fixSuggestion: `Add | ${new Array(headerCols).fill(':---').join(' | ')} | below the header.`,
     });
   }
 
   // Check column count consistency
-  tableLines.forEach(row => {
+  tableLines.forEach((row) => {
     if (row.colCount !== headerCols) {
       warnings.push({
         id: `table-col-mismatch-${row.idx}`,
@@ -320,7 +321,7 @@ function validateTableBlock(
         title: 'Table Column Count Mismatch',
         description: `Line ${row.idx} has ${row.colCount} columns, but the table header has ${headerCols} columns.`,
         line: row.idx,
-        snippet: row.line
+        snippet: row.line,
       });
     }
   });
