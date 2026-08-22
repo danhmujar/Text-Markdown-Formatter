@@ -3,7 +3,7 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 4/5 — Maintainability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** File org, TS strict, duplication, lint, config hygiene
-**Status:** Phase 1 complete (2026-08-22) — Phases 2-5 pending
+**Status:** Phases 1-2 complete (2026-08-22) — Phases 3-5 pending
 **Date:** 2026-08-22
 **Audit source:** Inline audit `src/utils/markdownFormatter.ts:1-1343`, `tsconfig.json:1-26`, `package.json:1-36`, `vite.config.ts:1-22`
 
@@ -91,7 +91,7 @@
 
 ---
 
-## Phase 2: Constants Extraction (Copy-paste, no logic change)
+## Phase 2: Constants Extraction (Copy-paste, no logic change) — ✅ COMPLETE (2026-08-22)
 
 **What to implement**
 1. Create `src/constants/presets.ts` — COPY `DEFAULT_PRESETS` verbatim from `src/utils/markdownFormatter.ts:4-53`
@@ -108,10 +108,16 @@
 - `src/components/Header.tsx:4` — consumer
 
 **Verification checklist**
-- [ ] `npx tsc --noEmit` passes
-- [ ] `grep -r "DEFAULT_PRESETS" src` shows only `constants/presets.ts` definition + imports
-- [ ] `npm run build` succeeds, no runtime preset regression (manual: load app, presets dropdown shows 3 items)
-- [ ] `git diff --stat` shows +3 files in `src/constants/`, -0 logic in `markdownFormatter.ts` except imports
+- [x] `npx tsc --noEmit` passes
+- [x] `grep -r "DEFAULT_PRESETS" src` shows only `constants/presets.ts` definition + imports
+- [x] `npm run build` succeeds, no runtime preset regression (bundle 327.97 kB, +0.35 kB ≈ 0.1%)
+- [x] `git diff --stat` shows +4 files in `src/constants/`, -0 logic in `markdownFormatter.ts` except imports
+
+**Execution notes (2026-08-22)**
+- Line refs shifted post-prettier: presets/fonts were at `markdownFormatter.ts:4-68`; theme colors at `:1008,1050-1055`.
+- Plan listed 5 colors; actual usage was 8 hex values — all captured in `THEME_COLORS` (`text`, `heading`, `strong`, `tableBorder`, `codeBg`, `codeText` as dark/light pairs).
+- Sanitize-section inline colors (`sanitizeOutputHtml`, ~`:1302+`) intentionally untouched — they move to `sanitize.ts` in Phase 3.
+- Consumers now import directly from `./constants/presets|fonts` (App.tsx, Header.tsx); no re-export shim kept since only 2 consumers existed.
 
 **Anti-pattern guards**
 - Do NOT rename `DEFAULT_PRESETS` ids (`user-discrepancy`, `audit-table-and-list`, `executive-brief`)
@@ -270,8 +276,8 @@
 ## Execution Order & Dependencies
 
 ```
-Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 (constants) ──> Phase 3 (split) ──> Phase 4 (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
-                └─ done — strict TS passes; Phases 2+ unblocked
+Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 (split) ──> Phase 4 (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
+                └─ done — strict TS passes; Phases 3+ unblocked
 ```
 
 - Each phase is **self-contained** with its own doc refs — can be executed in fresh chat context.

@@ -4,16 +4,14 @@ import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
 import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
+import { hasBrTags, convertBrToNewlines, prepareCopiedText } from './utils/markdownFormatter';
 import {
-  DEFAULT_PRESETS,
-  FONT_OPTIONS,
-  hasBrTags,
-  convertBrToNewlines,
-  prepareCopiedText,
   buildInlineStyledHtml,
   buildGridHtml,
   copyFormattedTextToClipboard,
 } from './utils/markdownFormatter';
+import { DEFAULT_PRESETS } from './constants/presets';
+import { FONT_OPTIONS } from './constants/fonts';
 
 export default function App() {
   // State-based history manager for 2D grid matrix and per-cell output overrides

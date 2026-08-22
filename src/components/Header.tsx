@@ -10,7 +10,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { StyleOptions, FocusMode } from '../types';
-import { FONT_OPTIONS } from '../utils/markdownFormatter';
+import { FONT_OPTIONS } from '../constants/fonts';
 
 interface HeaderProps {
   options: StyleOptions;
