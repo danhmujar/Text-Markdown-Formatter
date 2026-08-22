@@ -4,12 +4,8 @@ import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
 import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
-import { hasBrTags, convertBrToNewlines, prepareCopiedText } from './utils/markdownFormatter';
-import {
-  buildInlineStyledHtml,
-  buildGridHtml,
-  copyFormattedTextToClipboard,
-} from './utils/markdownFormatter';
+import { useCopy } from './hooks/useCopy';
+import { hasBrTags, convertBrToNewlines } from './utils/markdownFormatter';
 import { DEFAULT_PRESETS } from './constants/presets';
 import { FONT_OPTIONS } from './constants/fonts';
 
@@ -20,9 +16,6 @@ export default function App() {
       grid: [[DEFAULT_PRESETS[0].content]],
       outputOverrides: {},
     });
-
-  const [copiedCell, setCopiedCell] = useState<string | null>(null);
-  const [copiedAll, setCopiedAll] = useState<boolean>(false);
 
   // Focus Mode state: 'split' (both visible), 'input' (input maximized), 'output' (output maximized)
   const [focusMode, setFocusMode] = useState<FocusMode>('split');
@@ -144,61 +137,15 @@ export default function App() {
     }, false);
   };
 
+  const { copiedCell, copiedAll, handleCopyCell, handleCopyAllGrid } = useCopy({
+    grid,
+    options,
+    getOutputContent,
+  });
+
   // Grid updater: clears any stale override on that modified cell
   const handleGridChange = (newGrid: string[][], isTyping = false) => {
     updateGrid(newGrid, isTyping);
-  };
-
-  // Copy a single cell:
-  // Provides rich formatted HTML for Word/Outlook and plain text with <br> reversion if input had <br>.
-  const handleCopyCell = async (rowIndex: number, colIndex: number) => {
-    const outputContent = getOutputContent(rowIndex, colIndex);
-    const inputContent = grid[rowIndex]?.[colIndex] || '';
-    const textToCopy = prepareCopiedText(outputContent, inputContent);
-    const wordExportHtml = buildInlineStyledHtml(
-      outputContent,
-      { ...options, theme: 'light' },
-      true,
-    );
-
-    const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-      sanitize: options.sanitizeOutput !== false,
-    });
-
-    if (success) {
-      setCopiedCell(`${rowIndex}-${colIndex}`);
-      setTimeout(() => setCopiedCell(null), 2500);
-    }
-  };
-
-  // Copy all containers:
-  // Provides rich formatted HTML table/block for Word/Outlook and plain text with <br> reversion if input had <br>.
-  const handleCopyAllGrid = async () => {
-    const outputMatrix = grid.map((row, r) => row.map((_, c) => getOutputContent(r, c)));
-    const preparedMatrix = grid.map((row, r) =>
-      row.map((inputCell, c) => {
-        const outputCell = getOutputContent(r, c);
-        return prepareCopiedText(outputCell, inputCell);
-      }),
-    );
-
-    const wordExportGridHtml = buildGridHtml(outputMatrix, { ...options, theme: 'light' }, true);
-
-    let combinedText = '';
-    if (preparedMatrix.length === 1 && preparedMatrix[0].length === 1) {
-      combinedText = preparedMatrix[0][0];
-    } else {
-      combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n\n');
-    }
-
-    const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
-      sanitize: options.sanitizeOutput !== false,
-    });
-
-    if (success) {
-      setCopiedAll(true);
-      setTimeout(() => setCopiedAll(false), 2500);
-    }
   };
 
   return (

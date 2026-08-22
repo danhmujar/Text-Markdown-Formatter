@@ -1,0 +1,254 @@
+import React from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { Copy, Check, RotateCcw, Eye, Edit3 } from 'lucide-react';
+import { StyleOptions } from '../types';
+import { buildInlineStyledHtml, NumberingFormat } from '../utils/markdownFormatter';
+import { cn } from '../utils/cn';
+import { BUTTON_VARIANTS } from './ui';
+import { EditToolbar } from './EditToolbar';
+
+interface OutputCellProps {
+  rowIndex: number;
+  colIndex: number;
+  outputText: string;
+  inputHadBr: boolean;
+  isOverridden: boolean;
+  options: StyleOptions;
+  cellMode: 'preview' | 'edit';
+  isCopied: boolean;
+  feedback: string | null;
+  label: string;
+  registerTextarea: (el: HTMLTextAreaElement | null) => void;
+  onToggleMode: () => void;
+  onReset: () => void;
+  onCopy: () => void;
+  onKeyDown: (e: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
+  onOutputChange: (val: string) => void;
+  onSmartClean: () => void;
+  onApplyNumbering: (format: NumberingFormat) => void;
+  onApplyInlineFormat: (wrapper: string, label: string) => void;
+}
+
+export const OutputCell: React.FC<OutputCellProps> = ({
+  rowIndex: r,
+  colIndex: c,
+  outputText,
+  inputHadBr,
+  isOverridden,
+  options,
+  cellMode,
+  isCopied,
+  feedback,
+  label,
+  registerTextarea,
+  onToggleMode,
+  onReset,
+  onCopy,
+  onKeyDown,
+  onOutputChange,
+  onSmartClean,
+  onApplyNumbering,
+  onApplyInlineFormat,
+}) => {
+  const isDark = options.theme === 'dark';
+  const isEditMode = cellMode === 'edit';
+  const htmlFormatted = buildInlineStyledHtml(outputText, options, false);
+  const charCount = outputText.length;
+  const wordCount = outputText.trim() ? outputText.trim().split(/\s+/).length : 0;
+  const lineCount = outputText ? outputText.split(/\r?\n/).length : 0;
+
+  return (
+    <div
+      id={`output-cell-${r}-${c}`}
+      className={`flex flex-col rounded-lg overflow-hidden border shadow-sm h-full transition focus-within:ring-1 focus-within:ring-blue-500/40 ${
+        isDark
+          ? 'bg-slate-900 border-slate-800 text-slate-100 focus-within:border-blue-500/60'
+          : 'bg-white border-slate-200 text-slate-800 focus-within:border-blue-500/60'
+      }`}
+    >
+      {/* Container Header */}
+      <div
+        className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 select-none ${
+          isDark ? 'bg-slate-850 border-slate-800' : 'bg-slate-50 border-slate-200'
+        }`}
+      >
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`font-medium text-[11px] flex items-center gap-1.5 ${
+              isDark ? 'text-slate-300' : 'text-slate-700'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            {label}
+          </span>
+          {inputHadBr && (
+            <span
+              className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
+                isDark
+                  ? 'bg-indigo-950/60 border-indigo-800 text-indigo-300'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-700'
+              }`}
+              title="Input contains <br> tags. On Copy, line breaks will automatically convert back to <br> tags."
+            >
+              &lt;br&gt; Auto-Sync
+            </span>
+          )}
+          {isOverridden && (
+            <span className="text-[10px] text-blue-400 font-mono px-1.5 py-0.2 bg-blue-500/10 rounded">
+              edited
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* Toggle Edit / Formatted Mode */}
+          <button
+            id={`toggle-edit-mode-${r}-${c}`}
+            onClick={onToggleMode}
+            className={cn(
+              'px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95',
+              isEditMode
+                ? 'bg-indigo-600 text-white border-indigo-500 shadow-2xs'
+                : isDark
+                  ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300')
+                  : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700', 'shadow-2xs'),
+            )}
+            title={isEditMode ? 'Switch to Formatted Preview' : 'Switch to Edit Mode'}
+          >
+            {isEditMode ? (
+              <>
+                <Eye className="w-3 h-3 text-indigo-200" />
+                <span>Preview</span>
+              </>
+            ) : (
+              <>
+                <Edit3 className="w-3 h-3 text-slate-400" />
+                <span>Edit</span>
+              </>
+            )}
+          </button>
+
+          {/* Revert / Reset if overridden */}
+          {isOverridden && (
+            <button
+              id={`reset-output-cell-${r}-${c}`}
+              onClick={onReset}
+              className={cn(
+                'px-1.5 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95',
+                isDark
+                  ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300', 'hover:text-white')
+                  : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700', 'shadow-2xs'),
+              )}
+              title="Reset output to match original input source"
+            >
+              <RotateCcw className="w-2.5 h-2.5" />
+              <span>Reset</span>
+            </button>
+          )}
+
+          {/* Copy Cell Button */}
+          <button
+            id={`copy-cell-btn-${r}-${c}`}
+            onClick={onCopy}
+            className={`px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 ${
+              isCopied
+                ? 'bg-emerald-600 text-white border-emerald-600 font-semibold'
+                : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-600'
+            }`}
+            title={
+              inputHadBr
+                ? 'Copy formatted text to clipboard (line breaks will convert back to <br> tags)'
+                : 'Copy formatted text for Word & Outlook'
+            }
+          >
+            {isCopied ? (
+              <>
+                <Check className="w-3 h-3 text-white" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3 text-white" />
+                <span>{inputHadBr ? 'Copy as <br>' : 'Copy'}</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Edit Mode Formatting Toolbar - Shown only when Edit Mode is active */}
+      {isEditMode && (
+        <EditToolbar
+          rowIndex={r}
+          colIndex={c}
+          isDark={isDark}
+          feedback={feedback}
+          onApplyNumbering={onApplyNumbering}
+          onApplyInlineFormat={onApplyInlineFormat}
+          onSmartClean={onSmartClean}
+        />
+      )}
+
+      {/* Body: Formatted Rich Text View (Default) OR Editable Textarea */}
+      <div className="flex-1 relative overflow-hidden">
+        {isEditMode ? (
+          <textarea
+            ref={(el) => {
+              registerTextarea(el);
+            }}
+            id={`output-textarea-${r}-${c}`}
+            value={outputText}
+            onChange={(e) => onOutputChange(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={`Edit output for ${label}... (Press Enter to auto-continue numbering)`}
+            className={`w-full h-full p-3.5 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none custom-scrollbar ${
+              isDark
+                ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600'
+                : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
+            }`}
+            spellCheck={false}
+          />
+        ) : (
+          <div
+            id={`output-formatted-${r}-${c}`}
+            dangerouslySetInnerHTML={{ __html: htmlFormatted }}
+            className={`w-full h-full p-4 overflow-auto custom-scrollbar select-text leading-relaxed font-sans ${
+              isDark ? 'text-slate-100' : 'text-slate-900'
+            }`}
+          />
+        )}
+      </div>
+
+      {/* Output Footer Counter */}
+      <div
+        id={`output-footer-${r}-${c}`}
+        className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
+          isDark
+            ? 'bg-slate-900/90 border-slate-800 text-slate-400'
+            : 'bg-slate-50 border-slate-200 text-slate-500'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'}`}
+          >
+            {charCount.toLocaleString()}{' '}
+            <span className="font-sans font-normal text-[10px] text-slate-400">chars</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span>{wordCount.toLocaleString()}</span>
+            <span className="font-sans text-[10px] text-slate-400">words</span>
+          </span>
+          <span className="hidden sm:flex items-center gap-1">
+            <span>{lineCount}</span>
+            <span className="font-sans text-[10px] text-slate-400">lines</span>
+          </span>
+        </div>
+
+        <span className="text-[10px] font-sans text-slate-400 flex items-center gap-1">
+          <span>{isEditMode ? 'Editing Raw Text' : 'Formatted Preview'}</span>
+        </span>
+      </div>
+    </div>
+  );
+};

@@ -3,7 +3,7 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 4/5 — Maintainability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** File org, TS strict, duplication, lint, config hygiene
-**Status:** Phases 1-3 complete (2026-08-22) — Phases 4-5 pending
+**Status:** Phases 1-4 complete (2026-08-22) — Phase 5 pending
 **Date:** 2026-08-22
 **Audit source:** Inline audit `src/utils/markdownFormatter.ts:1-1343`, `tsconfig.json:1-26`, `package.json:1-36`, `vite.config.ts:1-22`
 
@@ -187,7 +187,7 @@
 
 ---
 
-## Phase 4: Component Hygiene & Tailwind Dedup
+## Phase 4: Component Hygiene & Tailwind Dedup — ✅ COMPLETE (2026-08-22)
 
 **What to implement**
 1. Create `src/utils/cn.ts`:
@@ -214,10 +214,18 @@
 - Grep findings: `px-2 py-0.5 rounded border text-[11px]` dup ×3, `grid grid-cols-2 gap-1.5 mt-1.5` ×2
 
 **Verification checklist**
-- [ ] `npx tsc --noEmit` passes
-- [ ] `grep -c "bg-white hover:bg-slate-100" src` = 1 (in `buttonVariants.ts`) after
-- [ ] Visual regression: dark/light toggle, Preview toolbar, Editor grid unchanged (Playwright snapshot)
-- [ ] `npm run build` + `npm run preview` — no style drift
+- [x] `npx tsc --noEmit` passes
+- [x] `grep -c "bg-white hover:bg-slate-100" src` = 1 (in `buttonVariants.ts`) after
+- [x] Visual regression: dark/light toggle, Preview toolbar, Editor grid unchanged (Playwright screenshot compare vs pre-change baselines — pixel match)
+- [x] `npm run build` + `npm run preview` — no style drift; live functional probes passed (settings panel 6 buttons, edit toolbar 7 buttons, Enter numbering continuation `(i)`→`(ii)`)
+
+**Execution notes (2026-08-22)**
+- Plan drift discovered: copy logic (`copiedCell`/`copiedAll` + `copyFormattedTextToClipboard` calls) lived in `App.tsx`, not Preview as the audit assumed — `useCopy` extracted from there.
+- Hitting the <350 goal required going beyond the plan's letter: extracted `useOutputActions` (cell modes/feedback/textarea refs/numbering+inline handlers) plus `OutputCell.tsx` and `EditToolbar.tsx` from Preview (694→235), and `EditorSettingsPanel.tsx` + `useGridActions` from Editor (568→294).
+- `BUTTON_VARIANTS` deduped 5 repeated families: neutral (`bg-white hover:bg-slate-100`) ×6, layout presets ×4, grid growers ×2, subtle-light focus buttons ×4, plus preset-active blue. Unique-color buttons left inline.
+- New deps: `clsx` + `tailwind-merge` (runtime). Bundle 327.97→356.80 kB (+8.8%) — accepted cost of the prescribed stack; CSS +3 kB.
+- Sizes after: Editor 294, Preview 235, Header 289, OutputCell 254, EditToolbar 164, EditorSettingsPanel ~150. EditorCell (387) untouched — not in plan scope.
+- Smart-clean semantics preserved: Clean button routes through Preview's handler (`isTyping=false` history commit), not a per-cell duplicate.
 
 **Anti-pattern guards**
 - Do NOT replace `lucide-react` icons or `motion` (`framer-motion`) usage — keep existing animation API
@@ -284,8 +292,8 @@
 ## Execution Order & Dependencies
 
 ```
-Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
-                └─ done — strict TS passes; Phases 4+ unblocked
+Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 ✅ (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
+                └─ done — strict TS passes; Phase 5 unblocked
 ```
 
 - Each phase is **self-contained** with its own doc refs — can be executed in fresh chat context.
