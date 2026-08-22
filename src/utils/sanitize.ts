@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 export interface SanitizeOptions {
   stripBackgrounds?: boolean;
   stripMetaTags?: boolean;
@@ -141,7 +143,7 @@ export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {
 
     return root.innerHTML;
   } catch (err) {
-    console.warn('DOM sanitizeOutputHtml failed, using regex fallback:', err);
+    logger.warn('DOM sanitizeOutputHtml failed, using regex fallback:', err);
     return html
       .replace(/<meta[^>]*>/gi, '')
       .replace(/bgcolor="[^"]*"/gi, '')
@@ -190,7 +192,7 @@ ${cleanHtml}
       return true;
     }
   } catch (err) {
-    console.warn('Navigator clipboard write failed, trying fallback execCommand copy:', err);
+    logger.warn('Navigator clipboard write failed, trying fallback execCommand copy:', err);
   }
 
   // Fallback for older environments or strict iframe permissions
@@ -217,7 +219,7 @@ ${cleanHtml}
       return successful;
     }
   } catch (fallbackErr) {
-    console.error('Fallback execCommand copy also failed:', fallbackErr);
+    logger.error('Fallback execCommand copy also failed:', fallbackErr);
   }
 
   return false;

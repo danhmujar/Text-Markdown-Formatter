@@ -2,6 +2,7 @@ import { marked } from 'marked';
 import { StyleOptions } from '../types';
 import { THEME_COLORS } from '../constants/theme';
 import { preprocessMarkdownWithTsv } from './tableConvert';
+import { sanitizeHtml } from './security/sanitize';
 
 export function buildGridHtml(
   grid: string[][],
@@ -42,13 +43,11 @@ export function buildInlineStyledHtml(
   options: StyleOptions,
   isForWordCopy: boolean = false,
 ): string {
-  marked.setOptions({
-    gfm: true,
-    breaks: true,
-  });
-
   const processedMarkdown = preprocessMarkdownWithTsv(rawMarkdown);
-  const rawHtml = marked.parse(processedMarkdown) as string;
+  // Sanitize marked output before any DOM manipulation: single security point for both
+  // the preview (dangerouslySetInnerHTML) and the Word/Sheets copy paths.
+  const dirtyHtml = marked.parse(processedMarkdown, { gfm: true, breaks: true }) as string;
+  const rawHtml = sanitizeHtml(dirtyHtml);
   if (!rawHtml) return '';
 
   const parser = new DOMParser();

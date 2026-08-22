@@ -3,7 +3,7 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 1/5 — Security (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** XSS via `marked` → `dangerouslySetInnerHTML`, incomplete sanitizer, clipboard DOM, CSP
-**Status:** Plan (not yet executed) — orchestrator-only synthesis, no edits
+**Status:** Phase 1 complete (2026-08-22) — Phases 2-5 pending
 **Date:** 2026-08-22
 **Audit source:** Inline audit `src/components/Preview.tsx:646`, `src/utils/markdownFormatter.ts:1033-1045,977-1121,1217-1445`, `src/App.tsx:154-197`, `index.html:1-15`, `package.json:1-23`, `.env.example:1-9`
 **Severity:** Critical (stored XSS in preview), High (bypassable sanitizer), Medium (clipboard fallback), Low (no CSP)
@@ -45,7 +45,7 @@
 
 ---
 
-## Phase 1: Critical — Sanitize Preview Path with DOMPurify (blocks stored XSS)
+## Phase 1: Critical — Sanitize Preview Path with DOMPurify (blocks stored XSS) — ✅ COMPLETE (2026-08-22)
 
 **What to implement — COPY from DOMPurify docs, wrap existing logic**
 1. Install: `npm i dompurify && npm i -D @types/dompurify` (cite `dompurify` npm page)
@@ -91,15 +91,21 @@
 - External: `dompurify` README `addHook('uponSanitizeAttribute', ...)` example, `marked` 18.x `marked.parse(md, opts)` docs
 
 **Verification checklist**
-- [ ] `npm ls dompurify` shows installed, `@types/dompurify` in `devDependencies`
-- [ ] `npx tsc --noEmit` passes after import
-- [ ] `grep -r "DOMPurify" src` = 1-2 files (`security/sanitize.ts` + `markdownFormatter.ts`)
-- [ ] Manual bypass tests in Preview (paste as output): 
-     - `[x](javascript:alert(1))` → renders as plain text or `href="#"`, no navigation
-     - `<img src=x onerror=alert(1)>` → `onerror` stripped, no alert
-     - `<svg onload=alert(1)><circle r=10>` → `onload` stripped
-     - `<script>alert(1)</script>` → removed
-- [ ] `npm run build` succeeds, `vite preview` — formatted preview still styled (headings/lists/tables keep `buildInlineStyledHtml` inline styles)
+- [x] `npm ls dompurify` shows installed (3.4.14), `@types/dompurify` in `devDependencies`
+- [x] `npx tsc --noEmit` passes after import
+- [x] `grep -r "DOMPurify" src` = 1 file (`security/sanitize.ts`; integration point is `htmlBuilder.ts`, which imports `sanitizeHtml`)
+- [x] Manual bypass tests in Preview (live, Playwright):
+     - `[x](javascript:alert(1))` → anchor kept, href stripped entirely — no navigation vector
+     - `<img src=x onerror=alert(1)>` → `onerror` stripped
+     - `<svg onload=alert(1)>` → `onload` stripped
+     - `<script>alert(1)</script>` → removed, not executed, surrounding content preserved
+- [x] `npm run build` succeeds, `vite preview` — formatted preview still styled
+
+**Execution notes (2026-08-22)** — executed in a separate session, concurrently with pillar-4 Phase 5; combined commit
+- Single sanitization point chosen per plan preference: inside `buildInlineStyledHtml` (now `src/utils/htmlBuilder.ts` post-split), so `Preview.tsx` needed no change and `dangerouslySetInnerHTML` stays at exactly 1 site.
+- `marked.setOptions({gfm,breaks})` global replaced with per-call `marked.parse(md, { gfm: true, breaks: true })` per marked docs (plan step 3).
+- `FORBID_ATTR: ['style']` is lossless here: untrusted input styles are stripped, trusted styles are re-injected afterwards by `buildInlineStyledHtml` via the DOM API.
+- Bundle impact: +30 kB min (dompurify) — verified as the sole cause of 356.80→386.86 kB via stash-rebuild comparison.
 
 **Anti-pattern guards**
 - Do NOT call `DOMPurify.sanitize` with `{ ALLOWED_TAGS: ['*'] }`
@@ -272,8 +278,8 @@
 ## Execution Order & Dependencies
 
 ```
-Phase 0 (done) -> Phase 1 (DOMPurify preview) -> Phase 2 (harden sanitizeOutputHtml) -> Phase 3 (table/clipboard) -> Phase 4 (CSP) -> Phase 5 (tests) -> Final Verify
-          \-> Phase 1 must land before any other — blocks XSS
+Phase 0 (done) -> Phase 1 ✅ (DOMPurify preview) -> Phase 2 (harden sanitizeOutputHtml) -> Phase 3 (table/clipboard) -> Phase 4 (CSP) -> Phase 5 (tests) -> Final Verify
+          \-> done — preview path sanitized; Phases 2+ unblocked
            -> Phase 2 depends on Phase 1 hook to reuse
            -> Phase 4 can run in parallel with Phase 3
 ```

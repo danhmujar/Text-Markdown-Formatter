@@ -1,4 +1,5 @@
 import { sanitizeInputText } from './cleanup';
+import { logger } from './logger';
 
 export function tsvToMarkdownTable(tsv: string): string {
   const lines = tsv
@@ -93,7 +94,7 @@ export function htmlTableToMarkdown(html: string): string | null {
 
     return md;
   } catch (err) {
-    console.warn('Could not parse HTML table:', err);
+    logger.warn('Could not parse HTML table:', err);
     return null;
   }
 }
@@ -164,7 +165,7 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
         }
       }
     } catch (e) {
-      console.warn('HTML table parsing failed:', e);
+      logger.warn('HTML table parsing failed:', e);
     }
   }
 

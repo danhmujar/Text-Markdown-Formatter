@@ -3,7 +3,7 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 4/5 — Maintainability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** File org, TS strict, duplication, lint, config hygiene
-**Status:** Phases 1-4 complete (2026-08-22) — Phase 5 pending
+**Status:** Phases 1-5 complete (2026-08-22) — Final cross-pillar verification pending
 **Date:** 2026-08-22
 **Audit source:** Inline audit `src/utils/markdownFormatter.ts:1-1343`, `tsconfig.json:1-26`, `package.json:1-36`, `vite.config.ts:1-22`
 
@@ -236,7 +236,7 @@
 
 ---
 
-## Phase 5: Logger, Tests Cleanup, Final Verification
+## Phase 5: Logger, Tests Cleanup, Final Verification — ✅ COMPLETE (2026-08-22)
 
 **What to implement**
 1. Create `src/utils/logger.ts`:
@@ -259,11 +259,18 @@
 - `.gitignore:1-7` — verify `dist` ignored
 
 **Verification checklist**
-- [ ] `grep -r "console\.(warn|error|log)" src` = 0 (except `logger.ts`)
-- [ ] `npm test` (vitest) passes: 3/3
-- [ ] `npx tsc --noEmit && npm run lint && npm run build` all green
-- [ ] `git status --porcelain` shows only intended files, no `dist` diff
-- [ ] `npm run preview` loads, no console spam in prod build
+- [x] `grep -r "console\.(warn|error|log)" src` = 0 (except `logger.ts`)
+- [x] `npm test` (vitest) passes: 6/6 (plan called for 3 smoke tests; roman/alpha prefix + quote-standardization cases added)
+- [x] `npx tsc --noEmit && npm run lint && npm run build` all green
+- [x] `git status --porcelain` shows only intended files
+- [x] `npm run preview` loads, no console spam in prod build
+
+**Execution notes (2026-08-22)** — executed in parallel with pillar-1 Phase 1 (separate session); combined commit
+- `logger.ts`: warn gated on `import.meta.env.DEV`, error always logs. All 5 console sites swapped (`sanitize.ts` ×3, `tableConvert.ts` ×2).
+- `test.js`/`test.cjs` deleted; vitest@4 + jsdom wired via `vite.config.ts` `test.environment: 'jsdom'` + `"test": "vitest run"`.
+- First vitest run hit a worker timeout (cold jsdom boot ~60s, one-off); warm runs pass in ~1s. If it recurs, try `--pool=forks`.
+- Barrel decision: `markdownFormatter.ts` kept as pure re-export barrel (5 lines) — consumers unchanged, migration to direct imports deferred.
+- Bundle note: 356.80→386.86 kB — +30 kB is dompurify from pillar-1 Phase 1 (bundled via htmlBuilder), NOT Phase 5 changes (logger is negligible). Verified by stash-rebuild comparison.
 
 **Anti-pattern guards**
 - Do NOT swallow errors — `logger.warn` must still log in DEV
@@ -292,8 +299,8 @@
 ## Execution Order & Dependencies
 
 ```
-Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 ✅ (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
-                └─ done — strict TS passes; Phase 5 unblocked
+Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 ✅ (cn/dedup) ──> Phase 5 ✅ (logger/tests) ──> Final Verify
+                └─ done — strict TS passes; only Final Verify remains
 ```
 
 - Each phase is **self-contained** with its own doc refs — can be executed in fresh chat context.
