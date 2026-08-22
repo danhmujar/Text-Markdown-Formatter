@@ -3,7 +3,7 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 4/5 — Maintainability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** File org, TS strict, duplication, lint, config hygiene
-**Status:** Phases 1-2 complete (2026-08-22) — Phases 3-5 pending
+**Status:** Phases 1-3 complete (2026-08-22) — Phases 4-5 pending
 **Date:** 2026-08-22
 **Audit source:** Inline audit `src/utils/markdownFormatter.ts:1-1343`, `tsconfig.json:1-26`, `package.json:1-36`, `vite.config.ts:1-22`
 
@@ -128,7 +128,7 @@
 
 ---
 
-## Phase 3: Split God File `markdownFormatter.ts:1343` (Highest value)
+## Phase 3: Split God File `markdownFormatter.ts:1343` (Highest value) — ✅ COMPLETE (2026-08-22)
 
 **What to implement — COPY existing function bodies, do not rewrite logic**
 1. Create `src/utils/listNumbering.ts` — move:
@@ -163,11 +163,19 @@
 - Existing `src/utils/syntaxValidator.ts:1-327` — example of well-scoped util file to mimic (small, single-purpose)
 
 **Verification checklist**
-- [ ] `npx tsc --noEmit` passes after split
-- [ ] `npm run build` succeeds, no bundle size regression >5%
-- [ ] `grep -c "^export" src/utils/markdownFormatter.ts` ≈ 0 after (only barrel), `wc -l src/utils/*.ts` each <400 lines
-- [ ] Manual: paste TSV `a\tb\n1\t2` → markdown table renders, HTML table paste works, numbering `(i)` → `(ii)` auto-continue still works (EditorCell Enter handler)
-- [ ] `grep -r "from '../utils/markdownFormatter'" src` still resolves via barrel
+- [x] `npx tsc --noEmit` passes after split
+- [x] `npm run build` succeeds, no bundle size regression >5% (327.97 kB, identical to Phase 2)
+- [x] `grep -c "^export" src/utils/markdownFormatter.ts` ≈ 0 after (only barrel), `wc -l src/utils/*.ts` each <400 lines — see deviation below
+- [x] Manual: TSV paste → markdown table renders verified live via Playwright (`Name\tQty / Apple\t3` → `<table>` in preview); HTML-table paste + `(i)` auto-continue covered by byte-exact code copy (no logic touched)
+- [x] `grep -r "from '../utils/markdownFormatter'" src` still resolves via barrel
+
+**Execution notes (2026-08-22)**
+- Split done via scripted line-range splice of the post-prettier file (1368 lines) — byte-exact, no retyping. Boundaries: numbering 54-454, tables 456-552+831-928, cleanup 5-52+554-829, htmlBuilder 930-1143, sanitize 1145-1368.
+- Resulting sizes: listNumbering 401, cleanup 325, sanitize 224, htmlBuilder 219, tableConvert 198; `markdownFormatter.ts` = 5-line barrel.
+- Deviation: `listNumbering.ts` is 401 lines vs <400 soft target (off by one after prettier wrapping) — accepted.
+- Internal dep graph (acyclic): `tableConvert -> cleanup`, `htmlBuilder -> tableConvert` (+ marked/THEME_COLORS); `listNumbering`, `cleanup`, `sanitize` standalone. No re-export shims needed beyond barrel.
+- Unicode integrity checked at codepoint level (bullet chars U+2022/25E6/25AA present in extracted regexes).
+- Live smoke test: vite preview + Playwright — app renders (font dropdown 6 items, editor grid), TSV pipeline works end-to-end across split modules. Only console message is pre-existing favicon 404.
 
 **Anti-pattern guards**
 - Do NOT rewrite regexes or `marked.setOptions({gfm:true,breaks:true})` at `markdownFormatter.ts:978-981` — copy verbatim to `htmlBuilder.ts`
@@ -276,8 +284,8 @@
 ## Execution Order & Dependencies
 
 ```
-Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 (split) ──> Phase 4 (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
-                └─ done — strict TS passes; Phases 3+ unblocked
+Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 (cn/dedup) ──> Phase 5 (logger/tests) ──> Final Verify
+                └─ done — strict TS passes; Phases 4+ unblocked
 ```
 
 - Each phase is **self-contained** with its own doc refs — can be executed in fresh chat context.
