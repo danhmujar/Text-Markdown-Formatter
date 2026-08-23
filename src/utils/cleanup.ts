@@ -16,9 +16,37 @@ export function convertBrToNewlines(text: string): string {
   if (!text) return '';
   if (!hasBrTags(text)) return text;
 
-  // Replace <br> followed immediately by an existing \r?\n so we don't produce double blank lines,
-  // and then replace any standalone <br> with \n
-  return text.replace(/<br\s*\/?>\r?\n/gi, '\n').replace(/<br\s*\/?>/gi, '\n');
+  const lines = text.split(/\r?\n/);
+  let inCodeBlock = false;
+  const out: string[] = [];
+
+  for (const rawLine of lines) {
+    if (/^\s*```/.test(rawLine)) {
+      inCodeBlock = !inCodeBlock;
+      out.push(rawLine.replace(/<br\s*\/?>/gi, '\n'));
+      continue;
+    }
+    if (inCodeBlock) {
+      out.push(rawLine);
+      continue;
+    }
+    const trimmed = rawLine.trim();
+    const isTableRow = trimmed.includes('|') && trimmed.split('|').length > 3;
+    const isSeparator = /^\|?(\s*:?-+:?\s*\|?)+$/.test(trimmed);
+    if (isTableRow || isSeparator) {
+      out.push(rawLine);
+    } else {
+      out.push(rawLine.replace(/<br\s*\/?>\r?\n/gi, '\n').replace(/<br\s*\/?>/gi, '\n'));
+    }
+  }
+
+  let result = out.join('\n');
+  result = result.replace(/<br\s*\/?>\r?\n/gi, '\n').replace(/<br\s*\/?>/gi, '\n');
+  const tableLines = result.split('\n').filter((l) => l.trim().startsWith('|'));
+  if (tableLines.length >= 2) {
+    return out.join('\n');
+  }
+  return result;
 }
 
 /**
