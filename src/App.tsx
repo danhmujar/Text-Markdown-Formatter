@@ -13,11 +13,20 @@ import { getPrimaryForTheme } from './constants/themes';
 
 export default function App() {
   // State-based history manager for 2D grid matrix and per-cell output overrides
-  const { grid, outputOverrides, updateGrid, updateOutputOverrides, undo, redo, canUndo, canRedo } =
-    useGridHistory({
-      grid: [['']],
-      outputOverrides: {},
-    });
+  const {
+    grid,
+    outputOverrides,
+    updateGrid,
+    updateOutputOverrides,
+    updateAll,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useGridHistory({
+    grid: [['']],
+    outputOverrides: {},
+  });
 
   // Focus Mode state: 'split' (both visible), 'input' (input maximized), 'output' (output maximized)
   const [focusMode, setFocusMode] = useState<FocusMode>('split');
@@ -76,9 +85,26 @@ export default function App() {
     showToast(`${modeName} activated`, 'info');
   }, [focusMode]);
 
+  // Clear all / New Blank Session handler
+  const handleClearAll = useCallback(() => {
+    // Check if there is existing text to clear
+    const hasContent =
+      grid.some((row) => row.some((cell) => cell.trim().length > 0)) ||
+      Object.keys(outputOverrides).length > 0;
+
+    if (hasContent) {
+      updateAll([['']], {}, false);
+      showToast('Started new blank session', 'info');
+    } else {
+      updateAll([['']], {}, false);
+      showToast('Workspace is already empty', 'info');
+    }
+  }, [grid, outputOverrides, updateAll]);
+
   // Global Keyboard Shortcuts:
   // - Undo: Ctrl+Z / ⌘Z
   // - Redo: Ctrl+Y / ⌘⇧Z / ⌘Y
+  // - New / Blank: Ctrl+Shift+N / ⌘⇧N / Alt+N
   // - Focus Mode toggle: Alt+F
   // - Exit Focus Mode: Escape
   useEffect(() => {
@@ -94,6 +120,13 @@ export default function App() {
       if (e.altKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
         handleToggleFocusMode();
+        return;
+      }
+
+      // Alt+N starts new blank session
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        handleClearAll();
         return;
       }
 
@@ -121,7 +154,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, focusMode, handleToggleFocusMode]);
+  }, [undo, redo, focusMode, handleToggleFocusMode, handleClearAll]);
 
   // Get current effective content for output cell:
   // If the cell was edited in output layer, return override;
@@ -204,7 +237,7 @@ export default function App() {
       className="flex flex-col h-screen w-screen overflow-hidden transition-colors"
       style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}
     >
-      {/* Title + Font + Font Size + Undo/Redo + Focus Mode + Theme Toggle Header */}
+      {/* Title + Font + Font Size + Undo/Redo + New/Blank + Focus Mode + Theme Toggle Header */}
       <Header
         options={options}
         setOptions={setOptions}
@@ -212,6 +245,7 @@ export default function App() {
         canRedo={canRedo}
         onUndo={undo}
         onRedo={redo}
+        onClearAll={handleClearAll}
         focusMode={focusMode}
         activePanel={activePanel}
         onToggleFocusMode={handleToggleFocusMode}

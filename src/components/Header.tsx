@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert, Undo2, Redo2, Maximize2, Minimize2 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Undo2, Redo2, Maximize2, Minimize2, FilePlus2 } from 'lucide-react';
 import { StyleOptions, FocusMode } from '../types';
 import { FONT_OPTIONS } from '../constants/fonts';
 import { ColorTheme } from '@/constants/themes';
@@ -13,6 +13,7 @@ interface HeaderProps {
   canRedo?: boolean;
   onUndo?: () => void;
   onRedo?: () => void;
+  onClearAll?: () => void;
   focusMode?: FocusMode;
   activePanel?: 'input' | 'output';
   onToggleFocusMode?: () => void;
@@ -29,6 +30,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   canRedo = false,
   onUndo,
   onRedo,
+  onClearAll,
   focusMode = 'split',
   activePanel = 'input',
   onToggleFocusMode,
@@ -68,6 +70,25 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
 
         {/* Undo/Redo, Focus Mode, Font, Font Size, Sanitize Output, and Theme Toggle Controls */}
         <div className="flex items-center gap-2.5">
+          {/* New / Clear All Button */}
+          {onClearAll && (
+            <button
+              id="header-clear-all-btn"
+              type="button"
+              onClick={onClearAll}
+              aria-label="New Blank Workspace / Clear All"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                isDark
+                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+              title="Start a new blank session / Clear all cells"
+            >
+              <FilePlus2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-blue-500" />
+              <span>New</span>
+            </button>
+          )}
+
           {/* Undo / Redo Control Group */}
           <div
             className={`flex items-center rounded-md border p-0.5 shadow-2xs ${
