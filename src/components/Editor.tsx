@@ -86,9 +86,12 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
         }`}
       >
         <div className="flex items-center gap-2">
-          <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+          <h2
+            id="input-heading"
+            className={`text-xs font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
+          >
             Input
-          </span>
+          </h2>
           <span
             className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
               isDark
@@ -110,13 +113,15 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
             title={`Total across all cells: ${totalStats.totalChars.toLocaleString()} characters, ${totalStats.totalWords.toLocaleString()} words`}
           >
             {totalStats.totalChars.toLocaleString()}{' '}
-            <span className="font-sans font-normal text-[10px] text-slate-400 ml-0.5">chars</span>
+            <span className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
           </span>
 
           {/* Grid-Wide Warning Alert Badge */}
           {totalStats.totalWarnings > 0 && (
             <span
               id="grid-total-warnings-badge"
+              role="status"
+              aria-live="polite"
               className={`flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border animate-pulse ${
                 isDark
                   ? 'bg-amber-950/80 border-amber-800 text-amber-300'
@@ -124,7 +129,7 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
               }`}
               title={`${totalStats.totalWarnings} syntax warnings across editor cells`}
             >
-              <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+              <AlertTriangle aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-500 shrink-0" />
               <span>
                 {totalStats.totalWarnings} {totalStats.totalWarnings === 1 ? 'Warning' : 'Warnings'}
               </span>
@@ -146,9 +151,11 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
               {onSwitchFocus && (
                 <button
                   id="focus-switch-to-output-btn"
+                  type="button"
                   onClick={onSwitchFocus}
+                  aria-label="Switch focus to Output container"
                   className={cn(
-                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95',
+                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
                     isDark
                       ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300 hover:text-white')
                       : cn(BUTTON_VARIANTS.subtleLight, 'text-slate-700 hover:text-slate-900'),
@@ -156,22 +163,24 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
                   title="Switch Focus to Output container"
                 >
                   <span>Output</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400" />
+                  <ArrowRight aria-hidden="true" focusable="false" className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                 </button>
               )}
               {onExitFocus && (
                 <button
                   id="focus-exit-split-btn"
+                  type="button"
                   onClick={onExitFocus}
+                  aria-label="Exit Focus Mode and return to Split View (Escape)"
                   className={cn(
-                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95',
+                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
                     isDark
                       ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300 hover:text-white')
                       : cn(BUTTON_VARIANTS.subtleLight, 'text-slate-700 hover:text-slate-900'),
                   )}
                   title="Exit Focus Mode and return to Split View (Esc)"
                 >
-                  <Minimize2 className="w-3 h-3" />
+                  <Minimize2 aria-hidden="true" focusable="false" className="w-3 h-3" />
                   <span>Split View</span>
                 </button>
               )}
@@ -184,15 +193,17 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
           {/* Smart Cleanup All Button — stays visible in header */}
           <button
             id="smart-cleanup-all-btn"
+            type="button"
             onClick={handleSmartCleanupAll}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium transition shadow-2xs cursor-pointer active:scale-95 ${
+            aria-label="Smart cleanup all input cells"
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isDark
                 ? 'bg-indigo-950/60 border-indigo-700/60 text-indigo-300 hover:bg-indigo-900/60 hover:text-indigo-200'
                 : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800'
             }`}
             title="Automatically standardize quotes, strip redundant whitespace, and fix markdown syntax across all input cells"
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <Sparkles aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-indigo-400" />
             <span>Smart Cleanup</span>
           </button>
 
@@ -200,11 +211,14 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
           <div ref={settingsPanelRef} className="relative">
             <button
               id="editor-settings-btn"
+              type="button"
               onClick={() => setShowSettingsPanel((v) => !v)}
               aria-expanded={showSettingsPanel}
               aria-haspopup="dialog"
+              aria-controls="editor-settings-panel"
+              aria-label="Layout and grid settings"
               className={cn(
-                'flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium transition cursor-pointer active:scale-95',
+                'flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
                 showSettingsPanel
                   ? isDark
                     ? 'bg-slate-800 border-slate-600 text-white shadow-sm'
@@ -219,9 +233,11 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
               )}
               title="Layout & grid settings"
             >
-              <Settings2 className="w-3.5 h-3.5" />
+              <Settings2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
               <span>Settings</span>
               <ChevronDown
+                aria-hidden="true"
+                focusable="false"
                 className={`w-3 h-3 transition-transform duration-200 ${showSettingsPanel ? 'rotate-180' : ''}`}
               />
             </button>
@@ -237,6 +253,7 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
                 onSetUpDownLayout={setUpDownLayout}
                 onAddColumnRight={addColumnRight}
                 onAddRowDown={addRowDown}
+                onClose={() => setShowSettingsPanel(false)}
               />
             )}
           </div>
@@ -252,9 +269,9 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
               : 'bg-indigo-50 border-indigo-200 text-indigo-800'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <Sparkles aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
           <span className="font-medium flex-1">{cleanupNotification}</span>
-          <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <Check aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
         </div>
       )}
 

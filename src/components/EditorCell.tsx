@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Trash2,
   Sparkles,
@@ -41,6 +41,17 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
   onPasteOnCell,
 }) {
   const [showWarningsDrawer, setShowWarningsDrawer] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!showWarningsDrawer) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowWarningsDrawer(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showWarningsDrawer]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
@@ -129,6 +140,7 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <span
+            id={`cell-label-${rowIndex}-${colIndex}`}
             className={`font-medium text-[11px] flex items-center gap-1.5 shrink-0 ${
               isDark ? 'text-slate-300' : 'text-slate-700'
             }`}
@@ -141,8 +153,12 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
           {warnings.length > 0 ? (
             <button
               id={`cell-warnings-btn-${rowIndex}-${colIndex}`}
+              type="button"
               onClick={() => setShowWarningsDrawer(!showWarningsDrawer)}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition cursor-pointer active:scale-95 ${
+              aria-label={`${warnings.length} syntax warnings for ${label}, click to toggle details`}
+              aria-expanded={showWarningsDrawer}
+              aria-controls={`cell-warnings-drawer-${rowIndex}-${colIndex}`}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 errorCount > 0
                   ? isDark
                     ? 'bg-red-950/80 border-red-800 text-red-300 hover:bg-red-900/80'
@@ -153,14 +169,14 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
               }`}
               title="Click to view syntax warnings and auto-fix suggestions"
             >
-              <AlertTriangle className="w-3 h-3 shrink-0" />
+              <AlertTriangle aria-hidden="true" focusable="false" className="w-3 h-3 shrink-0" />
               <span>
                 {warnings.length} {warnings.length === 1 ? 'Warning' : 'Warnings'}
               </span>
               {showWarningsDrawer ? (
-                <ChevronUp className="w-3 h-3 ml-0.5 opacity-70" />
+                <ChevronUp aria-hidden="true" focusable="false" className="w-3 h-3 ml-0.5 opacity-70" />
               ) : (
-                <ChevronDown className="w-3 h-3 ml-0.5 opacity-70" />
+                <ChevronDown aria-hidden="true" focusable="false" className="w-3 h-3 ml-0.5 opacity-70" />
               )}
             </button>
           ) : cellValue.trim().length > 0 ? (
@@ -170,7 +186,7 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
               }`}
               title="No syntax warnings detected in this cell"
             >
-              <CheckCircle2 className="w-3 h-3" />
+              <CheckCircle2 aria-hidden="true" focusable="false" className="w-3 h-3" />
               <span>Valid</span>
             </span>
           ) : null}
@@ -180,29 +196,33 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
         <div className="flex items-center gap-1 shrink-0">
           <button
             id={`smart-clean-cell-${rowIndex}-${colIndex}`}
+            type="button"
             onClick={() => onSmartCleanupCell(rowIndex, colIndex)}
-            className={`px-1.5 py-0.5 rounded flex items-center gap-1 text-[10px] font-medium transition cursor-pointer active:scale-95 ${
+            aria-label={`Smart Cleanup cell ${label}`}
+            className={`px-1.5 py-0.5 rounded flex items-center gap-1 text-[10px] font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isDark
                 ? 'hover:bg-slate-800 text-indigo-400 hover:text-indigo-300'
                 : 'hover:bg-indigo-50 text-indigo-600 hover:text-indigo-800'
             }`}
             title="Smart Cleanup this cell (fixes unclosed tags, spacing & syntax)"
           >
-            <Sparkles className="w-3 h-3" />
+            <Sparkles aria-hidden="true" focusable="false" className="w-3 h-3" />
             <span>Clean</span>
           </button>
 
           <button
             id={`clear-cell-${rowIndex}-${colIndex}`}
+            type="button"
             onClick={() => onClearCell(rowIndex, colIndex)}
-            className={`p-1 rounded transition cursor-pointer active:scale-95 ${
+            aria-label={`Clear cell ${label}`}
+            className={`p-1 rounded transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isDark
                 ? 'hover:bg-slate-800 text-slate-400 hover:text-red-400'
-                : 'hover:bg-slate-100 text-slate-400 hover:text-red-600'
+                : 'hover:bg-slate-100 text-slate-500 hover:text-red-600'
             }`}
             title="Clear this cell"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -211,6 +231,8 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
       {showWarningsDrawer && warnings.length > 0 && (
         <div
           id={`cell-warnings-drawer-${rowIndex}-${colIndex}`}
+          role="region"
+          aria-labelledby={`warnings-title-${rowIndex}-${colIndex}`}
           className={`border-b p-2.5 max-h-48 overflow-y-auto text-xs flex flex-col gap-1.5 custom-scrollbar transition-all ${
             isDark
               ? 'bg-slate-950/95 border-amber-900/50 text-slate-200'
@@ -218,20 +240,22 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
           }`}
         >
           <div className="flex items-center justify-between pb-1 border-b border-amber-500/20 text-[11px] font-semibold">
-            <span className="flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+            <span id={`warnings-title-${rowIndex}-${colIndex}`} className="flex items-center gap-1.5">
+              <AlertCircle aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-amber-500" />
               <span>Real-Time Syntax Diagnostics ({warnings.length})</span>
             </span>
             <button
+              type="button"
               onClick={() => onSmartCleanupCell(rowIndex, colIndex)}
-              className={`text-[10px] px-2 py-0.5 rounded font-medium border flex items-center gap-1 transition ${
+              aria-label={`Auto-fix syntax warnings for cell ${label}`}
+              className={`text-[10px] px-2 py-0.5 rounded font-medium border flex items-center gap-1 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 isDark
                   ? 'bg-indigo-900/60 border-indigo-700 text-indigo-200 hover:bg-indigo-800/80'
                   : 'bg-indigo-100 border-indigo-300 text-indigo-800 hover:bg-indigo-200'
               }`}
               title="Apply Smart Cleanup to auto-fix standard syntax"
             >
-              <Sparkles className="w-2.5 h-2.5" />
+              <Sparkles aria-hidden="true" focusable="false" className="w-2.5 h-2.5" />
               <span>Auto-Fix with Clean</span>
             </button>
           </div>
@@ -257,11 +281,11 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
                 <div className="flex items-center justify-between font-medium">
                   <span className="flex items-center gap-1">
                     {warn.severity === 'error' ? (
-                      <AlertCircle className="w-3 h-3 text-red-500 shrink-0" />
+                      <AlertCircle aria-hidden="true" focusable="false" className="w-3 h-3 text-red-500 shrink-0" />
                     ) : warn.severity === 'warning' ? (
-                      <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+                      <AlertTriangle aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-500 shrink-0" />
                     ) : (
-                      <Info className="w-3 h-3 text-blue-500 shrink-0" />
+                      <Info aria-hidden="true" focusable="false" className="w-3 h-3 text-blue-500 shrink-0" />
                     )}
                     <span>{warn.title}</span>
                   </span>
@@ -272,15 +296,17 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
                       </span>
                     )}
                     <button
+                      type="button"
                       onClick={() => onSmartCleanupCell(rowIndex, colIndex)}
-                      className={`text-[9.5px] px-1.5 py-0.5 rounded font-medium border flex items-center gap-0.5 transition cursor-pointer active:scale-95 ${
+                      aria-label={`Fix issue: ${warn.title}`}
+                      className={`text-[9.5px] px-1.5 py-0.5 rounded font-medium border flex items-center gap-0.5 transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                         isDark
                           ? 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-700 text-emerald-300'
                           : 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300 text-emerald-800'
                       }`}
                       title="Fix this issue automatically"
                     >
-                      <Sparkles className="w-2.5 h-2.5" />
+                      <Sparkles aria-hidden="true" focusable="false" className="w-2.5 h-2.5" />
                       <span>Fix</span>
                     </button>
                   </div>
@@ -313,10 +339,12 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
           onChange={(e) => onCellChange(rowIndex, colIndex, e.target.value, true)}
           onKeyDown={handleKeyDown}
           onPaste={(e) => onPasteOnCell(e, rowIndex, colIndex)}
+          aria-labelledby={`cell-label-${rowIndex}-${colIndex}`}
+          aria-describedby={`cell-counter-footer-${rowIndex}-${colIndex}`}
           placeholder={`Type or paste markdown in ${label}...`}
-          className={`w-full h-full p-3 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none custom-scrollbar ${
+          className={`w-full h-full p-3 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 custom-scrollbar ${
             isDark
-              ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600'
+              ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-500'
               : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
           }`}
           spellCheck={false}
@@ -328,8 +356,8 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
         id={`cell-counter-footer-${rowIndex}-${colIndex}`}
         className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
           isDark
-            ? 'bg-slate-900/90 border-slate-800 text-slate-400'
-            : 'bg-slate-50 border-slate-200 text-slate-500'
+            ? 'bg-slate-900/90 border-slate-800 text-slate-300'
+            : 'bg-slate-50 border-slate-200 text-slate-600'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -341,7 +369,7 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             title="Total character count"
           >
             {charCount.toLocaleString()}{' '}
-            <span className="font-sans font-normal text-[10px] text-slate-400">chars</span>
+            <span className={`font-sans font-normal text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
           </span>
 
           <span
@@ -350,7 +378,7 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             title="Total word count"
           >
             <span>{wordCount.toLocaleString()}</span>
-            <span className="font-sans text-[10px] text-slate-400">words</span>
+            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>words</span>
           </span>
 
           <span
@@ -359,25 +387,29 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             title="Total lines"
           >
             <span>{lineCount}</span>
-            <span className="font-sans text-[10px] text-slate-400">lines</span>
+            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>lines</span>
           </span>
         </div>
 
         {/* Quick status on the right */}
         {warnings.length > 0 ? (
           <button
+            type="button"
             onClick={() => setShowWarningsDrawer(!showWarningsDrawer)}
-            className="flex items-center gap-1 text-[10px] font-sans font-medium text-amber-500 hover:underline cursor-pointer"
+            aria-label={`Toggle syntax warnings for cell ${label}`}
+            aria-expanded={showWarningsDrawer}
+            aria-controls={`cell-warnings-drawer-${rowIndex}-${colIndex}`}
+            className="flex items-center gap-1 text-[10px] font-sans font-medium text-amber-500 hover:underline cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none rounded"
             title="Toggle warning details"
           >
-            <AlertTriangle className="w-3 h-3" />
+            <AlertTriangle aria-hidden="true" focusable="false" className="w-3 h-3" />
             <span>
               {warnings.length} issue{warnings.length > 1 ? 's' : ''}
             </span>
           </button>
         ) : charCount > 0 ? (
           <span className="text-[10px] font-sans text-emerald-500/80 flex items-center gap-0.5">
-            <CheckCircle2 className="w-2.5 h-2.5" />
+            <CheckCircle2 aria-hidden="true" focusable="false" className="w-2.5 h-2.5" />
             <span>Clean</span>
           </span>
         ) : null}

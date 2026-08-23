@@ -81,20 +81,23 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             <button
               id="header-undo-btn"
+              type="button"
               onClick={onUndo}
               disabled={!canUndo}
-              className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium ${
+              aria-disabled={!canUndo}
+              aria-label="Undo last change (Ctrl+Z / ⌘Z)"
+              className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 canUndo
                   ? isDark
                     ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
                     : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
                   : isDark
-                    ? 'text-slate-600 opacity-40 cursor-not-allowed'
-                    : 'text-slate-400 opacity-40 cursor-not-allowed'
+                    ? 'text-slate-500 opacity-60 cursor-not-allowed'
+                    : 'text-slate-500 opacity-60 cursor-not-allowed'
               }`}
               title="Undo last change (Ctrl+Z / ⌘Z)"
             >
-              <Undo2 className="w-3.5 h-3.5" />
+              <Undo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
               <span className="hidden sm:inline text-[11px]">Undo</span>
             </button>
 
@@ -102,20 +105,23 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
 
             <button
               id="header-redo-btn"
+              type="button"
               onClick={onRedo}
               disabled={!canRedo}
-              className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium ${
+              aria-disabled={!canRedo}
+              aria-label="Redo next change (Ctrl+Y / ⌘⇧Z)"
+              className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 canRedo
                   ? isDark
                     ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
                     : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
                   : isDark
-                    ? 'text-slate-600 opacity-40 cursor-not-allowed'
-                    : 'text-slate-400 opacity-40 cursor-not-allowed'
+                    ? 'text-slate-500 opacity-60 cursor-not-allowed'
+                    : 'text-slate-500 opacity-60 cursor-not-allowed'
               }`}
               title="Redo next change (Ctrl+Y / ⌘⇧Z)"
             >
-              <Redo2 className="w-3.5 h-3.5" />
+              <Redo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
               <span className="hidden sm:inline text-[11px]">Redo</span>
             </button>
           </div>
@@ -123,8 +129,14 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {/* Focus Mode Button */}
           <button
             id="focus-mode-toggle-btn"
+            type="button"
             onClick={onToggleFocusMode}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 ${
+            aria-label={
+              isFocused
+                ? `Exit Focus Mode (currently maximizing ${focusMode === 'input' ? 'Input' : 'Output'}) [Esc]`
+                : `Focus Mode: Maximize active container (${activePanel === 'input' ? 'Input' : 'Output'}) and collapse inactive view`
+            }
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isFocused
                 ? isDark
                   ? 'bg-blue-950/70 border-blue-600/70 text-blue-300 hover:bg-blue-900/70 shadow-2xs'
@@ -141,14 +153,14 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             {isFocused ? (
               <>
-                <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
+                <Minimize2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-blue-400" />
                 <span>
                   Focus: <strong className="capitalize font-semibold">{focusMode}</strong>
                 </span>
               </>
             ) : (
               <>
-                <Maximize2 className="w-3.5 h-3.5" />
+                <Maximize2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Focus Mode</span>
                 <span className="sm:hidden">Focus</span>
               </>
@@ -158,27 +170,30 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {/* Sanitize Output Toggle */}
           <button
             id="sanitize-output-toggle-btn"
+            type="button"
             onClick={toggleSanitize}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition ${
+            aria-label={isSanitizeActive ? 'Sanitize output: on' : 'Sanitize output: off'}
+            aria-pressed={isSanitizeActive}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isSanitizeActive
                 ? isDark
                   ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/60'
                   : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
                 : isDark
-                  ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
-                  : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'
+                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-slate-100'
+                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-800'
             }`}
             title="Automatically strips unwanted background colors, dark mode styles, and meta tags during copy for seamless compatibility with Google Sheets, Excel, and Word"
           >
             {isSanitizeActive ? (
               <>
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <ShieldCheck aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Sanitize Output</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               </>
             ) : (
               <>
-                <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
+                <ShieldAlert aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-slate-400" />
                 <span>Sanitize: Off</span>
               </>
             )}
@@ -190,14 +205,18 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
               isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
             }`}
           >
-            <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <label
+              htmlFor="font-family-select"
+              className={`text-xs font-medium cursor-pointer ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+            >
               Font:
-            </span>
+            </label>
             <select
               id="font-family-select"
               value={options.fontFamily}
               onChange={(e) => setOptions((prev) => ({ ...prev, fontFamily: e.target.value }))}
-              className={`bg-transparent text-xs focus:outline-none cursor-pointer pr-1 ${
+              aria-label="Select typography font family"
+              className={`bg-transparent text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded cursor-pointer pr-1 ${
                 isDark ? 'text-slate-200' : 'text-slate-800'
               }`}
             >
@@ -221,15 +240,17 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             <span
               className={`px-2.5 py-1.5 text-xs font-medium border-r ${
-                isDark ? 'text-slate-400 border-slate-700' : 'text-slate-500 border-slate-200'
+                isDark ? 'text-slate-300 border-slate-700' : 'text-slate-600 border-slate-200'
               }`}
             >
               Size
             </span>
             <button
               id="font-size-decrease-btn"
+              type="button"
               onClick={() => setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
-              className={`px-2.5 py-1.5 transition ${
+              aria-label="Decrease font size"
+              className={`px-2.5 py-1.5 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 isDark
                   ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
                   : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
@@ -247,8 +268,10 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             </span>
             <button
               id="font-size-increase-btn"
+              type="button"
               onClick={() => setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))}
-              className={`px-2.5 py-1.5 transition ${
+              aria-label="Increase font size"
+              className={`px-2.5 py-1.5 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 isDark
                   ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
                   : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
@@ -262,8 +285,10 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {/* Theme Toggle Button */}
           <button
             id="theme-toggle-btn"
+            type="button"
             onClick={toggleTheme}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium transition ${
+            aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isDark
                 ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-amber-300 hover:text-amber-200'
                 : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
@@ -272,12 +297,12 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             {isDark ? (
               <>
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                <Sun aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-amber-400" />
                 <span>Light</span>
               </>
             ) : (
               <>
-                <Moon className="w-3.5 h-3.5 text-slate-600" />
+                <Moon aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-slate-600" />
                 <span>Dark</span>
               </>
             )}

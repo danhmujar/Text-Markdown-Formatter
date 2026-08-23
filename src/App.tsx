@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Header } from './components/Header';
 import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
-import { ToastContainer } from './components/Toast';
+import { ToastContainer, showToast } from './components/Toast';
 import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
 import { useCopy } from './hooks/useCopy';
@@ -50,6 +50,22 @@ export default function App() {
       return 'split';
     });
   }, [activePanel]);
+
+  // Announce Focus Mode state changes to assistive technologies and UI toast
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const modeName =
+      focusMode === 'split'
+        ? 'Split View'
+        : focusMode === 'input'
+          ? 'Input Focus Mode'
+          : 'Output Focus Mode';
+    showToast(`${modeName} activated`, 'info');
+  }, [focusMode]);
 
   // Global Keyboard Shortcuts:
   // - Undo: Ctrl+Z / ⌘Z
@@ -188,14 +204,16 @@ export default function App() {
 
       {/* Input & Output Panels - In Focus Mode, inactive panel collapses completely */}
       <main
-        className={`flex-1 overflow-hidden ${
+        id="main-content"
+        tabIndex={-1}
+        className={`flex-1 overflow-hidden focus:outline-none ${
           focusMode === 'split' ? 'grid grid-cols-1 lg:grid-cols-2' : 'grid grid-cols-1'
         }`}
       >
         {/* Input Panel */}
         <section
           id="input-container-panel"
-          onClick={() => setActivePanel('input')}
+          aria-labelledby="input-heading"
           onFocusCapture={() => setActivePanel('input')}
           className={`h-full overflow-hidden ${focusMode === 'output' ? 'hidden' : 'block'} ${
             focusMode === 'split'
@@ -221,7 +239,7 @@ export default function App() {
         {/* Output Panel */}
         <section
           id="output-container-panel"
-          onClick={() => setActivePanel('output')}
+          aria-labelledby="output-heading"
           onFocusCapture={() => setActivePanel('output')}
           className={`h-full overflow-hidden ${focusMode === 'input' ? 'hidden' : 'block'}`}
         >

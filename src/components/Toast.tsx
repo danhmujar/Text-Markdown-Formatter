@@ -64,6 +64,7 @@ export const ToastContainer: React.FC = () => {
           <div
             key={toast.id}
             id={`toast-item-${toast.id}`}
+            role={isError ? 'alert' : 'status'}
             className={`pointer-events-auto flex items-start gap-2.5 p-3 rounded-lg border shadow-lg backdrop-blur-sm text-xs transition-all duration-200 animate-in slide-in-from-bottom-2 ${
               isError
                 ? 'bg-rose-950/90 border-rose-800 text-rose-200 shadow-rose-950/40'
@@ -73,18 +74,19 @@ export const ToastContainer: React.FC = () => {
             }`}
           >
             <div className="shrink-0 mt-0.5">
-              {isError && <AlertCircle className="w-4 h-4 text-rose-400" />}
-              {isSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-              {!isError && !isSuccess && <Info className="w-4 h-4 text-blue-400" />}
+              {isError && <AlertCircle aria-hidden="true" focusable="false" className="w-4 h-4 text-rose-400" />}
+              {isSuccess && <CheckCircle2 aria-hidden="true" focusable="false" className="w-4 h-4 text-emerald-400" />}
+              {!isError && !isSuccess && <Info aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-400" />}
             </div>
             <p className="flex-1 leading-relaxed break-words">{toast.msg}</p>
             <button
               type="button"
               onClick={() => removeToast(toast.id)}
-              className="shrink-0 text-slate-400 hover:text-slate-200 p-0.5 rounded transition cursor-pointer"
+              aria-label="Close notification"
+              className="shrink-0 text-slate-400 hover:text-slate-200 p-0.5 rounded transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
               title="Close notification"
             >
-              <X className="w-3.5 h-3.5" />
+              <X aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
             </button>
           </div>
         );

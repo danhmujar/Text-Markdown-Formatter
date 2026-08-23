@@ -116,9 +116,12 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
           {/* Toggle Edit / Formatted Mode */}
           <button
             id={`toggle-edit-mode-${r}-${c}`}
+            type="button"
             onClick={onToggleMode}
+            aria-label={isEditMode ? `Switch ${label} to Formatted Preview` : `Switch ${label} to Edit Mode`}
+            aria-pressed={isEditMode}
             className={cn(
-              'px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95',
+              'px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
               isEditMode
                 ? 'bg-indigo-600 text-white border-indigo-500 shadow-2xs'
                 : isDark
@@ -129,12 +132,12 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
           >
             {isEditMode ? (
               <>
-                <Eye className="w-3 h-3 text-indigo-200" />
+                <Eye aria-hidden="true" focusable="false" className="w-3 h-3 text-indigo-200" />
                 <span>Preview</span>
               </>
             ) : (
               <>
-                <Edit3 className="w-3 h-3 text-slate-400" />
+                <Edit3 aria-hidden="true" focusable="false" className="w-3 h-3 text-slate-400" />
                 <span>Edit</span>
               </>
             )}
@@ -144,16 +147,18 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
           {isOverridden && (
             <button
               id={`reset-output-cell-${r}-${c}`}
+              type="button"
               onClick={onReset}
+              aria-label={`Reset output for ${label} to match original input source`}
               className={cn(
-                'px-1.5 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95',
+                'px-1.5 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
                 isDark
                   ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300', 'hover:text-white')
                   : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700', 'shadow-2xs'),
               )}
               title="Reset output to match original input source"
             >
-              <RotateCcw className="w-2.5 h-2.5" />
+              <RotateCcw aria-hidden="true" focusable="false" className="w-2.5 h-2.5" />
               <span>Reset</span>
             </button>
           )}
@@ -161,8 +166,14 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
           {/* Copy Cell Button */}
           <button
             id={`copy-cell-btn-${r}-${c}`}
+            type="button"
             onClick={onCopy}
-            className={`px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 ${
+            aria-label={
+              inputHadBr
+                ? `Copy formatted text for ${label} (converting line breaks back to <br>)`
+                : `Copy formatted text for ${label}`
+            }
+            className={`px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none ${
               isCopied
                 ? 'bg-emerald-600 text-white border-emerald-600 font-semibold'
                 : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-600'
@@ -175,12 +186,12 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
           >
             {isCopied ? (
               <>
-                <Check className="w-3 h-3 text-white" />
+                <Check aria-hidden="true" focusable="false" className="w-3 h-3 text-white" />
                 <span>Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="w-3 h-3 text-white" />
+                <Copy aria-hidden="true" focusable="false" className="w-3 h-3 text-white" />
                 <span>{inputHadBr ? 'Copy as <br>' : 'Copy'}</span>
               </>
             )}
@@ -212,10 +223,12 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             value={outputText}
             onChange={(e) => onOutputChange(e.target.value)}
             onKeyDown={onKeyDown}
+            aria-label={`Edit output for ${label}`}
+            aria-describedby={`output-footer-${r}-${c}`}
             placeholder={`Edit output for ${label}... (Press Enter to auto-continue numbering)`}
-            className={`w-full h-full p-3.5 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none custom-scrollbar ${
+            className={`w-full h-full p-3.5 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 custom-scrollbar ${
               isDark
-                ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-600'
+                ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-500'
                 : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
             }`}
             spellCheck={false}
@@ -236,8 +249,8 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
         id={`output-footer-${r}-${c}`}
         className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
           isDark
-            ? 'bg-slate-900/90 border-slate-800 text-slate-400'
-            : 'bg-slate-50 border-slate-200 text-slate-500'
+            ? 'bg-slate-900/90 border-slate-800 text-slate-300'
+            : 'bg-slate-50 border-slate-200 text-slate-600'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -245,19 +258,19 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'}`}
           >
             {charCount.toLocaleString()}{' '}
-            <span className="font-sans font-normal text-[10px] text-slate-400">chars</span>
+            <span className={`font-sans font-normal text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
           </span>
           <span className="flex items-center gap-1">
             <span>{wordCount.toLocaleString()}</span>
-            <span className="font-sans text-[10px] text-slate-400">words</span>
+            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>words</span>
           </span>
           <span className="hidden sm:flex items-center gap-1">
             <span>{lineCount}</span>
-            <span className="font-sans text-[10px] text-slate-400">lines</span>
+            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>lines</span>
           </span>
         </div>
 
-        <span className="text-[10px] font-sans text-slate-400 flex items-center gap-1">
+        <span className={`text-[10px] font-sans flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           <span>{isEditMode ? 'Editing Raw Text' : 'Formatted Preview'}</span>
         </span>
       </div>

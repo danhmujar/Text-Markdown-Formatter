@@ -93,9 +93,12 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
         }`}
       >
         <div className="flex items-center gap-2">
-          <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+          <h2
+            id="output-heading"
+            className={`text-xs font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
+          >
             Output
-          </span>
+          </h2>
           <span
             className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
               isDark
@@ -115,7 +118,7 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
             title={`Total output characters: ${totalOutputChars.toLocaleString()}`}
           >
             {totalOutputChars.toLocaleString()}{' '}
-            <span className="font-sans font-normal text-[10px] text-slate-400 ml-0.5">chars</span>
+            <span className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
           </span>
           {isFocusMode && (
             <div className="flex items-center gap-1.5 ml-1">
@@ -132,32 +135,36 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
               {onSwitchFocus && (
                 <button
                   id="focus-switch-to-input-btn"
+                  type="button"
                   onClick={onSwitchFocus}
+                  aria-label="Switch focus to Input container"
                   className={cn(
-                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95',
+                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
                     isDark
                       ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300 hover:text-white')
                       : cn(BUTTON_VARIANTS.subtleLight, 'text-slate-700 hover:text-slate-900'),
                   )}
                   title="Switch Focus to Input container"
                 >
-                  <ArrowLeft className="w-3 h-3 text-slate-400" />
+                  <ArrowLeft aria-hidden="true" focusable="false" className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                   <span>Input</span>
                 </button>
               )}
               {onExitFocus && (
                 <button
                   id="focus-exit-split-output-btn"
+                  type="button"
                   onClick={onExitFocus}
+                  aria-label="Exit Focus Mode and return to Split View (Escape)"
                   className={cn(
-                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95',
+                    'flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
                     isDark
                       ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300 hover:text-white')
                       : cn(BUTTON_VARIANTS.subtleLight, 'text-slate-700 hover:text-slate-900'),
                   )}
                   title="Exit Focus Mode and return to Split View (Esc)"
                 >
-                  <Minimize2 className="w-3 h-3" />
+                  <Minimize2 aria-hidden="true" focusable="false" className="w-3 h-3" />
                   <span>Split View</span>
                 </button>
               )}
@@ -167,18 +174,20 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
 
         <button
           id="copy-all-containers-btn"
+          type="button"
           onClick={onCopyAllGrid}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer"
+          aria-label="Copy all formatted output to clipboard"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
           title="Copy formatted output for Word & Outlook (with line breaks converted back to <br> if input had <br>)"
         >
           {copiedAll ? (
             <>
-              <Check className="w-3.5 h-3.5 text-emerald-300" />
+              <Check aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-emerald-300" />
               <span>Copied All!</span>
             </>
           ) : (
             <>
-              <Copy className="w-3.5 h-3.5" />
+              <Copy aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
               <span>Copy All</span>
             </>
           )}
