@@ -179,7 +179,14 @@ export default function App() {
     [updateOutputOverrides],
   );
 
-  const { copiedCell, copiedAll, handleCopyCell, handleCopyAllGrid } = useCopy({
+  const {
+    copiedCell,
+    copiedAll,
+    handleCopyCell,
+    handleCopyCellExcel,
+    handleCopyAllGrid,
+    handleCopyAllGridExcel,
+  } = useCopy({
     grid,
     options,
     getOutputContent,
@@ -261,7 +268,9 @@ export default function App() {
             onOutputChange={handleOutputChange}
             onResetOutputCell={handleResetOutputCell}
             onCopyCell={handleCopyCell}
+            onCopyCellExcel={handleCopyCellExcel}
             onCopyAllGrid={handleCopyAllGrid}
+            onCopyAllGridExcel={handleCopyAllGridExcel}
             copiedCell={copiedCell}
             copiedAll={copiedAll}
             isFocusMode={focusMode === 'output'}

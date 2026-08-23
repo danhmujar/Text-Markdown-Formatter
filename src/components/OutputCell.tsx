@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- scrollable preview region must be focusable (axe scrollable-region-focusable) */
 import React, { useMemo } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { Copy, Check, RotateCcw, Eye, Edit3 } from 'lucide-react';
+import { Copy, Check, RotateCcw, Eye, Edit3, Table } from 'lucide-react';
 import { StyleOptions } from '../types';
 import { buildInlineStyledHtml, NumberingFormat } from '../utils/markdownFormatter';
 import { cn } from '../utils/cn';
@@ -23,6 +23,7 @@ interface OutputCellProps {
   onToggleMode: () => void;
   onReset: () => void;
   onCopy: () => void;
+  onCopyExcel?: () => void;
   onKeyDown: (e: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
   onOutputChange: (val: string) => void;
   onSmartClean: () => void;
@@ -45,6 +46,7 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
   onToggleMode,
   onReset,
   onCopy,
+  onCopyExcel,
   onKeyDown,
   onOutputChange,
   onSmartClean,
@@ -233,6 +235,24 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
               </>
             )}
           </button>
+          {onCopyExcel && (
+            <button
+              id={`copy-cell-excel-btn-${r}-${c}`}
+              type="button"
+              onClick={onCopyExcel}
+              aria-label={`Copy formatted text for ${label} for Excel (keeps <br> literal)`}
+              className="px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none hover:brightness-110"
+              style={{
+                backgroundColor: 'var(--panel-bg)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-secondary)',
+              }}
+              title="Copy for Excel — keeps <br> as text inside table cells"
+            >
+              <Table aria-hidden="true" focusable="false" className="w-3 h-3" />
+              <span>Excel</span>
+            </button>
+          )}
         </div>
       </div>
 

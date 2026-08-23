@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { Copy, Check, Minimize2, ArrowLeft } from 'lucide-react';
+import { Copy, Check, Minimize2, ArrowLeft, Table } from 'lucide-react';
 import { StyleOptions } from '../types';
 import { hasBrTags } from '../utils/markdownFormatter';
 import { useOutputActions } from '../hooks/useOutputActions';
@@ -15,7 +15,9 @@ interface PreviewProps {
   onOutputChange: (rowIndex: number, colIndex: number, val: string, isTyping?: boolean) => void;
   onResetOutputCell: (rowIndex: number, colIndex: number) => void;
   onCopyCell: (rowIndex: number, colIndex: number) => void;
+  onCopyCellExcel?: (rowIndex: number, colIndex: number) => void;
   onCopyAllGrid: () => void;
+  onCopyAllGridExcel?: () => void;
   copiedCell: string | null;
   copiedAll: boolean;
   isFocusMode?: boolean;
@@ -31,7 +33,9 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
   onOutputChange,
   onResetOutputCell,
   onCopyCell,
+  onCopyCellExcel,
   onCopyAllGrid,
+  onCopyAllGridExcel,
   copiedCell,
   copiedAll,
   isFocusMode = false,
@@ -183,31 +187,49 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
           )}
         </div>
 
-        <button
-          id="copy-all-containers-btn"
-          type="button"
-          onClick={onCopyAllGrid}
-          aria-label="Copy all formatted output to clipboard"
-          className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none hover:brightness-110"
-          style={{ backgroundColor: 'var(--primary-blue)' }}
-          title="Copy formatted output for Word & Outlook (with line breaks converted back to <br> if input had <br>)"
-        >
-          {copiedAll ? (
-            <>
-              <Check
-                aria-hidden="true"
-                focusable="false"
-                className="w-3.5 h-3.5 text-emerald-300"
-              />
-              <span>Copied All!</span>
-            </>
-          ) : (
-            <>
-              <Copy aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-              <span>Copy All</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            id="copy-all-containers-btn"
+            type="button"
+            onClick={onCopyAllGrid}
+            aria-label="Copy all formatted output to clipboard for Word/Outlook"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none hover:brightness-110"
+            style={{ backgroundColor: 'var(--primary-blue)' }}
+            title="Copy for Word & Outlook — <br> becomes line break in tables"
+          >
+            {copiedAll ? (
+              <>
+                <Check
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3.5 h-3.5 text-emerald-300"
+                />
+                <span>Copied All!</span>
+              </>
+            ) : (
+              <>
+                <Copy aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+                <span>Copy All</span>
+              </>
+            )}
+          </button>
+          <button
+            id="copy-all-excel-btn"
+            type="button"
+            onClick={onCopyAllGridExcel}
+            aria-label="Copy all formatted output for Excel (keeps <br> literal in tables)"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none border hover:brightness-110"
+            style={{
+              backgroundColor: 'var(--panel-bg)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-secondary)',
+            }}
+            title="Copy for Excel — keeps <br> as text inside table cells"
+          >
+            <Table aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+            <span>Excel</span>
+          </button>
+        </div>
       </div>
 
       {/* Grid of Output Containers */}
@@ -244,6 +266,7 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
                   onToggleMode={() => toggleCellMode(cellId)}
                   onReset={() => onResetOutputCell(r, c)}
                   onCopy={() => onCopyCell(r, c)}
+                  onCopyExcel={onCopyCellExcel ? () => onCopyCellExcel(r, c) : undefined}
                   onKeyDown={(e) => handleTextareaKeyDown(e, r, c)}
                   onOutputChange={(val) => onOutputChange(r, c, val, true)}
                   onApplyNumbering={(format) => handleApplyNumbering(r, c, format)}
