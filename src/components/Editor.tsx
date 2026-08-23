@@ -105,6 +105,9 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
           {/* Aggregate Stats Badges */}
           <span
             id="total-input-char-badge"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
             className={`hidden md:inline-flex text-[11px] font-mono px-2 py-0.5 rounded border ${
               isDark
                 ? 'bg-slate-800/80 text-slate-300 border-slate-700'
@@ -279,6 +282,9 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
       {/* Floating or Inline Toast Notification for Smart Cleanup */}
       {cleanupNotification && (
         <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
           className={`px-4 py-2 text-xs border-b flex items-center gap-2 animate-in fade-in duration-200 ${
             isDark
               ? 'bg-indigo-950/80 border-indigo-800/80 text-indigo-200'

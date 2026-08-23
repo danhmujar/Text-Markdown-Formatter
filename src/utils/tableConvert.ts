@@ -190,10 +190,46 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
         return copy;
       });
     } else if (rawLines.length > 1) {
+      if (isLikelyMarkdownDocument(text, rawLines)) {
+        return null;
+      }
       // Multiple lines without tabs -> treat each line as a single-col row
       return rawLines.map((l) => [l]);
     }
   }
 
   return null;
+}
+
+function isLikelyMarkdownDocument(text: string, rawLines: string[]): boolean {
+  if (text.includes('\n\n')) return true;
+
+  if (rawLines.some((l) => /^\s*#{1,6}\s/.test(l))) return true;
+
+  if (rawLines.some((l) => /^\s*(\*\*\*|___|---)\s*$/.test(l))) return true;
+
+  if (rawLines.some((l) => /^\s*>/.test(l))) return true;
+
+  if (rawLines.some((l) => /^\s*```/.test(l))) return true;
+
+  const listLikeCount = rawLines.filter((l) =>
+    /^\s*([*+-]\s+|\d+[\.\)]\s+|\(\d+\)\s+|\([a-zA-Z]\)\s+|\([ivxlcdm]+\)\s+)/i.test(l),
+  ).length;
+  if (listLikeCount >= 2) return true;
+
+  const boldLines = rawLines.filter((l) => {
+    const stars = (l.match(/\*\*/g) || []).length;
+    const underscores = (l.match(/__/g) || []).length;
+    return stars >= 2 || underscores >= 2;
+  }).length;
+  if (boldLines >= 2) return true;
+
+  if (rawLines.some((l) => l.trim().length > 120)) return true;
+
+  if (rawLines.length > 5) {
+    const avgLen = rawLines.reduce((sum, l) => sum + l.trim().length, 0) / rawLines.length;
+    if (avgLen > 60 && rawLines.some((l) => l.trim().length > 80)) return true;
+  }
+
+  return false;
 }

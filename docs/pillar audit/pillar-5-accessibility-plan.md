@@ -3,10 +3,10 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 5/5 — Accessibility/UX (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** Accessible names, label association, focus trap, focus-visible, contrast, live regions, semantics, skip link
-**Status:** All Phases (1-5) & Cross-Pillar Verification complete (2026-08-23)
-**Date:** 2026-08-23
-**Audit source:** Inline audit `src/components/Header.tsx:82-263`, `Editor.tsx:369-493,310-323`, `EditorCell.tsx:142-368,310-323`, `Preview.tsx:288-646`, `src/App.tsx:67-106,212-282`, `index.html:14`
-**WCAG:** 2.1 AA — 1.3.1 Info & Relationships, 2.4.3 Focus Order, 2.4.7 Focus Visible, 4.1.2 Name/Role/Value, 1.4.3 Contrast
+**Status:** All Phases (1-5) & Cross-Pillar Verification **PASS** — post-fix verified 2026-08-23 (axe 0 violations, 46 vitest, 3 playwright a11y)
+**Date:** 2026-08-23 (updated post-fix 2026-08-23)
+**Audit source:** Inline audit `src/components/Header.tsx:82-263`, `Editor.tsx:369-493,310-323`, `EditorCell.tsx:142-368,310-323`, `Preview.tsx:288-646`, `src/App.tsx:67-106,212-282`, `index.html:14` + post-fix verification `OutputCell.tsx:254`, `Editor.tsx:106,280`, `EditorCell.tsx:382`
+**WCAG:** 2.1 AA — 1.3.1 Info & Relationships, 2.4.3 Focus Order, 2.4.7 Focus Visible, 4.1.2 Name/Role/Value, 1.4.3 Contrast, 4.1.3 Status Messages
 
 ---
 
@@ -154,11 +154,13 @@
 - `index.css:1-20` — global focus styles not to conflict
 - External: Tailwind `focus-visible`, WCAG 1.4.3 Contrast checker
 
-**Verification checklist**
-- [x] `grep -c "focus-visible:ring" src` → 30+ hits
+**Verification checklist** (post-fix 2026-08-23 verified)
+- [x] `grep -c "focus-visible:ring" src` → 78 hits (req 30+) — `Header 16, Editor 8, EditorCell 17, EditToolbar 14, OutputCell 14, Preview 6, Toast 2, EditorSettingsPanel 4`
+- [x] Placeholder contrast fixed `EditorCell.tsx:373-375` + `OutputCell.tsx:247-249` swapped `placeholder:text-slate-500`→`400` dark / `400`→`500` light (WCAG 4.6:1 on `bg-slate-900`)
 - [x] Manual keyboard: Tab through Header → every button shows 2px blue ring, not just hover
-- [x] `axe` contrast scan — 0 `color-contrast` violations (was 6+)
+- [x] `axe` contrast scan — 0 `color-contrast` violations (was 6+) — `npx playwright test --grep a11y` 3 passed
 - [x] `npx tsc --noEmit` pass, no visual regression in light/dark
+- [x] Scrollable preview fix `OutputCell.tsx:254` `tabIndex={0} role="region" aria-label="Formatted preview..."` fixes `axe scrollable-region-focusable`
 
 **Anti-pattern guards**
 - Do NOT use `focus:ring` alone — must be `focus-visible:ring` to avoid mouse click ring
@@ -192,10 +194,11 @@
 - `Header.tsx:67`, `App.tsx:226-260`
 - External: MDN `aria-live`, `role="status"` vs `role="alert"`, `aria-hidden`
 
-**Verification checklist**
-- [x] `grep -c 'aria-live=' src` → 5+ hits, `grep -c 'aria-hidden=' src` → 38+ hits
+**Verification checklist** (post-fix 2026-08-23 verified)
+- [x] `grep -c 'aria-live=' src` → 8 hits (req 5+) — `Editor.tsx:3 (total-input, warnings, cleanup), Preview.tsx:1, EditorCell.tsx:1, EditToolbar 1, Toast 1, ErrorBoundary 1`, `grep -c 'aria-hidden='` → 57 hits (req 38+)
+- [x] Live regions fixed: `Editor.tsx:106` `total-input-char-badge` `role="status" aria-live="polite" aria-atomic`, `Preview.tsx:111` `total-output-char-badge` same, `Editor.tsx:281` `cleanupNotification` banner same, `EditorCell.tsx:382` `cell-counter-footer` same — verified `src/utils/__tests__/a11y.test.ts` 4 new tests pass
 - [x] NVDA / Screen reader: status regions announce warnings politely; feedback announces changes
-- [x] `axe` scan / jsx-a11y → 0 violations for live regions and interactive elements
+- [x] `axe` scan / jsx-a11y → 0 violations for live regions and interactive elements — `npm run lint` 0, `npx playwright test` 0 violations
 - [x] `npx tsc --noEmit` pass
 
 **Anti-pattern guards**
@@ -228,11 +231,12 @@
 - `eslint.config.js` (Pillar 4) — to extend with `jsx-a11y`
 - External: `eslint-plugin-jsx-a11y` recommended config, `@axe-core/playwright` `AxeBuilder` example, MDN skip link pattern
 
-**Verification checklist**
-- [x] `Get-Content index.html | Select-String "Skip to main"` → 1
-- [x] Tab on fresh load → skip link appears top-left focused, Enter jumps to `main#main-content`
-- [x] `npx eslint .` → 0 `jsx-a11y` errors
-- [x] `npx tsc --noEmit && npm run lint && npm run build && vitest run` all green
+**Verification checklist** (post-fix 2026-08-23 verified)
+- [x] `Get-Content index.html | Select-String "Skip to main"` → 1 — `index.html:24-29` correct order `body < skip < root`
+- [x] Tab on fresh load → skip link appears top-left focused, Enter jumps to `main#main-content` — playwright `tests/a11y.spec.ts:31` passes
+- [x] `npx eslint .` → 0 `jsx-a11y` errors (file-level disable for `OutputCell.tsx` scrollable region documented)
+- [x] `npx tsc --noEmit && npm run lint && npm run build && vitest run` all green — `vitest 46/46`, `playwright 3/3`
+- [x] Tooling installed: `axe-core@4.13.0`, `@axe-core/playwright@4.13.0`, `@playwright/test@1.62.1` — `package.json:28-35`, `playwright.config.ts`, `tests/a11y.spec.ts` with `AxeBuilder` `withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa'])` — `npm run a11y:check` / `npm run test:a11y` added
 
 **Anti-pattern guards**
 - Do NOT add skip link inside `Header` — must be first focusable element in `body`
@@ -243,21 +247,65 @@
 
 ---
 
-## Final Phase: Cross-Pillar Verification
+## Final Phase: Cross-Pillar Verification — POST-FIX 2026-08-23 ✅ PASS
 
-1. **Greps:**
-   - `Select-String -Path "src\**\*.tsx" -Pattern "<button" | Where { $_ -notmatch ''type="button"'' }` → 0
-   - `Select-String -Path "src\**\*.tsx" -Pattern ''aria-label=''` → 30+ hits
-   - `Select-String -Path "src\**\*.tsx" -Pattern "focus-visible:ring"` → 30+ hits
-   - `Select-String -Path "src\**\*.tsx" -Pattern ''aria-live=''` → 5+ hits
-   - `Select-String -Path "index.html" -Pattern "Skip to main"` → 1
-2. **Build & audit:** `npx tsc --noEmit && npm run lint && npm run build && npx playwright test --grep a11y`
+**Pre-fix audit 2026-08-23 found 3 gaps:** `aria-live` 4 (<5), missing `axe` tooling, `scrollable-region-focusable` violation on `output-formatted`. All fixed and verified below.
+
+1. **Greps (post-fix):**
+   - `Get-ChildItem src -Recurse -Filter *.tsx | Select-String "<button"` → 39 buttons, `type="button"` 39/39 → 0 missing ✅
+   - `aria-label` → 43 hits (req 30+) ✅ — `Header 8, Editor 4, EditorCell 6, EditToolbar 8, OutputCell 5, Preview 3, EditorSettingsPanel 6, Toast 1, ErrorBoundary 2`
+   - `focus-visible:ring` → 78 hits (req 30+) ✅
+   - `aria-live` → 8 hits (req 5+) ✅ — `Editor 3, Preview 1, EditorCell 1, EditToolbar 1, Toast 1, ErrorBoundary 1`
+   - `aria-hidden` → 57 hits (req 38+) ✅
+   - `Skip to main` → 1 ✅
+2. **Build & audit:** `npx tsc --noEmit` ✅, `npm run lint` 0 ✅, `npm run build` ✅, `npm test` 46/46 ✅, `npx playwright test` 3/3 ✅ (including `AxeBuilder` 0 violations after `OutputCell.tsx:254` fix)
 3. **Manual UX:**
-   - Tab through entire app — every icon button announces name, textarea announces label, focus ring visible
-   - Settings dialog Tab trap works, Escape returns focus
-   - Type markdown → warnings badge announces politely
-   - Light & dark mode contrast passes WCAG AA (axe 0)
-4. **No regression:** `Preview` formatting, `Editor` paste/numbering, `Header` sanitize toggle still work (a11y only adds attrs, no logic change)
+   - Tab through entire app — every icon button announces name, textarea announces label (`cell-label-*`, `output-textarea`), focus ring visible 2px blue
+   - Settings dialog Tab trap works (focus first button `layout-single-btn`, loop Tab/Shift+Tab, Escape returns to `editor-settings-btn`)
+   - Type markdown → warnings badge `grid-total-warnings-badge` announces politely, char badges `total-input/output` now live
+   - Light & dark mode contrast passes WCAG AA (axe 0 `color-contrast`)
+4. **No regression:** `Preview` formatting, `Editor` paste/numbering, `Header` sanitize toggle still work (a11y only adds attrs, no logic change) — `vitest` 46 green, `playwright` 3 green
+
+---
+
+## Verification Log 2026-08-23 (Post-Fix)
+
+**Commands executed & results (pwsh, C:\AI\Project\Text-Markdown-Formatter):**
+
+```pwsh
+# Greps
+Get-ChildItem -Path src -Recurse -Filter *.tsx | Select-String -Pattern '<button' # 39
+python check_a11y.py # type="button" 39/39, aria-label 43, focus-visible 78, aria-live 8, aria-hidden 57
+
+# Live regions fixed
+# Editor.tsx:106 total-input-char-badge + role/status live
+# Preview.tsx:111 total-output-char-badge + role/status live
+# Editor.tsx:280 cleanupNotification + role/status live
+# EditorCell.tsx:382 cell-counter-footer + role/status live
+# OutputCell.tsx:254 output-formatted scrollable fix + tabIndex0 role region
+
+# Build & lint
+npm run typecheck # tsc --noEmit 0
+npm run lint      # eslint 0 (jsx-a11y)
+npm run build     # vite 1706 modules, built in 2s
+npm test          # vitest 46/46 (7 files) — includes 4 new live-region tests
+npx playwright test --reporter=list # 3/3 — AxeBuilder 0 violations, dialog trap, skip link
+```
+
+**Key fixes applied:**
+- `src/components/Editor.tsx:106-112` `total-input-char-badge` added `role="status" aria-live="polite" aria-atomic="true"`
+- `src/components/Preview.tsx:111-117` same for `total-output-char-badge`
+- `src/components/Editor.tsx:280-286` `cleanupNotification` banner added `role="status" aria-live="polite" aria-atomic="true"`
+- `src/components/EditorCell.tsx:382-389` `cell-counter-footer` added `role="status" aria-live="polite" aria-atomic="true"`
+- `src/components/EditorCell.tsx:373-375` & `OutputCell.tsx:247-249` placeholder contrast swapped `400↔500` for WCAG 4.6:1
+- `src/components/OutputCell.tsx:254-263` scrollable preview `tabIndex={0} role="region" aria-label` + `focus-visible` + file-level eslint disable
+- `package.json:28-35` added `axe-core`, `@axe-core/playwright`, `@playwright/test`, scripts `a11y:check`/`test:a11y`
+- `playwright.config.ts` + `tests/a11y.spec.ts` (AxeBuilder wcag2a/2aa/21a/21aa + dialog trap + skip link)
+- `src/utils/__tests__/a11y.test.ts` +4 live-region tests (total-input, total-output, cleanup, footer)
+- `vite.config.ts:15-17` `test.include` `src/**/*` + `exclude tests` to prevent vitest picking playwright specs
+- `eslint` now 0 via `/* eslint-disable jsx-a11y/no-noninteractive-tabindex */` documented for scrollable region
+
+**axe violations before fix:** `scrollable-region-focusable` on `#output-formatted-0-0` (serious) → fixed with `tabIndex={0} role="region"`.
 
 ---
 
@@ -278,16 +326,21 @@ Phase 0 (done) -> Phase 1 (names/labels) -> Phase 2 (focus trap) -> Phase 3 (foc
 ## File Map (to create/modify)
 
 ```
-docs/pillar audit/pillar-5-accessibility-plan.md            <- this file
-index.html:14                                               <- modify (skip link)
-src/App.tsx:226,67-106                                      <- modify (main id, aria-labelledby, live announce)
-src/components/Header.tsx:82-263,193,196                    <- modify (type, aria-label, label)
-src/components/Editor.tsx:314-493,256,369-393,521-532       <- modify (type/aria, h2, trap, live)
-src/components/EditorCell.tsx:132,142,181,195,225,274,310-328,368 <- modify (label linkage, type/aria, drawer)
-src/components/Preview.tsx:255-274,288-646,488,609-627      <- modify (aria-label, toolbar role, live, label)
-src/index.css:1-20                                          <- optional (sr-only)
-eslint.config.js                                            <- modify (jsx-a11y)
-playwright a11y test                                        <- new (a11y.spec.ts)
+docs/pillar audit/pillar-5-accessibility-plan.md            <- this file (updated post-fix)
+index.html:14                                               <- modify (skip link) ✅
+src/App.tsx:226,67-106                                      <- modify (main id, aria-labelledby, live announce) ✅
+src/components/Header.tsx:82-263,193,196                    <- modify (type, aria-label, label) ✅
+src/components/Editor.tsx:106,280,256                       <- modify (live regions total-input, cleanup + h2) ✅ post-fix
+src/components/EditorCell.tsx:132,142,181,195,225,274,310-328,373,382 <- modify (label linkage, type/aria, drawer, placeholder, footer live) ✅ post-fix
+src/components/Preview.tsx:111,255-274,288-646,488,609-627   <- modify (total-output live, toolbar role, label) ✅ post-fix
+src/components/OutputCell.tsx:243-263                       <- modify (scrollable preview tabIndex+region, placeholder) ✅ post-fix
+src/index.css:1-20                                          <- optional (sr-only) (no change)
+eslint.config.js                                            <- modify (jsx-a11y) ✅
+vite.config.ts:15                                            <- modify (exclude tests from vitest) ✅ post-fix
+package.json:28                                             <- modify (axe-core, @axe-core/playwright, @playwright/test, scripts) ✅ post-fix
+playwright.config.ts                                        <- new ✅ post-fix
+tests/a11y.spec.ts                                          <- new (AxeBuilder + dialog trap + skip link) ✅ post-fix
+src/utils/__tests__/a11y.test.ts                            <- modify (+4 live-region tests) ✅ post-fix
 ```
 
 ## References

@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex -- scrollable preview region must be focusable (axe scrollable-region-focusable) */
 import React, { useMemo } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Copy, Check, RotateCcw, Eye, Edit3 } from 'lucide-react';
@@ -245,16 +246,19 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             placeholder={`Edit output for ${label}... (Press Enter to auto-continue numbering)`}
             className={`w-full h-full p-3.5 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 custom-scrollbar ${
               isDark
-                ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-500'
-                : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
+                ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-400'
+                : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-500'
             }`}
             spellCheck={false}
           />
         ) : (
           <div
             id={`output-formatted-${r}-${c}`}
+            tabIndex={0}
+            role="region"
+            aria-label={`Formatted preview for ${label}`}
             dangerouslySetInnerHTML={{ __html: htmlFormatted }}
-            className={`w-full h-full p-4 overflow-auto custom-scrollbar select-text leading-relaxed font-sans ${
+            className={`w-full h-full p-4 overflow-auto custom-scrollbar select-text leading-relaxed font-sans focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset ${
               isDark ? 'text-slate-100' : 'text-slate-900'
             }`}
           />

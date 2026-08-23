@@ -371,8 +371,8 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
           placeholder={`Type or paste markdown in ${label}...`}
           className={`w-full h-full p-3 bg-transparent font-mono text-xs leading-relaxed resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 custom-scrollbar ${
             isDark
-              ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-500'
-              : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-400'
+              ? 'text-slate-100 selection:bg-blue-600/40 placeholder:text-slate-400'
+              : 'text-slate-800 selection:bg-blue-200 placeholder:text-slate-500'
           }`}
           spellCheck={false}
         />
@@ -381,6 +381,9 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
       {/* Dynamic Character, Word & Line Counter Footer */}
       <div
         id={`cell-counter-footer-${rowIndex}-${colIndex}`}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
         className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
           isDark
             ? 'bg-slate-900/90 border-slate-800 text-slate-300'

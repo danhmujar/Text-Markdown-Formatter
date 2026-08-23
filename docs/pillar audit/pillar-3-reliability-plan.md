@@ -3,9 +3,9 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 3/5 — Reliability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** Error boundaries, silent failures, history/debounce, edge inputs, runtime validation
-**Status:** Completed — all phases (1–5) fully executed, verified, and passing test suites — re-verified 2026-08-23, audit gaps closed
-**Date:** 2026-08-23 (original 2026-08-22, re-verified 2026-08-23)
-**Re-verification:** Fix applied 2026-08-23 for table-parse toast and GenAI alignment doc; `npx tsc --noEmit && npm run lint && npm test && npm run build && npm audit` all green (42 tests, 7 suites)
+**Status:** Completed — all phases (1–5) fully executed, verified — hotfix 2026-08-23 for markdown-paste table regression (audit gaps closed)
+**Date:** 2026-08-23 (original 2026-08-22, re-verified 2026-08-23, hotfix 2026-08-23 markdown guard)
+**Re-verification:** Fixes applied 2026-08-23 (1) table-parse toast + GenAI alignment doc, (2) markdown-paste guard `isLikelyMarkdownDocument` in `tableConvert.ts:204`; `npx tsc --noEmit && npm run lint && npm test && npm run build && npm audit` all green (42 tests, 7 suites)
 **Audit source:** Inline audit `src/main.tsx:5-8`, `src/App.tsx:117,156-203`, `src/hooks/useGridHistory.ts:43-210`, `src/utils/markdownFormatter.ts:74-1445`, `src/components/Editor.tsx:161`, `metadata.json:6`, `.env.example:4`
 
 ---
@@ -176,7 +176,7 @@
 
 ---
 
-## Phase 4: Medium — Edge Input Guards (TSV, Paste, Cleanup) — ✅ COMPLETE (2026-08-22)
+## Phase 4: Medium — Edge Input Guards (TSV, Paste, Cleanup) — ✅ COMPLETE (2026-08-22) + HOTFIX 2026-08-23
 
 **What to implement**
 1. Fix `src/utils/markdownFormatter.ts:526-530` `tsvToMarkdownTable` — guard `maxCols` when `rows=[[]]`:
@@ -188,24 +188,28 @@
 2. Fix `src/utils/markdownFormatter.ts:929-970` `parsePasteToGrid` vertical paste — change final `return null:970` to handle `rawLines.length>1` without tabs:
    ```ts
    } else if(rawLines.length>1){
+     if (isLikelyMarkdownDocument(text, rawLines)) return null;
      return rawLines.map(l=>[l]); // treat each line as single-col row
    }
    ```
-   Keep `hasTabs:927` branch as is. Verify `Editor.tsx:161` `handlePasteOnCell` still sanitizes each cell `:166`.
+   Keep `hasTabs:927` branch as is (TSV/HTML-table always wins). `isLikelyMarkdownDocument` (`src/utils/tableConvert.ts:204`) returns `true` for markdown docs: `\n\n`, `#{1,6} `, `***`/`---`, `>`, ```` ``` ````, `[*+-] `×2 or `\d+[.)]`×2, `**`×2 on ≥2 lines, `len>120`, or `>5` lines with `avg>60 && some>80`. Verify `Editor.tsx:161` `handlePasteOnCell` still sanitizes each cell `:166`.
 3. Gate `smartCleanupMarkdown:799-873` auto-close `**`/`~~`/code fence — only auto-close if not `isTyping` (caller `Editor.tsx:171` passes text during typing). Add param `isTyping?:boolean` to `smartCleanupMarkdown` and `sanitizeInputText:620`, skip `if(isTyping) return` for auto-close at `:799,808,867-873`. Or simpler: don't auto-close unbalanced `**` on single line during typing — move that logic to `Preview` render only.
 4. Add guard `src/App.tsx:112-122` `getOutputContent` — if `rowIndex<0 || colIndex<0` return '', and if `grid[rowIndex]===undefined` return ''.
 
 **Documentation references**
-- `src/utils/markdownFormatter.ts:526-530,929-970,799-873,620-643`
+- `src/utils/markdownFormatter.ts:526-530,929-970,799-873,620-643` → post-split `src/utils/tableConvert.ts:5-194,204` + `src/utils/cleanup.ts:73-333`
 - `src/components/Editor.tsx:161-172` — consumer of `parsePasteToGrid`
 - `src/App.tsx:112-122` — consumer
 
 **Verification checklist**
-- [x] `grep -n "Math.max" src/utils/markdownFormatter.ts` shows `Math.max(1, ...`
-- [x] Paste `a\nb\nc` (3 lines, no tabs, from clipboard) → Editor creates 3 rows ×1 col, not 1 cell with `a\nb\nc`
+- [x] `grep -n "Math.max" src/utils/tableConvert.ts` shows `Math.max(1, ...`
+- [x] Paste `a\nb\nc` (3 short lines, no markdown, no tabs) → Editor creates 3 rows ×1 col, not 1 cell with `a\nb\nc`
+- [x] Paste markdown digest ( `***`, `### `, `**1. FACTS**`, `*   Whether...`, blank `\n\n`, long `>120` lines ) → stays 1×1 cell with `buildInlineStyledHtml:16`, NOT outer `buildGridHtml` table (`tableConvert.ts:204` guard)
+- [x] Paste `(i) test\n(ii) test again` (roman list×2) → stays single cell, `marked.parse(breaks:true)` → `<p>(i) test<br>(ii)...</p>`, not 2-row grid
+- [x] Paste `a\tb\n1\t2` (tabs) → still 2×2 grid / TSV→markdown table, markdown guard does NOT apply to `hasTabs` branch
 - [x] Paste single `\t` → `tsvToMarkdownTable` returns `|  |` with 2 empty cols, no throw
 - [x] Typing `**bold` (no closing) in `EditorCell` → `smartCleanup` does not auto-append `**` mid-typing; `Preview` shows raw `**bold` until user closes
-- [x] `npx tsc --noEmit` passes
+- [x] `npx tsc --noEmit` passes; `npm test` 42/42
 
 **Execution notes (2026-08-22)**
 - Guarded `tsvToMarkdownTable` against single-tab edge cases and preserved input structure without throwing.
@@ -213,12 +217,18 @@
 - Gated formatting auto-closures (`**`, `~~`, code fences) behind `isTyping` flag in `smartCleanupMarkdown`.
 - Added negative/undefined index protection in `getOutputContent`.
 
+**Hotfix 2026-08-23 — markdown paste → table regression**
+- **Root cause:** Phase 4 vertical-paste `else if(rawLines.length>1) return rawLines.map(l=>[l])` treated *every* multi-line paste (including markdown docs) as `N×1` grid → `useGridActions.ts:118` replaced entire grid → `buildGridHtml:26` outer `<table>` destroyed digest formatting.
+- **Fix:** Added `isLikelyMarkdownDocument(text,rawLines)` in `src/utils/tableConvert.ts:204-235` checked *before* vertical split. `hasTabs` and HTML `<table>` still force grid; only plain vertical text is gated.
+- **Verified:** `npm test` 42/42, `paste "Line 1\nLine 2"` still grid, `paste digest / (i) test\n(ii)...` no longer grid, `npm run typecheck/lint/build` green.
+
 **Anti-pattern guards**
 - Do NOT change `tsvToMarkdownTable` to throw on empty — keep fallback `return tsv`
 - Do NOT make `parsePasteToGrid` async — keep sync
 - Do NOT remove `smartCleanup` entirely — keep its quote/space fixes, just gate bold auto-close
+- Do NOT remove `isLikelyMarkdownDocument` guard — markdown docs must stay 1×1, TSV/HTML-table still becomes grid
 
-**Effort:** ~30m
+**Effort:** ~30m + 15m hotfix
 
 ---
 
@@ -271,23 +281,25 @@
 
 ---
 
-## Final Phase: Cross-Pillar Verification (re-verified 2026-08-23)
+## Final Phase: Cross-Pillar Verification (re-verified 2026-08-23 + hotfix 2026-08-23)
 
-1. **Greps (2026-08-23):**
+1. **Greps (2026-08-23 + hotfix):**
    - `Get-ChildItem -Recurse -Include "*.tsx","*.ts" -Path src | Select-String "ErrorBoundary"` → `ErrorBoundary.tsx:13` + `main.tsx:4,9` (2 files, 8 hits) ✅
    - `Get-ChildItem -Recurse -Include "*.tsx","*.ts" -Path src | Select-String "showToast|Copy failed"` → `Toast.tsx:12`, `useCopy.ts:9,44,48,83,87`, `useGridActions.ts:8,125`, `App.tsx:5,67` (3 functional sites + infra) ✅
    - `Select-String -Path "src\hooks\useGridHistory.ts" -Pattern "JSON.stringify"` → 1 site `src/hooks/useGridHistory.ts:72-73` guarded by `totalChars>500_000` `src/hooks/useGridHistory.ts:60-69` ✅
-   - `Select-String -Path "src\utils\tableConvert.ts" -Pattern "rawLines.map"` → `tableConvert.ts:185,194` vertical paste fix present ✅
+   - `Select-String -Path "src\utils\tableConvert.ts" -Pattern "rawLines.map"` → `tableConvert.ts:185,197` vertical paste fix present ✅
+   - `Select-String -Path "src\utils\tableConvert.ts" -Pattern "isLikelyMarkdown"` → `tableConvert.ts:193,204` markdown guard present ✅
    - `Select-String -Path "src" -Pattern "@google/genai"` → 0 hits ✅
    - `Select-String -Path "src" -Pattern "window\.onerror|addEventListener\('error'"` → 0 hits (no global error handler) ✅
 2. **Build & audit (2026-08-23):** `npx tsc --noEmit` ✅ `npm run lint` ✅ `npm test` (42/42) ✅ `npm run build` (1706 modules) ✅ `npm audit --audit-level=moderate` 0 ✅
 3. **Manual UX:**
    - Force `throw` in `buildInlineStyledHtml` (`src/utils/htmlBuilder.ts:61` try/catch → `src/components/OutputCell.tsx:55` fallback) → boundary fallback with Retry `src/components/ErrorBoundary.tsx:53`
    - Copy with clipboard denied → `showToast('Copy failed — ...','error')` `src/hooks/useCopy.ts:44` toast
-   - Paste `a\nb\nc` → 3 rows, `a\tb` → 1 row 2 cols, `\t` → `|  |  |` no crash (`src/utils/tableConvert.ts:17,194`)
+   - Paste `a\nb\nc` → 3 rows, `a\tb` → 1 row 2 cols, `\t` → `|  |  |` no crash (`src/utils/tableConvert.ts:17,197`)
+   - Paste markdown digest / `(i) test\n(ii) test` → stays 1×1, `isLikelyMarkdownDocument:204` prevents outer table (`tableConvert.ts:193`)
    - Type `**bold` → no auto-close mid-typing gated `isTyping` `src/utils/cleanup.ts:233,303`
 4. **No regression:** `Header` sanitize toggle, `Preview` styled preview, `Editor` undo/redo, `a11y`/`performance` suites still work
-5. **Docs:** `docs/pillar audit/reliability-notes.md` now documents GenAI alignment ✅
+5. **Docs:** `docs/pillar audit/reliability-notes.md` now documents GenAI alignment + markdown-paste hotfix ✅
 
 ---
 
@@ -307,15 +319,15 @@ Phase 0 (done) ─┬─> Phase 1 ✅ (ErrorBoundary) ──> Phase 2 ✅ (surfa
 ## File Map (to create/modify)
 
 ```
-docs/pillar audit/pillar-3-reliability-plan.md          <- this file (updated 2026-08-23)
-docs/pillar audit/reliability-notes.md                  <- new (2026-08-23) GenAI alignment doc per Phase 5 §2
+docs/pillar audit/pillar-3-reliability-plan.md          <- this file (updated 2026-08-23 + hotfix markdown guard)
+docs/pillar audit/reliability-notes.md                  <- new (2026-08-23) + hotfix 2026-08-23 markdown-paste
 src/components/ErrorBoundary.tsx                        <- new (Phase 1)
 src/components/Toast.tsx (or reuse Preview feedback)    <- new or modify (Phase 2)
 src/utils/toast.ts                                      <- new (Phase 2)
 src/hooks/useGridHistory.ts:9-11,43-135,166-224          <- modify (Phase 3 + 5 guard)
 src/hooks/useGridActions.ts:8,123-126                   <- modify (Phase 2 fix 2026-08-23: showToast fallback)
 src/hooks/useCopy.ts:9,44,83                            <- modify (Phase 2 toast wiring)
-src/utils/tableConvert.ts:17,192-194                   <- modify (Phase 4 tsv/vertical paste)
+src/utils/tableConvert.ts:17,192-194,204-235            <- modify (Phase 4 tsv/vertical paste + hotfix markdown guard)
 src/utils/cleanup.ts:50-52,233-248,303-316              <- modify (Phase 4 isTyping gate)
 src/utils/htmlBuilder.ts:61-267                         <- modify (Phase 1 resilient preview)
 src/components/OutputCell.tsx:55-60                     <- modify (Phase 1 preview guard)

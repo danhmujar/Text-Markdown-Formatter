@@ -110,6 +110,9 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
           </span>
           <span
             id="total-output-char-badge"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
             className={`hidden sm:inline-flex text-[11px] font-mono px-2 py-0.5 rounded border ${
               isDark
                 ? 'bg-slate-800/80 text-slate-300 border-slate-700'
