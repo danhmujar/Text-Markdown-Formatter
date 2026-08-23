@@ -245,6 +245,12 @@ export function buildInlineStyledHtml(
       }
     });
 
+    if (isForWordCopy) {
+      container.querySelectorAll('td br, th br').forEach((br) => {
+        const textNode = doc.createTextNode('<br>');
+        br.replaceWith(textNode);
+      });
+    }
     const outputHtml = container.innerHTML;
     if (htmlCache.size >= MAX_CACHE_SIZE) {
       const firstKey = htmlCache.keys().next().value;
