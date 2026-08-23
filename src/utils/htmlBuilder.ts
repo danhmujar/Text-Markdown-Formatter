@@ -215,7 +215,8 @@ export function buildInlineStyledHtml(
         a.setAttribute('target', '_blank');
         a.setAttribute('rel', 'noopener noreferrer');
       }
-      const linkColor = isDarkTheme && !isForWordCopy ? '#60a5fa' : '#2563eb';
+      const linkColor =
+        options.primaryColor || (isDarkTheme && !isForWordCopy ? '#60a5fa' : '#2563eb');
       a.style.cssText = `color: ${linkColor}; text-decoration: underline;`;
     });
 

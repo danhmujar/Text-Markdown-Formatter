@@ -9,6 +9,8 @@ import { useCopy } from './hooks/useCopy';
 import { hasBrTags, convertBrToNewlines } from './utils/markdownFormatter';
 import { DEFAULT_PRESETS } from './constants/presets';
 import { FONT_OPTIONS } from './constants/fonts';
+import { useTheme } from './hooks/useTheme';
+import { getPrimaryForTheme } from './constants/themes';
 
 export default function App() {
   // State-based history manager for 2D grid matrix and per-cell output overrides
@@ -22,6 +24,8 @@ export default function App() {
   const [focusMode, setFocusMode] = useState<FocusMode>('split');
   const [activePanel, setActivePanel] = useState<'input' | 'output'>('input');
 
+  const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
+
   const [options, setOptions] = useState<StyleOptions>({
     fontFamily: FONT_OPTIONS[0].value,
     fontSize: 14,
@@ -34,12 +38,18 @@ export default function App() {
     tableHeaderColor: '#0f172a',
     tableAlternateBg: true,
     highlightBoldKeys: true,
-    primaryColor: '#2563eb',
-    theme: 'dark',
+    primaryColor: getPrimaryForTheme(colorTheme, isDark),
+    theme: isDark ? 'dark' : 'light',
     sanitizeOutput: true,
   });
 
-  const isDark = options.theme === 'dark';
+  useEffect(() => {
+    setOptions((prev) => ({
+      ...prev,
+      theme: isDark ? 'dark' : 'light',
+      primaryColor: getPrimaryForTheme(colorTheme, isDark),
+    }));
+  }, [colorTheme, isDark]);
 
   // Toggle Focus Mode between split and active container
   const handleToggleFocusMode = useCallback(() => {
@@ -185,9 +195,8 @@ export default function App() {
 
   return (
     <div
-      className={`flex flex-col h-screen w-screen overflow-hidden transition-colors ${
-        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
-      }`}
+      className="flex flex-col h-screen w-screen overflow-hidden transition-colors"
+      style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}
     >
       {/* Title + Font + Font Size + Undo/Redo + Focus Mode + Theme Toggle Header */}
       <Header
@@ -200,6 +209,10 @@ export default function App() {
         focusMode={focusMode}
         activePanel={activePanel}
         onToggleFocusMode={handleToggleFocusMode}
+        colorTheme={colorTheme}
+        isDark={isDark}
+        onToggleDarkMode={toggleDarkMode}
+        onSelectColorTheme={setColorTheme}
       />
 
       {/* Input & Output Panels - In Focus Mode, inactive panel collapses completely */}
@@ -215,12 +228,9 @@ export default function App() {
           id="input-container-panel"
           aria-labelledby="input-heading"
           onFocusCapture={() => setActivePanel('input')}
+          style={{ borderColor: 'var(--border-color)' }}
           className={`h-full overflow-hidden ${focusMode === 'output' ? 'hidden' : 'block'} ${
-            focusMode === 'split'
-              ? isDark
-                ? 'border-b lg:border-b-0 lg:border-r border-slate-800'
-                : 'border-b lg:border-b-0 lg:border-r border-slate-200'
-              : ''
+            focusMode === 'split' ? 'border-b lg:border-b-0 lg:border-r' : ''
           }`}
         >
           <Editor

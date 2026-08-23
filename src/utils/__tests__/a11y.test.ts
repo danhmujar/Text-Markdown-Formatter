@@ -83,7 +83,9 @@ describe('Pillars 4 & 5: Accessibility (WCAG 2.1 AA Compliance)', () => {
       expect(editorContent).toContain('cleanupNotification');
       // Banner should have role/status live
       expect(editorContent).toContain('role="status"');
-      expect(editorContent.match(/cleanupNotification[\s\S]{0,300}aria-live="polite"/)).toBeTruthy();
+      expect(
+        editorContent.match(/cleanupNotification[\s\S]{0,300}aria-live="polite"/),
+      ).toBeTruthy();
     });
 
     it('EditorCell footer counter has live region', () => {

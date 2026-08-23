@@ -88,17 +88,17 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
   return (
     <div
       id={`output-cell-${r}-${c}`}
-      className={`flex flex-col rounded-lg overflow-hidden border shadow-sm h-full transition focus-within:ring-1 focus-within:ring-blue-500/40 ${
-        isDark
-          ? 'bg-slate-900 border-slate-800 text-slate-100 focus-within:border-blue-500/60'
-          : 'bg-white border-slate-200 text-slate-800 focus-within:border-blue-500/60'
-      }`}
+      style={{
+        backgroundColor: 'var(--panel-bg)',
+        borderColor: 'var(--border-color)',
+        color: 'var(--text-primary)',
+      }}
+      className="flex flex-col rounded-lg overflow-hidden border shadow-sm h-full transition focus-within:ring-1 focus-within:ring-blue-500/40 focus-within:border-blue-500/60"
     >
       {/* Container Header */}
       <div
-        className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 select-none ${
-          isDark ? 'bg-slate-850 border-slate-800' : 'bg-slate-50 border-slate-200'
-        }`}
+        style={{ backgroundColor: 'var(--surface-bg)', borderColor: 'var(--border-color)' }}
+        className="h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 select-none"
       >
         <div className="flex items-center gap-1.5">
           <span
@@ -106,16 +106,20 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
               isDark ? 'text-slate-300' : 'text-slate-700'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            <span
+              style={{ backgroundColor: 'var(--primary-blue)' }}
+              className="w-1.5 h-1.5 rounded-full inline-block"
+            />
             {label}
           </span>
           {inputHadBr && (
             <span
-              className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
-                isDark
-                  ? 'bg-indigo-950/60 border-indigo-800 text-indigo-300'
-                  : 'bg-indigo-50 border-indigo-200 text-indigo-700'
-              }`}
+              style={{
+                backgroundColor: 'var(--accent-bg)',
+                borderColor: 'var(--accent-border)',
+                color: 'var(--primary-blue)',
+              }}
+              className="text-[10px] font-mono px-1.5 py-0.2 rounded border"
               title="Input contains <br> tags. On Copy, line breaks will automatically convert back to <br> tags."
             >
               &lt;br&gt; Auto-Sync
@@ -138,10 +142,19 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
               isEditMode ? `Switch ${label} to Formatted Preview` : `Switch ${label} to Edit Mode`
             }
             aria-pressed={isEditMode}
+            style={
+              isEditMode
+                ? {
+                    backgroundColor: 'var(--primary-blue)',
+                    borderColor: 'var(--primary-blue)',
+                    color: 'white',
+                  }
+                : undefined
+            }
             className={cn(
               'px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
               isEditMode
-                ? 'bg-indigo-600 text-white border-indigo-500 shadow-2xs'
+                ? 'shadow-2xs'
                 : isDark
                   ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300')
                   : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700', 'shadow-2xs'),
@@ -191,10 +204,16 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
                 ? `Copy formatted text for ${label} (converting line breaks back to <br>)`
                 : `Copy formatted text for ${label}`
             }
-            className={`px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none ${
+            style={
               isCopied
-                ? 'bg-emerald-600 text-white border-emerald-600 font-semibold'
-                : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-600'
+                ? undefined
+                : {
+                    backgroundColor: 'var(--primary-blue)',
+                    borderColor: 'var(--primary-blue)',
+                  }
+            }
+            className={`px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none hover:brightness-110 ${
+              isCopied ? 'bg-emerald-600 text-white border-emerald-600 font-semibold' : 'text-white'
             }`}
             title={
               inputHadBr
@@ -268,11 +287,12 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
       {/* Output Footer Counter */}
       <div
         id={`output-footer-${r}-${c}`}
-        className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
-          isDark
-            ? 'bg-slate-900/90 border-slate-800 text-slate-300'
-            : 'bg-slate-50 border-slate-200 text-slate-600'
-        }`}
+        style={{
+          backgroundColor: 'var(--surface-bg)',
+          borderColor: 'var(--border-color)',
+          color: 'var(--text-secondary)',
+        }}
+        className="h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none"
       >
         <div className="flex items-center gap-3">
           <span

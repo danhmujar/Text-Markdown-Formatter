@@ -75,15 +75,13 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
 
   return (
     <div
-      className={`flex flex-col h-full overflow-hidden transition-colors ${
-        isDark ? 'bg-slate-900' : 'bg-slate-50'
-      }`}
+      className="flex flex-col h-full overflow-hidden transition-colors"
+      style={{ backgroundColor: 'var(--panel-bg)', color: 'var(--text-primary)' }}
     >
       {/* Header bar with Clean Layout controls - Balanced height and padding */}
       <div
-        className={`h-12 px-4 border-b flex items-center justify-between gap-3 text-xs shrink-0 transition-colors ${
-          isDark ? 'bg-slate-850 border-slate-800' : 'bg-white border-slate-200'
-        }`}
+        className="h-12 px-4 border-b flex items-center justify-between gap-3 text-xs shrink-0 transition-colors"
+        style={{ backgroundColor: 'var(--panel-bg)', borderColor: 'var(--border-color)' }}
       >
         <div className="flex items-center gap-2">
           <h2
@@ -93,11 +91,12 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
             Input
           </h2>
           <span
-            className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
-              isDark
-                ? 'bg-slate-800 text-blue-300 border-slate-700'
-                : 'bg-blue-50 text-blue-700 border-blue-200'
-            }`}
+            style={{
+              backgroundColor: 'var(--accent-bg)',
+              color: 'var(--primary-blue)',
+              borderColor: 'var(--accent-border)',
+            }}
+            className="text-[11px] font-mono px-2 py-0.5 rounded border"
           >
             {numRows} × {numCols}
           </span>
@@ -117,7 +116,7 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
           >
             {totalStats.totalChars.toLocaleString()}{' '}
             <span
-              className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+              className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
             >
               chars
             </span>
@@ -211,17 +210,19 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
             type="button"
             onClick={handleSmartCleanupAll}
             aria-label="Smart cleanup all input cells"
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isDark
-                ? 'bg-indigo-950/60 border-indigo-700/60 text-indigo-300 hover:bg-indigo-900/60 hover:text-indigo-200'
-                : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800'
-            }`}
+            style={{
+              backgroundColor: 'var(--accent-bg)',
+              borderColor: 'var(--accent-border)',
+              color: 'var(--primary-blue)',
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium transition shadow-2xs cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none hover:brightness-110"
             title="Automatically standardize quotes, strip redundant whitespace, and fix markdown syntax across all input cells"
           >
             <Sparkles
               aria-hidden="true"
               focusable="false"
-              className="w-3.5 h-3.5 text-indigo-400"
+              className="w-3.5 h-3.5"
+              style={{ color: 'var(--primary-blue)' }}
             />
             <span>Smart Cleanup</span>
           </button>
@@ -307,9 +308,8 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
 
       {/* Grid of Input Cell Containers */}
       <div
-        className={`flex-1 overflow-hidden p-3 transition-colors ${
-          isDark ? 'bg-slate-950/40' : 'bg-slate-100/60'
-        }`}
+        className="flex-1 overflow-hidden p-3 transition-colors"
+        style={{ backgroundColor: 'var(--surface-bg)' }}
       >
         <div
           className="grid gap-3 h-full w-full"

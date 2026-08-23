@@ -12,7 +12,8 @@ Convert input text and Markdown — with nested lists, tables, custom line break
 - **Table & Paste Intelligence** — `tsvToMarkdownTable` converts tab-delimited pastes; `parsePasteToGrid` detects grids but avoids turning hard-wrapped prose (avg line >40 chars, no tabs) into a multi-row grid.
 - **Syntax Validator** (`syntaxValidator.ts:7`) — real-time warnings for unclosed fences, backticks, HTML tags, `**`/`~~`, broken links, empty list items, and table separator/column mismatches.
 - **Copy for Office** (`sanitize.ts:191`) — `sanitizeOutputHtml` always enforces security (`DOMPurify` + `on*`/`javascript:` stripping); compat mode strips dark backgrounds/meta/office XML/data attrs; clipboard writes `text/html` + `text/plain` with `<!--StartFragment-->` for Word/Outlook/Sheets.
-- **UX** — undo/redo with 60-snapshot debounced history (`useGridHistory.ts:8`), Focus Mode (Split/Input/Output, `Alt+F` / `Esc`), dark/light theme, font family & size (9–24pt), presets, toasts, and per-cell output overrides (`"row-col"` keys).
+- **UX** — undo/redo with 60-snapshot debounced history (`useGridHistory.ts:8`), Focus Mode (Split/Input/Output, `Alt+F` / `Esc`), palette + animated slider theming (7 color themes × light/dark, `useTheme.ts:32`), font family & size (9–24pt), presets, toasts, and per-cell output overrides (`"row-col"` keys).
+- **Theming** — CSS variables (`styles/themes.css:1`) ported from `Calculator` (teal/terracotta/forest/slate/rosewood/pistachio/purple × light/dark at 5% lighten), `body.theme-*` + `body.dark-theme` classes, `localStorage` `formatter-theme-v1` persistence, `ThemePicker` radiogroup + `ThemeSlider` 68×34 animated toggle; `Copy All`/`Preview` and badges use `var(--primary-blue)`/`var(--accent-bg)`.
 - **Accessibility** — WCAG 2.1 AA axe checks, skip link, dialog focus trap, `aria-live` counters, and `jsx-a11y` linting.
 
 ## Quick Start
@@ -53,29 +54,37 @@ Recommended verification order: `lint` → `typecheck` → `test` → `build` �
 ```
 src/
   main.tsx               # React root + ErrorBoundary
-  App.tsx                # grid: string[][] + outputOverrides + FocusMode + StyleOptions
+  App.tsx                # grid: string[][] + outputOverrides + FocusMode + StyleOptions + useTheme
   components/
-    Header.tsx           # theme, font/size, undo/redo, Focus Mode, Sanitize toggle
-    Editor.tsx           # grid layout controls + Smart Cleanup + Settings panel
-    EditorCell.tsx       # per-cell textarea, counters, warnings, paste handling
-    Preview.tsx          # output grid + Copy All
-    OutputCell.tsx       # preview/edit toggle, inline formatting, reset, copy
-    EditToolbar.tsx / Toast.tsx / ErrorBoundary.tsx / ui/
+    Header.tsx           # palette (ThemePicker) + slider (ThemeSlider), font/size, undo/redo, Focus Mode, Sanitize
+    Editor.tsx           # grid layout controls + Smart Cleanup + Settings panel (themed via var(--*))
+    EditorCell.tsx       # per-cell textarea, counters, warnings, paste handling (themed)
+    Preview.tsx          # output grid + Copy All (var(--primary-blue))
+    OutputCell.tsx       # preview/edit toggle, inline formatting, reset, copy (themed)
+    EditToolbar.tsx      # numbering/bullet/bold/italic/Clean (themed)
+    ThemePicker.tsx      # radiogroup palette dropdown
+    ThemeSlider.tsx      # 68×34 animated sun/moon toggle
+    Toast.tsx / ErrorBoundary.tsx / ui/
   hooks/
+    useTheme.ts          # colorTheme + darkMode, body class sync, localStorage formatter-theme-v1
     useGridHistory.ts    # history stack (max 60, 500ms debounce when isTyping)
     useGridActions.ts    # cell add/clear/cleanup/paste helpers
     useOutputActions.ts  # output edit, numbering, inline format
     useCopy.ts           # clipboard logic
+  styles/
+    themes.css           # :root / body.dark-theme / body.theme-* vars + slider/picker styles (Calculator port)
   utils/
     markdownFormatter.ts # re-exports: cleanup / tableConvert / listNumbering / htmlBuilder / sanitize
     cleanup.ts           # smartCleanupMarkdown, hasBrTags, convertBrToNewlines
     tableConvert.ts      # tsvToMarkdownTable, parsePasteToGrid, preprocessMarkdownWithTsv
-    htmlBuilder.ts       # marked → DOMPurify → inline styled HTML (LRU cache)
+    htmlBuilder.ts       # marked → DOMPurify → inline styled HTML (LRU cache, primaryColor → link color)
     sanitize.ts          # sanitizeOutputHtml + copyFormattedTextToClipboard
     security/sanitize.ts # DOMPurify wrapper
     syntaxValidator.ts   # analyzeSyntaxWarnings
     textWrap.ts          # isWrappedParagraph heuristic
-  constants/             # presets, fonts, theme
+  constants/
+    themes.ts            # ColorTheme, THEME_SWATCHES, THEME_PRIMARIES, getPrimaryForTheme
+    presets.ts / fonts.ts / theme.ts
   types.ts               # StyleOptions, FocusMode, SyntaxWarning, PresetItem
 tests/
   a11y.spec.ts           # Playwright + @axe-core/playwright (WCAG 2.1 AA)
@@ -90,7 +99,8 @@ Key invariants:
 ## Configuration
 
 - **Path alias** `@/*` → `./src/*` (`tsconfig.json:19`, `vite.config.ts:11`).
-- **Tailwind** via `@tailwindcss/vite` — no `tailwind.config.js`; styles in `src/index.css`.
+- **Tailwind** via `@tailwindcss/vite` — no `tailwind.config.js`; styles in `src/index.css` + `src/styles/themes.css`.
+- **Theme** — CSS variables on `body` (`--bg-color`, `--panel-bg`, `--surface-bg`, `--border-color`, `--text-primary`, `--primary-blue`, `--accent-bg`), `body.theme-*` + `body.dark-theme` (8 swatches, 5% lighten for light), persisted as `formatter-theme-v1` in `localStorage`; outer/UI uses `var(--*)`, `htmlBuilder` link color uses `primaryColor`.
 - **TypeScript** `strict` with `noUnusedLocals/Parameters`, `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`, `noEmit`.
 - **ESLint** `typescript-eslint` + `jsx-a11y`; **Prettier** `printWidth:100, singleQuote, trailingComma:all` (ignores `dist`, `node_modules`, `.playwright-mcp`, `docs`).
 - **CSP** in `index.html:8` (`default-src 'self'`, `style-src 'self' 'unsafe-inline'`) — external scripts/styles are blocked.

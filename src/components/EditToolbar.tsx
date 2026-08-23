@@ -28,11 +28,12 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
       id={`edit-mode-toolbar-${r}-${c}`}
       role="toolbar"
       aria-label="Edit mode formatting"
-      className={`px-2.5 py-1.5 border-b flex items-center justify-between gap-2 text-xs shrink-0 select-none transition-colors ${
-        isDark
-          ? 'bg-slate-900/95 border-indigo-900/40 text-slate-300'
-          : 'bg-indigo-50/50 border-indigo-100 text-slate-700'
-      }`}
+      style={{
+        backgroundColor: 'var(--surface-bg)',
+        borderColor: 'var(--border-color)',
+        color: 'var(--text-secondary)',
+      }}
+      className="px-2.5 py-1.5 border-b flex items-center justify-between gap-2 text-xs shrink-0 select-none transition-colors"
     >
       {/* Numbering and list format buttons */}
       <div className="flex items-center gap-1 flex-wrap">
@@ -48,14 +49,20 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
           type="button"
           onClick={() => onApplyNumbering('roman-parentheses')}
           aria-label="Format with Roman numeral numbering (i) (ii) (iii)"
-          className={`px-2 py-0.5 rounded border text-[11px] font-mono font-semibold flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-            isDark
-              ? 'bg-indigo-950/80 hover:bg-indigo-900 border-indigo-700/70 text-indigo-200 hover:text-white'
-              : 'bg-white hover:bg-indigo-100/70 border-indigo-200 text-indigo-900 hover:text-indigo-950'
-          }`}
+          style={{
+            backgroundColor: isDark ? 'var(--accent-bg)' : 'white',
+            borderColor: 'var(--accent-border)',
+            color: 'var(--primary-blue)',
+          }}
+          className="px-2 py-0.5 rounded border text-[11px] font-mono font-semibold flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none hover:brightness-110"
           title="Add Roman numeral numbering (i) (ii) (iii)... (Click to toggle/number lines or selection)"
         >
-          <ListOrdered aria-hidden="true" focusable="false" className="w-3 h-3 text-indigo-400" />
+          <ListOrdered
+            aria-hidden="true"
+            focusable="false"
+            className="w-3 h-3"
+            style={{ color: 'var(--primary-blue)' }}
+          />
           <span>(i) (ii)</span>
         </button>
 
@@ -65,14 +72,20 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
           type="button"
           onClick={() => onApplyNumbering('numeric-dot')}
           aria-label="Format with standard numeric numbering 1. 2. 3."
-          className={`px-2 py-0.5 rounded border text-[11px] font-mono font-semibold flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-            isDark
-              ? 'bg-blue-950/80 hover:bg-blue-900 border-blue-700/70 text-blue-200 hover:text-white'
-              : 'bg-white hover:bg-blue-100/70 border-blue-200 text-blue-900 hover:text-blue-950'
-          }`}
+          style={{
+            backgroundColor: isDark ? 'var(--accent-bg)' : 'white',
+            borderColor: 'var(--accent-border)',
+            color: 'var(--primary-blue)',
+          }}
+          className="px-2 py-0.5 rounded border text-[11px] font-mono font-semibold flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none hover:brightness-110"
           title="Add standard numbering 1. 2. 3.... (Click to toggle/number lines or selection)"
         >
-          <ListOrdered aria-hidden="true" focusable="false" className="w-3 h-3 text-blue-400" />
+          <ListOrdered
+            aria-hidden="true"
+            focusable="false"
+            className="w-3 h-3"
+            style={{ color: 'var(--primary-blue)' }}
+          />
           <span>1. 2.</span>
         </button>
 
@@ -82,11 +95,12 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
           type="button"
           onClick={() => onApplyNumbering('alpha-dot')}
           aria-label="Format with alphabetical numbering a. b. c."
-          className={`px-2 py-0.5 rounded border text-[11px] font-mono font-semibold flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-            isDark
-              ? 'bg-purple-950/80 hover:bg-purple-900 border-purple-700/70 text-purple-200 hover:text-white'
-              : 'bg-white hover:bg-purple-100/70 border-purple-200 text-purple-900 hover:text-purple-950'
-          }`}
+          style={{
+            backgroundColor: isDark ? 'var(--accent-bg)' : 'white',
+            borderColor: 'var(--accent-border)',
+            color: 'var(--primary-blue)',
+          }}
+          className="px-2 py-0.5 rounded border text-[11px] font-mono font-semibold flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none hover:brightness-110"
           title="Add alphabetical numbering a. b. c.... (Click to toggle/number lines or selection)"
         >
           <span>a. b.</span>
@@ -110,7 +124,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
           <span>Bullet</span>
         </button>
 
-        <div className="w-px h-3.5 bg-slate-300 dark:bg-slate-700 mx-0.5" />
+        <div style={{ backgroundColor: 'var(--border-color)' }} className="w-px h-3.5 mx-0.5" />
 
         {/* Bold Button */}
         <button
@@ -152,14 +166,20 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
           type="button"
           onClick={onSmartClean}
           aria-label="Clean and format markdown syntax"
-          className={`px-1.5 py-0.5 rounded border text-[10px] font-medium hidden lg:inline-flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-            isDark
-              ? 'bg-indigo-950/50 hover:bg-indigo-900/60 border-indigo-800/60 text-indigo-300'
-              : 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700'
-          }`}
+          style={{
+            backgroundColor: isDark ? 'var(--accent-bg)' : 'var(--accent-bg)',
+            borderColor: 'var(--accent-border)',
+            color: 'var(--primary-blue)',
+          }}
+          className="px-1.5 py-0.5 rounded border text-[10px] font-medium hidden lg:inline-flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none hover:brightness-110"
           title="Standardize quotes, spaces and markdown syntax"
         >
-          <Sparkles aria-hidden="true" focusable="false" className="w-2.5 h-2.5 text-indigo-400" />
+          <Sparkles
+            aria-hidden="true"
+            focusable="false"
+            className="w-2.5 h-2.5"
+            style={{ color: 'var(--primary-blue)' }}
+          />
           <span>Clean</span>
         </button>
       </div>

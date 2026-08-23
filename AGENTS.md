@@ -20,20 +20,22 @@ Verification order: `lint` -> `typecheck` -> `test` -> `build` -> `a11y:check` (
 ## Stack & Entrypoints
 
 - Vite 6 + React 19 + TypeScript strict (`tsconfig.json:8` `strict`, `noUnusedLocals/Parameters`, `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`).
-- Tailwind CSS 4 via `vite.config.ts:2` `@tailwindcss/vite` plugin — no `tailwind.config.js`.
-- Entry: `src/main.tsx:1` -> `src/App.tsx:13` (`App` owns `useGridHistory` + `useCopy` + `StyleOptions` state; renders `Header` + `Editor`/`Preview` split grid).
+- Tailwind CSS 4 via `vite.config.ts:2` `@tailwindcss/vite` plugin — no `tailwind.config.js`; theme vars in `src/styles/themes.css:31` imported by `src/index.css:1`.
+- Entry: `src/main.tsx:1` -> `src/App.tsx:13` (`App` owns `useTheme` + `useGridHistory` + `useCopy` + `StyleOptions` state; renders `Header` (palette + slider) + `Editor`/`Preview` split grid).
 - Path alias `@/*` -> `./src/*` (`tsconfig.json:19`, `vite.config.ts:11`). Use it for imports.
-- Markdown pipeline: `marked` + `dompurify` -> `src/utils/markdownFormatter.ts` re-exports `cleanup`/`tableConvert`/`listNumbering`/`htmlBuilder`/`sanitize`.
+- Markdown pipeline: `marked` + `dompurify` -> `src/utils/markdownFormatter.ts` re-exports `cleanup`/`tableConvert`/`listNumbering`/`htmlBuilder`/`sanitize`; `htmlBuilder` link color uses `primaryColor` from theme.
+- Theme: `src/constants/themes.ts:1` (8 swatches, `THEME_PRIMARIES`, `getPrimaryForTheme`), `src/hooks/useTheme.ts:32` persists `formatter-theme-v1` and syncs `body.theme-*` + `body.dark-theme`.
 
 ## Architecture
 
 ```
 src/
-  App.tsx              # 2D grid state (string[][]) + outputOverrides Record<row-col, string>
-  components/          # Header, Editor/EditorCell, Preview/OutputCell, EditToolbar, ErrorBoundary, Toast, ui/
-  hooks/               # useGridHistory (undo/redo), useGridActions, useOutputActions, useCopy
+  App.tsx              # 2D grid state (string[][]) + outputOverrides Record<row-col, string> + useTheme
+  components/          # Header (ThemePicker/ThemeSlider), Editor/EditorCell, Preview/OutputCell, EditToolbar, ErrorBoundary, Toast, ui/
+  hooks/               # useTheme (palette + slider), useGridHistory (undo/redo), useGridActions, useOutputActions, useCopy
+  styles/themes.css    # CSS vars for 7 themes × light/dark (Calculator port)
   utils/               # markdownFormatter, cleanup, tableConvert, listNumbering, htmlBuilder, sanitize, security/sanitize, syntaxValidator, textWrap
-  constants/           # presets, fonts, theme
+  constants/           # themes (swatches/primaries), presets, fonts, theme
   types.ts             # StyleOptions, FocusMode, SyntaxWarning, PresetItem
 tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ```
@@ -56,3 +58,4 @@ tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 - `sanitizeOutputHtml` + `copyFormattedTextToClipboard` (`src/utils/sanitize.ts:21`) always enforces security sanitization; `compat` stripping is optional. Clipboard writes `text/html` + `text/plain` with `<!--StartFragment-->` wrapper for Word/Outlook.
 - `smartCleanupMarkdown` (`src/utils/cleanup.ts`) behaves differently with `{isTyping:true}` — e.g. won't auto-close `**bold` mid-typing (`src/utils/__tests__/reliability.test.ts:82`). `parsePasteToGrid` has heuristics to avoid turning hard-wrapped single paragraphs (avg line >40 chars, no tabs) into a multi-row grid (`src/utils/__tests__/reliability.test.ts:25`).
 - `vite.config.ts:27` `manualChunks: vendor/marked/ui/purify` — don't inline those into main chunk.
+- Theme: `useTheme` persists `formatter-theme-v1` (`colorTheme` + `darkMode`) to `localStorage` and toggles `body.theme-*` / `body.dark-theme`; light themes are 5% darkened for stronger tint (see `src/styles/themes.css:31`). `ThemePicker` is a `radiogroup` inside `Header` `z-40` with `theme-picker` `z-100`; don't lower z-index or click gets intercepted by `main`. `Copy All` / `1×1` badges and `Clean` pills use `var(--primary-blue)` / `var(--accent-bg)` so they follow theme.

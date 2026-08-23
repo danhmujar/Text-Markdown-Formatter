@@ -82,15 +82,13 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
 
   return (
     <div
-      className={`flex flex-col h-full overflow-hidden transition-colors ${
-        isDark ? 'bg-slate-950' : 'bg-slate-100'
-      }`}
+      className="flex flex-col h-full overflow-hidden transition-colors"
+      style={{ backgroundColor: 'var(--panel-bg)' }}
     >
       {/* Output Header with Focus Badges & Global Copy */}
       <div
-        className={`h-12 px-4 border-b flex items-center justify-between gap-3 text-xs shrink-0 transition-colors ${
-          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
-        }`}
+        className="h-12 px-4 border-b flex items-center justify-between gap-3 text-xs shrink-0 transition-colors"
+        style={{ backgroundColor: 'var(--panel-bg)', borderColor: 'var(--border-color)' }}
       >
         <div className="flex items-center gap-2">
           <h2
@@ -100,11 +98,12 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
             Output
           </h2>
           <span
-            className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
-              isDark
-                ? 'bg-slate-800 text-emerald-300 border-slate-700'
-                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            }`}
+            style={{
+              backgroundColor: 'var(--accent-bg)',
+              color: 'var(--primary-blue)',
+              borderColor: 'var(--accent-border)',
+            }}
+            className="text-[11px] font-mono px-2 py-0.5 rounded border"
           >
             {numRows} × {numCols}
           </span>
@@ -113,16 +112,17 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            className={`hidden sm:inline-flex text-[11px] font-mono px-2 py-0.5 rounded border ${
-              isDark
-                ? 'bg-slate-800/80 text-slate-300 border-slate-700'
-                : 'bg-slate-100 text-slate-700 border-slate-200'
-            }`}
+            style={{
+              backgroundColor: 'var(--panel-bg)',
+              color: 'var(--text-secondary)',
+              borderColor: 'var(--border-color)',
+            }}
+            className="hidden sm:inline-flex text-[11px] font-mono px-2 py-0.5 rounded border"
             title={`Total output characters: ${totalOutputChars.toLocaleString()}`}
           >
             {totalOutputChars.toLocaleString()}{' '}
             <span
-              className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+              className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
             >
               chars
             </span>
@@ -188,7 +188,8 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
           type="button"
           onClick={onCopyAllGrid}
           aria-label="Copy all formatted output to clipboard"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none hover:brightness-110"
+          style={{ backgroundColor: 'var(--primary-blue)' }}
           title="Copy formatted output for Word & Outlook (with line breaks converted back to <br> if input had <br>)"
         >
           {copiedAll ? (
@@ -211,9 +212,8 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
 
       {/* Grid of Output Containers */}
       <div
-        className={`flex-1 overflow-hidden p-3 transition-colors ${
-          isDark ? 'bg-slate-950/70' : 'bg-slate-100/60'
-        }`}
+        className="flex-1 overflow-hidden p-3 transition-colors"
+        style={{ backgroundColor: 'var(--surface-bg)' }}
       >
         <div
           className="grid gap-3 h-full w-full"

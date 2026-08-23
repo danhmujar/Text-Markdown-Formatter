@@ -97,9 +97,8 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-dialog-title"
-      className={`absolute right-0 top-full mt-2 w-72 rounded-lg border shadow-xl z-30 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150 ${
-        isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
-      }`}
+      style={{ backgroundColor: 'var(--panel-bg)', borderColor: 'var(--border-color)' }}
+      className="absolute right-0 top-full mt-2 w-72 rounded-lg border shadow-xl z-30 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
     >
       <h2 id="settings-dialog-title" className="sr-only">
         Layout and Grid Settings
@@ -192,7 +191,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
           </div>
         </div>
 
-        <div className={`h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+        <div style={{ backgroundColor: 'var(--border-color)' }} className="h-px" />
 
         {/* Grow grid */}
         <div>

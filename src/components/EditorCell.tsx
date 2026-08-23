@@ -118,6 +118,15 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
   return (
     <div
       id={`cell-container-${rowIndex}-${colIndex}`}
+      style={
+        warnings.length > 0
+          ? undefined
+          : {
+              backgroundColor: 'var(--panel-bg)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-primary)',
+            }
+      }
       className={`flex flex-col rounded-lg overflow-hidden border transition shadow-sm h-full ${
         warnings.length > 0
           ? errorCount > 0
@@ -128,15 +137,14 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
               ? 'bg-slate-900/95 border-amber-900/60 focus-within:border-amber-500/80 focus-within:ring-1 focus-within:ring-amber-500/30'
               : 'bg-white border-amber-300 focus-within:border-amber-500/80 focus-within:ring-1 focus-within:ring-amber-500/20'
           : isDark
-            ? 'bg-slate-900/90 border-slate-800 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/30'
-            : 'bg-white border-slate-200 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/20'
+            ? 'border-slate-800 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/30'
+            : 'border-slate-200 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/20'
       }`}
     >
       {/* Cell Header with Label, Real-Time Warnings Badge & Actions */}
       <div
-        className={`h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0 ${
-          isDark ? 'bg-slate-850/90 border-slate-800' : 'bg-slate-50 border-slate-200'
-        }`}
+        style={{ backgroundColor: 'var(--surface-bg)', borderColor: 'var(--border-color)' }}
+        className="h-8 px-3 border-b flex items-center justify-between gap-1 text-xs shrink-0"
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <span
@@ -145,7 +153,10 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
               isDark ? 'text-slate-300' : 'text-slate-700'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+            <span
+              style={{ backgroundColor: 'var(--primary-blue)' }}
+              className="w-1.5 h-1.5 rounded-full inline-block"
+            />
             {label}
           </span>
 
@@ -207,11 +218,8 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             type="button"
             onClick={() => onSmartCleanupCell(rowIndex, colIndex)}
             aria-label={`Smart Cleanup cell ${label}`}
-            className={`px-1.5 py-0.5 rounded flex items-center gap-1 text-[10px] font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isDark
-                ? 'hover:bg-slate-800 text-indigo-400 hover:text-indigo-300'
-                : 'hover:bg-indigo-50 text-indigo-600 hover:text-indigo-800'
-            }`}
+            style={{ color: 'var(--primary-blue)' }}
+            className="px-1.5 py-0.5 rounded flex items-center gap-1 text-[10px] font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none hover:bg-[var(--accent-bg)] hover:brightness-110"
             title="Smart Cleanup this cell (fixes unclosed tags, spacing & syntax)"
           >
             <Sparkles aria-hidden="true" focusable="false" className="w-3 h-3" />
@@ -384,11 +392,12 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className={`h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none ${
-          isDark
-            ? 'bg-slate-900/90 border-slate-800 text-slate-300'
-            : 'bg-slate-50 border-slate-200 text-slate-600'
-        }`}
+        style={{
+          backgroundColor: 'var(--surface-bg)',
+          borderColor: 'var(--border-color)',
+          color: 'var(--text-secondary)',
+        }}
+        className="h-6 px-3 border-t flex items-center justify-between text-[10.5px] font-mono shrink-0 select-none"
       >
         <div className="flex items-center gap-3">
           <span
@@ -450,7 +459,14 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             </span>
           </button>
         ) : charCount > 0 ? (
-          <span className="text-[10px] font-sans text-emerald-500/80 flex items-center gap-0.5">
+          <span
+            style={{
+              backgroundColor: 'var(--accent-bg)',
+              color: 'var(--primary-blue)',
+              borderColor: 'var(--accent-border)',
+            }}
+            className="text-[10px] font-sans flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border font-medium"
+          >
             <CheckCircle2 aria-hidden="true" focusable="false" className="w-2.5 h-2.5" />
             <span>Clean</span>
           </span>
