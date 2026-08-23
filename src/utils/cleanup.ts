@@ -1,3 +1,5 @@
+import { isWrappedParagraph } from './textWrap';
+
 /**
  * Checks if input text contains <br> tags (<br>, <br/>, <br /> in any case).
  */
@@ -52,6 +54,12 @@ export function sanitizeInputText(raw: string, isTyping = false): string {
   return smartCleanupMarkdown(raw, { isTyping }).cleaned;
 }
 
+function unwrapIfWrapped(text: string): string {
+  const rawLines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  if (!isWrappedParagraph(rawLines)) return text;
+  return rawLines.map((l) => l.trim()).join(' ');
+}
+
 export interface SmartCleanupReport {
   cleaned: string;
   hasChanges: boolean;
@@ -95,6 +103,14 @@ export function smartCleanupMarkdown(
   let quotesStandardized = false;
   let markdownFixed = false;
   let entitiesCleaned = false;
+
+  // 0. Unwrap hard-wrapped single paragraph (PDF/Word copy with 60-char breaks)
+  const unwrapped = unwrapIfWrapped(text);
+  if (unwrapped !== text) {
+    text = unwrapped;
+    spacesCleaned = true;
+    fixesCount++;
+  }
 
   // 1. Strip zero-width and invisible unicode characters
   const originalBeforeZero = text;

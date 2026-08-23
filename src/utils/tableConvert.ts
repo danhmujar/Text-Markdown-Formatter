@@ -1,6 +1,7 @@
 import { sanitizeInputText } from './cleanup';
 import { logger } from './logger';
 import { sanitizeHtml } from './security/sanitize';
+import { isWrappedParagraph } from './textWrap';
 
 export function tsvToMarkdownTable(tsv: string): string {
   if (!tsv) return '';
@@ -191,6 +192,9 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
       });
     } else if (rawLines.length > 1) {
       if (isLikelyMarkdownDocument(text, rawLines)) {
+        return null;
+      }
+      if (isWrappedParagraph(rawLines)) {
         return null;
       }
       // Multiple lines without tabs -> treat each line as a single-col row

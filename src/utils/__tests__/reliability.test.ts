@@ -21,6 +21,49 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       const result = parsePasteToGrid('single line text');
       expect(result).toBeNull();
     });
+
+    it('returns null for hard-wrapped single paragraph (PDF copy) to avoid 4×1 grid', () => {
+      const wrappedParagraph = `Since 2008, the Company has adhered to the French corporate\ngovernance code for listed companies published by Afep and\nMedef (the “Afep‑Medef Code”), available on the following\nwebsites: www.lafep.org and www.medef.com.`;
+      const result = parsePasteToGrid(wrappedParagraph);
+      expect(result).toBeNull();
+    });
+
+    it('still parses short column data as grid (avg <40)', () => {
+      const result = parsePasteToGrid('apple\nbanana\ncherry');
+      expect(result).toEqual([['apple'], ['banana'], ['cherry']]);
+    });
+
+    it('still parses tab data with wrapped-like lines as grid', () => {
+      const result = parsePasteToGrid('a\tb\nc\td');
+      expect(result).not.toBeNull();
+    });
+  });
+
+  describe('wrapped paragraph unwrapping', () => {
+    it('smartCleanup unwraps hard-wrapped lines into single paragraph', () => {
+      const wrapped = `Since 2008, the Company has adhered to the French corporate\ngovernance code for listed companies published by Afep and\nMedef (the “Afep‑Medef Code”), available on the following\nwebsites: www.lafep.org and www.medef.com.`;
+      const report = smartCleanupMarkdown(wrapped);
+      expect(report.cleaned).not.toContain('\n');
+      expect(report.cleaned).toContain('Since 2008');
+      expect(report.cleaned).toContain('www.lafep.org');
+      expect(report.cleaned).toContain('French corporate governance code');
+      // Smart quotes should be normalized
+      expect(report.cleaned).toContain('"Afep');
+    });
+
+    it('does not unwrap intentional line breaks ending with punctuation', () => {
+      const lines = `Hello world.\nThis is test.\nAnother line.`;
+      const report = smartCleanupMarkdown(lines);
+      expect(report.cleaned).toBe(lines);
+    });
+
+    it('does not unwrap markdown list', () => {
+      const list = `* item one is a very long line that exceeds forty characters easily\n* item two is also very long and should not be unwrapped`;
+      const result = parsePasteToGrid(list);
+      expect(result).toBeNull(); // markdown guard, not wrapped
+      const report = smartCleanupMarkdown(list);
+      expect(report.cleaned).toContain('\n');
+    });
   });
 
   describe('tsvToMarkdownTable edge inputs', () => {
