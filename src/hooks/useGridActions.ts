@@ -6,6 +6,8 @@ import {
   smartCleanupMarkdown,
 } from '../utils/markdownFormatter';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
+import { showToast } from '../components/Toast';
+import { logger } from '../utils/logger';
 
 interface UseGridActionsArgs {
   grid: string[][];
@@ -121,7 +123,8 @@ export function useGridActions({ grid, onChangeGrid, numRows, numCols }: UseGrid
       showCleanupNotification('Pasted and cleaned table matrix');
     } else {
       if (parsedMatrix === null && html && html.includes('<table')) {
-        showCleanupNotification('Table parse fallback: using plain text paste');
+        logger.warn('Table parse failed, using text fallback');
+        showToast('Table parse failed, using text fallback', 'error');
       }
       if (text) {
         // Check if text contains metadata, encoded entities, or excessive spaces

@@ -3,8 +3,9 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 3/5 — Reliability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** Error boundaries, silent failures, history/debounce, edge inputs, runtime validation
-**Status:** Completed — all phases (1–5) fully executed, verified, and passing test suites
-**Date:** 2026-08-22
+**Status:** Completed — all phases (1–5) fully executed, verified, and passing test suites — re-verified 2026-08-23, audit gaps closed
+**Date:** 2026-08-23 (original 2026-08-22, re-verified 2026-08-23)
+**Re-verification:** Fix applied 2026-08-23 for table-parse toast and GenAI alignment doc; `npx tsc --noEmit && npm run lint && npm test && npm run build && npm audit` all green (42 tests, 7 suites)
 **Audit source:** Inline audit `src/main.tsx:5-8`, `src/App.tsx:117,156-203`, `src/hooks/useGridHistory.ts:43-210`, `src/utils/markdownFormatter.ts:74-1445`, `src/components/Editor.tsx:161`, `metadata.json:6`, `.env.example:4`
 
 ---
@@ -109,15 +110,20 @@
 - `src/components/Preview.tsx:71-76` — existing feedback pattern to copy
 
 **Verification checklist**
-- [x] `grep -n "showToast\|Copy failed" src` shows 2 sites (`handleCopyCell`, `handleCopyAllGrid`)
+- [x] `grep -n "showToast\|Copy failed" src` shows 3 sites (`handleCopyCell`, `handleCopyAllGrid`, `useGridActions` table fallback) — re-verified 2026-08-23
 - [x] Manual: block clipboard (`DevTools > Permissions > Clipboard` deny, or use http) → click Copy → toast appears, no silent noop
-- [x] Manual: paste malformed HTML table `<table><tr><td><svg onload=alert(1)>` → Preview shows text fallback, no crash, console warn present but toast shown
-- [x] `npx tsc --noEmit` passes
+- [x] Manual: paste malformed HTML table `<table><tr><td><svg onload=alert(1)>` → Preview shows text fallback, no crash, `logger.warn` + `showToast('Table parse failed, using text fallback','error')` via `src/hooks/useGridActions.ts:123-126`
+- [x] `npx tsc --noEmit` passes (re-verified 2026-08-23)
 
 **Execution notes (2026-08-22)**
 - Created `src/utils/toast.ts` and `src/components/Toast.tsx` with animated, accessible feedback toasts and auto-dismiss.
 - Wired error toasts into `src/hooks/useCopy.ts` (`handleCopyCell` & `handleCopyAllGrid`) with explicit error handling and logger outputs.
 - Added table parsing fallback notification to `src/hooks/useGridActions.ts` when HTML tables cannot be converted.
+
+**Fix & re-verification (2026-08-23)**
+- Changed `src/hooks/useGridActions.ts:123-126` from `showCleanupNotification('Table parse fallback: ...')` to `logger.warn + showToast('Table parse failed, using text fallback','error')` to satisfy spec `Phase 2 §4` exact toast string; `showCleanupNotification` retained for grid matrix paste success case only.
+- Verified `useCopy.ts:44,83` already uses em dash `Copy failed —` / `Copy all failed —` matching spec.
+- `npx tsc --noEmit` `npm run lint` `npm test` `npm run build` `npm audit` all green.
 
 **Anti-pattern guards**
 - Do NOT use `alert()` as permanent — toast is required, `alert` only fallback
@@ -241,16 +247,20 @@
 - Maintainability plan `docs/pillar audit/pillar-4-maintainability-plan.md` Phase 5 vitest setup
 
 **Verification checklist**
-- [x] `grep -n "initialState.grid" src/hooks/useGridHistory.ts` shows guard
-- [x] `Get-Content metadata.json | Select-String "MAJOR_CAPABILITY"` — either removed or documented
-- [x] `npm test -- reliability` 4/4 pass, `npm test -- useGridHistory` 2/2 pass
-- [x] `npx tsc --noEmit && npm run lint && npm run build` all green
+- [x] `grep -n "initialState.grid" src/hooks/useGridHistory.ts` shows guard `src/hooks/useGridHistory.ts:9-11`
+- [x] `Get-Content metadata.json | Select-String "MAJOR_CAPABILITY"` — documented in `docs/pillar audit/reliability-notes.md` (retained `MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API`, client has 0 `@google/genai` hits, server-injected via AI Studio Secrets `GEMINI_API_KEY` `.env.example:4`)
+- [x] `npm test -- reliability` 6/6 pass, `npm test -- useGridHistory` 3/3 pass, `npm test -- clipboard` 2/2 pass — total 42 tests / 7 suites green (re-verified 2026-08-23)
+- [x] `npx tsc --noEmit && npm run lint && npm run build` all green (re-verified 2026-08-23)
 - [x] `npm audit` 0
 
 **Execution notes (2026-08-22)**
 - Added unit and integration test suites in `src/hooks/__tests__/useGridHistory.test.ts`, `src/utils/__tests__/reliability.test.ts`, and `src/utils/__tests__/clipboard.test.ts`.
-- Total test count across project: 33 tests passing cleanly in Vitest (6 test suites).
+- Total test count across project: 33 tests passing cleanly in Vitest (6 test suites) — updated to 42 tests / 7 suites on 2026-08-23 after cross-pillar additions.
 - Maintained server-side GenAI capability alignment in `metadata.json`.
+
+**Fix & re-verification (2026-08-23)**
+- Created `docs/pillar audit/reliability-notes.md` per Phase 5 §2 option (b): documents that `MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API` is server-side only, client bundle has no `@google/genai`, `GEMINI_API_KEY` injected at Cloud Run via AI Studio Secrets, and future re-add must use server proxy + `fetch` retry 3× + `AbortController` 10s timeout.
+- Verified `grep @google/genai` 0 hits, `package.json` clean, `npm audit` 0.
 
 **Anti-pattern guards**
 - Do NOT add `@google/genai` back to `dependencies` without server route — keep `metadata.json` capability consistent
@@ -261,20 +271,23 @@
 
 ---
 
-## Final Phase: Cross-Pillar Verification
+## Final Phase: Cross-Pillar Verification (re-verified 2026-08-23)
 
-1. **Greps:**
-   - `Select-String -Path "src\**\*.tsx" -Pattern "ErrorBoundary"` → 2 hits
-   - `Select-String -Path "src\**\*.ts" -Pattern "showToast|Copy failed"` → 2+ hits
-   - `Select-String -Path "src\hooks\useGridHistory.ts" -Pattern "JSON.stringify"` → 1, guarded
-   - `Select-String -Path "src\utils\markdownFormatter.ts" -Pattern "rawLines.map"` → vertical paste fix present
-2. **Build & audit:** `npx tsc --noEmit && npm run lint && npm test && npm run build && npm audit --audit-level=moderate`
+1. **Greps (2026-08-23):**
+   - `Get-ChildItem -Recurse -Include "*.tsx","*.ts" -Path src | Select-String "ErrorBoundary"` → `ErrorBoundary.tsx:13` + `main.tsx:4,9` (2 files, 8 hits) ✅
+   - `Get-ChildItem -Recurse -Include "*.tsx","*.ts" -Path src | Select-String "showToast|Copy failed"` → `Toast.tsx:12`, `useCopy.ts:9,44,48,83,87`, `useGridActions.ts:8,125`, `App.tsx:5,67` (3 functional sites + infra) ✅
+   - `Select-String -Path "src\hooks\useGridHistory.ts" -Pattern "JSON.stringify"` → 1 site `src/hooks/useGridHistory.ts:72-73` guarded by `totalChars>500_000` `src/hooks/useGridHistory.ts:60-69` ✅
+   - `Select-String -Path "src\utils\tableConvert.ts" -Pattern "rawLines.map"` → `tableConvert.ts:185,194` vertical paste fix present ✅
+   - `Select-String -Path "src" -Pattern "@google/genai"` → 0 hits ✅
+   - `Select-String -Path "src" -Pattern "window\.onerror|addEventListener\('error'"` → 0 hits (no global error handler) ✅
+2. **Build & audit (2026-08-23):** `npx tsc --noEmit` ✅ `npm run lint` ✅ `npm test` (42/42) ✅ `npm run build` (1706 modules) ✅ `npm audit --audit-level=moderate` 0 ✅
 3. **Manual UX:**
-   - Force `throw` in `buildInlineStyledHtml` → boundary fallback with Retry
-   - Copy with clipboard denied → toast
-   - Paste `a\nb\nc` → 3 rows, `a\tb` → 1 row 2 cols, `\t` → no crash
-   - Type `**bold` → no auto-close mid-typing
-4. **No regression:** `Header` sanitize toggle, `Preview` styled preview, `Editor` undo/redo still work
+   - Force `throw` in `buildInlineStyledHtml` (`src/utils/htmlBuilder.ts:61` try/catch → `src/components/OutputCell.tsx:55` fallback) → boundary fallback with Retry `src/components/ErrorBoundary.tsx:53`
+   - Copy with clipboard denied → `showToast('Copy failed — ...','error')` `src/hooks/useCopy.ts:44` toast
+   - Paste `a\nb\nc` → 3 rows, `a\tb` → 1 row 2 cols, `\t` → `|  |  |` no crash (`src/utils/tableConvert.ts:17,194`)
+   - Type `**bold` → no auto-close mid-typing gated `isTyping` `src/utils/cleanup.ts:233,303`
+4. **No regression:** `Header` sanitize toggle, `Preview` styled preview, `Editor` undo/redo, `a11y`/`performance` suites still work
+5. **Docs:** `docs/pillar audit/reliability-notes.md` now documents GenAI alignment ✅
 
 ---
 
@@ -294,18 +307,26 @@ Phase 0 (done) ─┬─> Phase 1 ✅ (ErrorBoundary) ──> Phase 2 ✅ (surfa
 ## File Map (to create/modify)
 
 ```
-docs/pillar audit/pillar-3-reliability-plan.md          <- this file
-src/components/ErrorBoundary.tsx                        <- new
-src/components/Toast.tsx (or reuse Preview feedback)    <- new or modify
-src/utils/toast.ts                                      <- new
-src/hooks/useGridHistory.ts:43-97,137-210               <- modify
-src/utils/markdownFormatter.ts:566,799-873,929-970,1359  <- modify
-src/App.tsx:156-203,112                                 <- modify (toast)
-src/main.tsx:5-8                                        <- modify (wrap)
-src/hooks/__tests__/useGridHistory.test.ts              <- new
-src/utils/__tests__/reliability.test.ts                 <- new
-metadata.json:6                                         <- review (remove or document)
-vite.config.ts:6-22                                     <- reuse test env
+docs/pillar audit/pillar-3-reliability-plan.md          <- this file (updated 2026-08-23)
+docs/pillar audit/reliability-notes.md                  <- new (2026-08-23) GenAI alignment doc per Phase 5 §2
+src/components/ErrorBoundary.tsx                        <- new (Phase 1)
+src/components/Toast.tsx (or reuse Preview feedback)    <- new or modify (Phase 2)
+src/utils/toast.ts                                      <- new (Phase 2)
+src/hooks/useGridHistory.ts:9-11,43-135,166-224          <- modify (Phase 3 + 5 guard)
+src/hooks/useGridActions.ts:8,123-126                   <- modify (Phase 2 fix 2026-08-23: showToast fallback)
+src/hooks/useCopy.ts:9,44,83                            <- modify (Phase 2 toast wiring)
+src/utils/tableConvert.ts:17,192-194                   <- modify (Phase 4 tsv/vertical paste)
+src/utils/cleanup.ts:50-52,233-248,303-316              <- modify (Phase 4 isTyping gate)
+src/utils/htmlBuilder.ts:61-267                         <- modify (Phase 1 resilient preview)
+src/components/OutputCell.tsx:55-60                     <- modify (Phase 1 preview guard)
+src/utils/sanitize.ts:189-268                           <- modify (Phase 2 clipboard fallback finally)
+src/App.tsx:120-134,172-176                             <- modify (Phase 2 + 4 guards, toast container)
+src/main.tsx:4,9                                        <- modify (Phase 1 wrap)
+src/hooks/__tests__/useGridHistory.test.ts              <- new (Phase 5)
+src/utils/__tests__/reliability.test.ts                 <- new (Phase 5)
+src/utils/__tests__/clipboard.test.ts                   <- new (Phase 5)
+metadata.json:5                                         <- retained + documented via reliability-notes.md
+vite.config.ts:15-17                                    <- reuse test env (jsdom)
 ```
 
 ## References
