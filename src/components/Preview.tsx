@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Copy, Check, Minimize2, ArrowLeft, Table } from 'lucide-react';
 import { StyleOptions } from '../types';
-import { hasBrTags } from '../utils/markdownFormatter';
+import { hasBrTags, isMarkdownTable } from '../utils/markdownFormatter';
 import { useOutputActions } from '../hooks/useOutputActions';
 import { OutputCell } from './OutputCell';
 import { cn } from '../utils/cn';
@@ -247,14 +247,17 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
           {grid.map((row, r) =>
             row.map((_, c) => {
               const cellId = `${r}-${c}`;
+              const outputText = getOutputContent(r, c);
+              const inputText = grid[r]?.[c] || '';
+              const isTable = isMarkdownTable(outputText) || isMarkdownTable(inputText);
               return (
                 <OutputCell
                   key={`output-cell-container-${r}-${c}`}
                   rowIndex={r}
                   colIndex={c}
                   label={getCellLabel(r, c)}
-                  outputText={getOutputContent(r, c)}
-                  inputHadBr={hasBrTags(grid[r]?.[c] || '')}
+                  outputText={outputText}
+                  inputHadBr={hasBrTags(inputText) && !isTable}
                   isOverridden={hasOverride(r, c)}
                   options={options}
                   cellMode={cellModes[cellId] ?? 'preview'}

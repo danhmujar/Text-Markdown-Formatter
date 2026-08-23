@@ -3,6 +3,16 @@ import { logger } from './logger';
 import { sanitizeHtml } from './security/sanitize';
 import { isWrappedParagraph } from './textWrap';
 
+export function isMarkdownTable(text: string): boolean {
+  if (!text || !text.includes('|')) return false;
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  if (lines.length < 2) return false;
+  // Look for a table separator line e.g. | --- | --- | or |:---|:---| or :--- | ---:
+  const hasSeparator = lines.some((line) => /^\|?(\s*:?-{3,}:?\s*\|?)+\s*\|?$/.test(line));
+  const hasPipeRows = lines.filter((line) => line.includes('|')).length >= 2;
+  return hasSeparator && hasPipeRows;
+}
+
 export function tsvToMarkdownTable(tsv: string): string {
   if (!tsv) return '';
   const lines = tsv.split(/\r?\n/).filter((line) => line.length > 0);

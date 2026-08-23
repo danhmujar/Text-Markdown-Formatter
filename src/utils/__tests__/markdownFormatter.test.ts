@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { smartCleanupMarkdown } from '../cleanup';
-import { tsvToMarkdownTable } from '../tableConvert';
+import { smartCleanupMarkdown, prepareCopiedText } from '../cleanup';
+import { tsvToMarkdownTable, isMarkdownTable } from '../tableConvert';
 import { getNextListPrefix } from '../listNumbering';
 
 describe('smartCleanupMarkdown', () => {
@@ -14,6 +14,29 @@ describe('smartCleanupMarkdown', () => {
     const report = smartCleanupMarkdown('say \u201Chello\u201D');
     expect(report.cleaned).toContain('"hello"');
     expect(report.details.quotesStandardized).toBe(true);
+  });
+});
+
+describe('isMarkdownTable and prepareCopiedText', () => {
+  it('detects valid markdown tables accurately', () => {
+    const table = '| Header 1 | Header 2 |\n| :--- | :--- |\n| Cell 1 | Cell 2 |';
+    expect(isMarkdownTable(table)).toBe(true);
+    expect(isMarkdownTable('Just regular\ntext with | single pipe')).toBe(false);
+  });
+
+  it('suppresses <br> reversion if the content is a markdown table', () => {
+    const tableWithNewlines = '| Header 1 | Header 2 |\n| :--- | :--- |\n| Line 1\nLine 2 | Cell 2 |';
+    const inputWithBr = '| Header 1 | Header 2 |<br>| :--- | :--- |<br>| Line 1<br>Line 2 | Cell 2 |';
+    // When table is detected, prepareCopiedText keeps newlines intact and doesn't convert to <br>
+    const result = prepareCopiedText(tableWithNewlines, inputWithBr);
+    expect(result).toBe(tableWithNewlines);
+  });
+
+  it('converts newlines back to <br> for non-table text with <br> in input', () => {
+    const output = 'Line 1\nLine 2';
+    const inputWithBr = 'Line 1<br>Line 2';
+    const result = prepareCopiedText(output, inputWithBr);
+    expect(result).toBe('Line 1<br>Line 2');
   });
 });
 

@@ -1,4 +1,5 @@
 import { isWrappedParagraph } from './textWrap';
+import { isMarkdownTable } from './tableConvert';
 
 /**
  * Checks if input text contains <br> tags (<br>, <br/>, <br /> in any case).
@@ -64,12 +65,14 @@ export function convertNewlinesToBr(text: string): string {
 
 /**
  * Prepares the output text for copying:
- * If the original input contained <br> tags, converts the edited output's line breaks back to <br>.
+ * If the original input contained <br> tags and is NOT a markdown table, converts the edited output's line breaks back to <br>.
+ * When a markdown table is present, line breaks are kept as clean newlines to preserve table structure (with Copy for Excel handling table grids).
  * Otherwise, returns the edited output as-is.
  */
 export function prepareCopiedText(outputText: string, originalInputText: string): string {
   if (!outputText) return '';
-  const inputHadBr = hasBrTags(originalInputText);
+  const isTable = isMarkdownTable(outputText) || isMarkdownTable(originalInputText);
+  const inputHadBr = hasBrTags(originalInputText) && !isTable;
 
   if (inputHadBr) {
     return convertNewlinesToBr(outputText);
