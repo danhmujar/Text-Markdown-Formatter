@@ -11,7 +11,7 @@ DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
     data.attrName === 'action' ||
     data.attrName === 'formaction'
   ) {
-    if (/^\s*(javascript|data:text\/html|vbscript):/i.test(data.attrValue)) {
+    if (/^\s*(javascript:|vbscript:|data:text\/html|data:image\/svg\+xml)/i.test(data.attrValue)) {
       data.keepAttr = false;
     }
   }

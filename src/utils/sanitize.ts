@@ -87,7 +87,7 @@ export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {
               attr.name,
             )
           ) {
-            if (/^\s*(javascript|data:text\/html|vbscript):/i.test(attr.value)) {
+            if (/^\s*(javascript:|vbscript:|data:text\/html|data:image\/svg\+xml)/i.test(attr.value)) {
               htmlEl.removeAttribute(attr.name);
             }
           }

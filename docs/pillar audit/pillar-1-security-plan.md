@@ -3,8 +3,8 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 1/5 — Security (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** XSS via `marked` → `dangerouslySetInnerHTML`, incomplete sanitizer, clipboard DOM, CSP
-**Status:** All Phases (1-5) & Cross-Pillar Verification complete (2026-08-22)
-**Date:** 2026-08-22
+**Status:** All Phases (1-5) & Cross-Pillar Verification complete (2026-08-22) + Gap Fixes verified (2026-08-23)
+**Date:** 2026-08-23
 **Audit source:** Inline audit `src/components/Preview.tsx:646`, `src/utils/markdownFormatter.ts:1033-1045,977-1121,1217-1445`, `src/App.tsx:154-197`, `index.html:1-15`, `package.json:1-23`, `.env.example:1-9`
 **Severity:** Critical (stored XSS in preview), High (bypassable sanitizer), Medium (clipboard fallback), Low (no CSP)
 **Resolution:** Resolved across all layers with DOMPurify, hardened copy sanitization, secure table parsers, rel/target safety, and defense-in-depth CSP.
@@ -51,15 +51,15 @@
 **What to implement — COPY from DOMPurify docs, wrap existing logic**
 1. Install: `npm i dompurify && npm i -D @types/dompurify` (cite `dompurify` npm page)
 2. Create `src/utils/security/sanitize.ts` (new folder, keeps Phase 3 split compatible):
-   ```ts
-   import DOMPurify from 'dompurify';
-   // Hook to strip event handlers and javascript: URLs — copy DOMPurify hook docs
-   DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
-     if (data.attrName.startsWith('on')) data.keepAttr = false;
-     if (data.attrName === 'href' || data.attrName === 'src' || data.attrName === 'xlink:href') {
-       if (/^\s*javascript:/i.test(data.attrValue) || /^\s*data:text\/html/i.test(data.attrValue)) data.keepAttr = false;
-     }
-   });
+    ```ts
+    import DOMPurify from 'dompurify';
+    // Hook to strip event handlers and javascript: URLs — copy DOMPurify hook docs
+     DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+       if (data.attrName.startsWith('on')) data.keepAttr = false;
+       if (data.attrName === 'href' || data.attrName === 'src' || data.attrName === 'xlink:href') {
+         if (/^\s*(javascript:|vbscript:|data:text\/html|data:image\/svg\+xml)/i.test(data.attrValue)) data.keepAttr = false;
+       }
+     });
    export function sanitizeHtml(dirty: string): string {
      return DOMPurify.sanitize(dirty, {
        USE_PROFILES: { html: true },
@@ -124,12 +124,12 @@
    - At top, call `let html = sanitizeHtml(rawHtml);` when `security` is true (default true) before DOMParser logic, while preserving existing `SanitizeOptions` for `stripBackgrounds`/`stripComments`/`cleanWordXml` behavior.
    - Keep `stripComments`, `cleanWordXml`, `stripMetaTags` logic — these are Word/Outlook compat, not security, but retained.
 2. Extend DOMParser attribute loop (removes `data-*`, `aria-*`, `id`, `class`, `contenteditable`, `tabindex`, `spellcheck`, `on*`, `javascript:`, `vbscript:`, `expression()`):
-   ```ts
-   if (attr.name.startsWith('on') || /^javascript:/i.test(attr.value)) htmlEl.removeAttribute(attr.name);
-   // also check href/src/xlink:href scheme
-   if (['href','src','xlink:href','action','formaction','cite','data'].includes(attr.name)) {
-     if (/^\s*(javascript|data:text\/html|vbscript):/i.test(attr.value)) htmlEl.removeAttribute(attr.name);
-   }
+    ```ts
+     if (attr.name.startsWith('on') || /^javascript:/i.test(attr.value)) htmlEl.removeAttribute(attr.name);
+     // also check href/src/xlink:href scheme — block javascript, vbscript, data:text/html and data:image/svg+xml (with ;base64 or ,)
+     if (['href','src','xlink:href','action','formaction','cite','data'].includes(attr.name)) {
+       if (/^\s*(javascript:|vbscript:|data:text\/html|data:image\/svg\+xml)/i.test(attr.value)) htmlEl.removeAttribute(attr.name);
+     }
    if (attr.name === 'style' && (/expression\s*\(/i.test(attr.value) || /javascript:/i.test(attr.value))) htmlEl.removeAttribute(attr.name);
    ```
 3. Ensure `Header.tsx:49-52` toggle `sanitizeOutput` **cannot** bypass security sanitization:
@@ -157,6 +157,8 @@
 - Do NOT make `sanitizeOutputHtml` return rawHtml when `options.sanitize===false` — must still run `sanitizeHtml` security pass
 - Do NOT use `innerHTML` regex to strip `on*` — use DOM API `removeAttribute`
 - Do NOT allow `data:image/svg+xml` with script — block `data:text/html` and `data:image/svg+xml` containing `<script>`
+
+**Gap Fix (2026-08-23):** Post-audit verification found `data:image/svg+xml` was documented as blocked in anti-pattern guard but regex only covered `data:text/html`. Fixed `src/utils/security/sanitize.ts:14` and `src/utils/sanitize.ts:90` to `/^\s*(javascript:|vbscript:|data:text\/html|data:image\/svg\+xml)/i` in both DOMPurify hook and DOMParser loop (corrected to match `data:text/html;base64`/`data:image/svg+xml;base64` with `;`/` ,` terminator, not requiring trailing `:` which missed `;base64` variants). Tests added to confirm bypass closed.
 
 **Effort:** ~30m
 
@@ -251,14 +253,15 @@
 3. Verified zero regressions across preview rendering, split/focus views, and copy-to-clipboard workflows.
 
 **Verification checklist**
-- [x] `npm test` 19/19 tests pass green
-- [x] `dangerouslySetInnerHTML` in `src/components/Preview.tsx` preceded by `sanitizeHtml`
+- [x] `npm test` 19/19 (2026-08-22) → 42/42 (2026-08-23) tests pass green
+- [x] `dangerouslySetInnerHTML` in `src/components/Preview.tsx:646` (now `src/components/OutputCell.tsx:239` post-refactor) preceded by `sanitizeHtml` via `buildInlineStyledHtml`
 - [x] All `tempDiv.innerHTML` assignments in `src/utils/tableConvert.ts` wrapped in `sanitizeHtml`
 - [x] `index.html` configured with Content-Security-Policy meta tag
-- [x] `npm run lint` and `npm run build` pass cleanly with 0 errors
+- [x] `npm run lint` and `npm run build` pass cleanly with 0 errors (lint fixed 2026-08-23 via `npm install`, previously `ERR_MODULE_NOT_FOUND`)
 
 **Execution notes (2026-08-22)**
 - Full verification completed. All 19 unit tests passing, zero lint warnings, clean build artifacts, and robust multi-layered XSS defense confirmed.
+- **Update (2026-08-23):** Expanded suite now 42 tests (pillars 2/3/5 added), lint fixed, gap fixes verified.
 
 **Anti-pattern guards**
 - Do NOT mark `javascript:` test as todo — must pass
@@ -269,12 +272,36 @@
 
 ---
 
+## Gap Fixes — 2026-08-23 (post-audit verification)
+
+**Findings from 2026-08-23 verification (42 tests, build, lint, audit, CSP, sinks):**
+- **Gap 1 — `data:image/svg+xml` bypass + `;base64` miss:** Plan anti-pattern guard documented blocking `data:image/svg+xml` with script, but implementation regex in `src/utils/security/sanitize.ts:14` and `src/utils/sanitize.ts:90` was `/^\s*(javascript|data:text\/html|vbscript):/i` — only covered 3 schemes and required trailing `:` which fails for `data:text/html;base64,` and `data:image/svg+xml;base64,` (`;` not `:`). Verified via `Select-String -Pattern "data:image/svg"` → 0 hits and manual Node `re.test("data:text/html;base64")===false`. Fixed by correcting both regexes to `/^\s*(javascript:|vbscript:|data:text\/html|data:image\/svg\+xml)/i` (colon inside group for `javascript:`/`vbscript:`, prefix match for `data:` URIs covering `;base64` and `,` payloads). Manual DOMPurify jsdom test confirms `data:text/html;base64` and `data:image/svg+xml;base64` now trigger hook (`hook triggered`) and are stripped to `<a>x</a>`/`<img>` without leaking `data:` payload.
+- **Gap 2 — `eslint-plugin-jsx-a11y` missing in `node_modules`:** `package.json:34` listed `eslint-plugin-jsx-a11y@6.10.2` and `eslint.config.js:3` imported it, but `package-lock.json`/`node_modules` were stale (bun.lock had it, `npm ls` empty, `lint` failed `ERR_MODULE_NOT_FOUND`). Fixed by running `npm install` → 377 packages audited, 0 vulns, `eslint-plugin-jsx-a11y@6.10.2` now in `node_modules`, `npm run lint` passes 0 errors, `npm ls` confirms. `package-lock.json` updated to reflect installed lockfile.
+
+**Verification post-fix (2026-08-23):**
+- `npx tsc --noEmit` PASS
+- `npm run lint` PASS (0 errors, previously ERR_MODULE_NOT_FOUND)
+- `npx vitest run` 42/42 PASS (13 security tests + 29 other pillars)
+- `npm run build` PASS `dist/assets/purify-CTDdruEg.js` 28.86kB
+- `npm audit --audit-level=moderate` 0 vulnerabilities
+- `grep dangerouslySetInnerHTML` → 1 site `src/components/OutputCell.tsx:239` (refactored from `Preview.tsx:646`, now via `buildInlineStyledHtml` sanitization point)
+- `grep data:image/svg` → 2 hits (security/sanitize + sanitize), confirming block
+
+**Plan updates in this patch:**
+- Phase 1 snippet: hook regex updated to include `vbscript|data:image/svg+xml`
+- Phase 2 snippet: DOMParser loop comment + regex updated similarly
+- Phase 2 anti-pattern guard: added gap-fix note
+- File Map & references: `package.json` devDeps now correct via `npm install` sync
+
+---
+
 ## Final Phase: Cross-Pillar Verification
 
 1. **Re-run Phase 0 graps:**
-   - `Select-String -Path "src\**\*.tsx" -Pattern "dangerouslySetInnerHTML"` → 1, sanitized
-   - `Select-String -Path "src\**\*.ts" -Pattern "DOMPurify"` → 2+ hits
-   - `Select-String -Path "index.html" -Pattern "Content-Security-Policy"` → 1
+    - `Select-String -Path "src\**\*.tsx" -Pattern "dangerouslySetInnerHTML"` → 1, sanitized (`src/components/OutputCell.tsx:239`)
+    - `Select-String -Path "src\**\*.ts" -Pattern "DOMPurify"` → 1 file `src/utils/security/sanitize.ts` (integration via `sanitizeHtml` in 3 files)
+    - `Select-String -Path "index.html" -Pattern "Content-Security-Policy"` → 1
+    - `Select-String -Path "src\**\*.ts" -Pattern "data:image/svg"` → 2 hits (hook + loop), gap-fix confirmed
 2. **Build & audit:** `npm run typecheck && npm run lint && npm test && npm run build && npm audit --audit-level=moderate`
 3. **Manual UX:** paste TSV `a\tb`, HTML table `<table><tr><td>hi</td></tr></table>`, `(i)` list in Preview — all render, no alert
 4. **No regression:** `Header.tsx:158-182` Sanitize Output toggle still works (compat only), `Preview.tsx:646` styled preview unchanged
@@ -299,14 +326,16 @@ Phase 0 (done) -> Phase 1 ✅ (DOMPurify preview) -> Phase 2 (harden sanitizeOut
 ## File Map (to create/modify)
 
 ```
-docs/pillar audit/pillar-1-security-plan.md         <- this file
-src/utils/security/sanitize.ts                     <- new
+docs/pillar audit/pillar-1-security-plan.md         <- this file (updated 2026-08-23 gap fixes)
+src/utils/security/sanitize.ts:14                  <- modify (add data:image/svg+xml to hook)
+src/utils/sanitize.ts:90                           <- modify (add data:image/svg+xml to loop)
 src/utils/security/__tests__/sanitize.test.ts      <- new
-src/utils/markdownFormatter.ts:1,1033,1190,576,938  <- modify (wrap)
-src/components/Preview.tsx:363,646                 <- modify (sanitize)
+src/utils/markdownFormatter.ts:1,1033,1190,576,938  <- modify (wrap, now src/utils/htmlBuilder.ts:62)
+src/components/Preview.tsx:363,646                 <- modify (sanitize, now src/components/OutputCell.tsx:239)
 src/App.tsx:166,196                                <- modify (split toggle)
 index.html:5                                       <- modify (CSP)
-package.json:14-15                                 <- modify (add dompurify)
+package.json:34                                    <- modify (add dompurify + eslint-plugin-jsx-a11y sync via npm install)
+package-lock.json                                  <- modify (sync lockfile 2026-08-23, 377 packages)
 ```
 
 ## References
