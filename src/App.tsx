@@ -7,7 +7,6 @@ import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
 import { useCopy } from './hooks/useCopy';
 import { hasBrTags, convertBrToNewlines } from './utils/markdownFormatter';
-import { DEFAULT_PRESETS } from './constants/presets';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
 import { getPrimaryForTheme } from './constants/themes';
@@ -16,7 +15,7 @@ export default function App() {
   // State-based history manager for 2D grid matrix and per-cell output overrides
   const { grid, outputOverrides, updateGrid, updateOutputOverrides, undo, redo, canUndo, canRedo } =
     useGridHistory({
-      grid: [[DEFAULT_PRESETS[0].content]],
+      grid: [['']],
       outputOverrides: {},
     });
 
