@@ -118,7 +118,11 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
             title={`Total output characters: ${totalOutputChars.toLocaleString()}`}
           >
             {totalOutputChars.toLocaleString()}{' '}
-            <span className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
+            <span
+              className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              chars
+            </span>
           </span>
           {isFocusMode && (
             <div className="flex items-center gap-1.5 ml-1">
@@ -146,7 +150,11 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
                   )}
                   title="Switch Focus to Input container"
                 >
-                  <ArrowLeft aria-hidden="true" focusable="false" className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                  <ArrowLeft
+                    aria-hidden="true"
+                    focusable="false"
+                    className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                  />
                   <span>Input</span>
                 </button>
               )}
@@ -182,7 +190,11 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
         >
           {copiedAll ? (
             <>
-              <Check aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-emerald-300" />
+              <Check
+                aria-hidden="true"
+                focusable="false"
+                className="w-3.5 h-3.5 text-emerald-300"
+              />
               <span>Copied All!</span>
             </>
           ) : (

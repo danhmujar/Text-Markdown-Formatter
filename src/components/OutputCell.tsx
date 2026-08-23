@@ -133,7 +133,9 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             id={`toggle-edit-mode-${r}-${c}`}
             type="button"
             onClick={onToggleMode}
-            aria-label={isEditMode ? `Switch ${label} to Formatted Preview` : `Switch ${label} to Edit Mode`}
+            aria-label={
+              isEditMode ? `Switch ${label} to Formatted Preview` : `Switch ${label} to Edit Mode`
+            }
             aria-pressed={isEditMode}
             className={cn(
               'px-2 py-0.5 rounded border text-[10px] font-medium flex items-center gap-1 transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
@@ -273,19 +275,33 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'}`}
           >
             {charCount.toLocaleString()}{' '}
-            <span className={`font-sans font-normal text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
+            <span
+              className={`font-sans font-normal text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              chars
+            </span>
           </span>
           <span className="flex items-center gap-1">
             <span>{wordCount.toLocaleString()}</span>
-            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>words</span>
+            <span
+              className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              words
+            </span>
           </span>
           <span className="hidden sm:flex items-center gap-1">
             <span>{lineCount}</span>
-            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>lines</span>
+            <span
+              className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              lines
+            </span>
           </span>
         </div>
 
-        <span className={`text-[10px] font-sans flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span
+          className={`text-[10px] font-sans flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+        >
           <span>{isEditMode ? 'Editing Raw Text' : 'Formatted Preview'}</span>
         </span>
       </div>

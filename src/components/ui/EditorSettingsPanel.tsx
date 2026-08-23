@@ -42,7 +42,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
 
     const focusableSelectors = 'button:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const focusableElements = panel.querySelectorAll<HTMLElement>(focusableSelectors);
-    
+
     // Focus the first interactive element inside the dialog
     if (focusableElements.length > 0) {
       focusableElements[0].focus();

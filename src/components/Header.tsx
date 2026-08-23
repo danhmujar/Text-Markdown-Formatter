@@ -153,7 +153,11 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             {isFocused ? (
               <>
-                <Minimize2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-blue-400" />
+                <Minimize2
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3.5 h-3.5 text-blue-400"
+                />
                 <span>
                   Focus: <strong className="capitalize font-semibold">{focusMode}</strong>
                 </span>
@@ -187,13 +191,21 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             {isSanitizeActive ? (
               <>
-                <ShieldCheck aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-emerald-500" />
+                <ShieldCheck
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3.5 h-3.5 text-emerald-500"
+                />
                 <span>Sanitize Output</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               </>
             ) : (
               <>
-                <ShieldAlert aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-slate-400" />
+                <ShieldAlert
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3.5 h-3.5 text-slate-400"
+                />
                 <span>Sanitize: Off</span>
               </>
             )}

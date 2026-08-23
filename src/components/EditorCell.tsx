@@ -174,9 +174,17 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
                 {warnings.length} {warnings.length === 1 ? 'Warning' : 'Warnings'}
               </span>
               {showWarningsDrawer ? (
-                <ChevronUp aria-hidden="true" focusable="false" className="w-3 h-3 ml-0.5 opacity-70" />
+                <ChevronUp
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3 h-3 ml-0.5 opacity-70"
+                />
               ) : (
-                <ChevronDown aria-hidden="true" focusable="false" className="w-3 h-3 ml-0.5 opacity-70" />
+                <ChevronDown
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3 h-3 ml-0.5 opacity-70"
+                />
               )}
             </button>
           ) : cellValue.trim().length > 0 ? (
@@ -240,8 +248,15 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
           }`}
         >
           <div className="flex items-center justify-between pb-1 border-b border-amber-500/20 text-[11px] font-semibold">
-            <span id={`warnings-title-${rowIndex}-${colIndex}`} className="flex items-center gap-1.5">
-              <AlertCircle aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-amber-500" />
+            <span
+              id={`warnings-title-${rowIndex}-${colIndex}`}
+              className="flex items-center gap-1.5"
+            >
+              <AlertCircle
+                aria-hidden="true"
+                focusable="false"
+                className="w-3.5 h-3.5 text-amber-500"
+              />
               <span>Real-Time Syntax Diagnostics ({warnings.length})</span>
             </span>
             <button
@@ -281,11 +296,23 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
                 <div className="flex items-center justify-between font-medium">
                   <span className="flex items-center gap-1">
                     {warn.severity === 'error' ? (
-                      <AlertCircle aria-hidden="true" focusable="false" className="w-3 h-3 text-red-500 shrink-0" />
+                      <AlertCircle
+                        aria-hidden="true"
+                        focusable="false"
+                        className="w-3 h-3 text-red-500 shrink-0"
+                      />
                     ) : warn.severity === 'warning' ? (
-                      <AlertTriangle aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-500 shrink-0" />
+                      <AlertTriangle
+                        aria-hidden="true"
+                        focusable="false"
+                        className="w-3 h-3 text-amber-500 shrink-0"
+                      />
                     ) : (
-                      <Info aria-hidden="true" focusable="false" className="w-3 h-3 text-blue-500 shrink-0" />
+                      <Info
+                        aria-hidden="true"
+                        focusable="false"
+                        className="w-3 h-3 text-blue-500 shrink-0"
+                      />
                     )}
                     <span>{warn.title}</span>
                   </span>
@@ -369,7 +396,11 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             title="Total character count"
           >
             {charCount.toLocaleString()}{' '}
-            <span className={`font-sans font-normal text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
+            <span
+              className={`font-sans font-normal text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              chars
+            </span>
           </span>
 
           <span
@@ -378,7 +409,11 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             title="Total word count"
           >
             <span>{wordCount.toLocaleString()}</span>
-            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>words</span>
+            <span
+              className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              words
+            </span>
           </span>
 
           <span
@@ -387,7 +422,11 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
             title="Total lines"
           >
             <span>{lineCount}</span>
-            <span className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>lines</span>
+            <span
+              className={`font-sans text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              lines
+            </span>
           </span>
         </div>
 

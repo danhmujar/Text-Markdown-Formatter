@@ -113,7 +113,11 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
             title={`Total across all cells: ${totalStats.totalChars.toLocaleString()} characters, ${totalStats.totalWords.toLocaleString()} words`}
           >
             {totalStats.totalChars.toLocaleString()}{' '}
-            <span className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>chars</span>
+            <span
+              className={`font-sans font-normal text-[10px] ml-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              chars
+            </span>
           </span>
 
           {/* Grid-Wide Warning Alert Badge */}
@@ -129,7 +133,11 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
               }`}
               title={`${totalStats.totalWarnings} syntax warnings across editor cells`}
             >
-              <AlertTriangle aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-500 shrink-0" />
+              <AlertTriangle
+                aria-hidden="true"
+                focusable="false"
+                className="w-3 h-3 text-amber-500 shrink-0"
+              />
               <span>
                 {totalStats.totalWarnings} {totalStats.totalWarnings === 1 ? 'Warning' : 'Warnings'}
               </span>
@@ -163,7 +171,11 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
                   title="Switch Focus to Output container"
                 >
                   <span>Output</span>
-                  <ArrowRight aria-hidden="true" focusable="false" className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                  <ArrowRight
+                    aria-hidden="true"
+                    focusable="false"
+                    className={`w-3 h-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                  />
                 </button>
               )}
               {onExitFocus && (
@@ -203,7 +215,11 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
             }`}
             title="Automatically standardize quotes, strip redundant whitespace, and fix markdown syntax across all input cells"
           >
-            <Sparkles aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-indigo-400" />
+            <Sparkles
+              aria-hidden="true"
+              focusable="false"
+              className="w-3.5 h-3.5 text-indigo-400"
+            />
             <span>Smart Cleanup</span>
           </button>
 
@@ -269,9 +285,17 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
               : 'bg-indigo-50 border-indigo-200 text-indigo-800'
           }`}
         >
-          <Sparkles aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <Sparkles
+            aria-hidden="true"
+            focusable="false"
+            className="w-3.5 h-3.5 text-indigo-400 shrink-0"
+          />
           <span className="font-medium flex-1">{cleanupNotification}</span>
-          <Check aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <Check
+            aria-hidden="true"
+            focusable="false"
+            className="w-3.5 h-3.5 text-emerald-400 shrink-0"
+          />
         </div>
       )}
 

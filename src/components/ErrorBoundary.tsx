@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '../utils/logger';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   public override componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('Uncaught error in application:', error, errorInfo);
+    logger.error('Uncaught error in application:', error, errorInfo);
   }
 
   private handleRetry = () => {
@@ -42,7 +43,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           className="min-h-screen w-full flex items-center justify-center p-6 bg-slate-950 text-slate-100 font-sans"
         >
           <div className="max-w-md w-full p-6 rounded-xl border border-slate-800 bg-slate-900 shadow-xl space-y-4 text-center">
-            <div aria-hidden="true" className="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-800 text-rose-400 mx-auto flex items-center justify-center font-bold text-xl">
+            <div
+              aria-hidden="true"
+              className="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-800 text-rose-400 mx-auto flex items-center justify-center font-bold text-xl"
+            >
               !
             </div>
             <h1 className="text-lg font-semibold text-slate-100">Something went wrong</h1>

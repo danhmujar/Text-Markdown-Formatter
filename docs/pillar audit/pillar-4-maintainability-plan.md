@@ -3,8 +3,8 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 4/5 — Maintainability (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** File org, TS strict, duplication, lint, config hygiene
-**Status:** All Phases (1-5) & Cross-Pillar Verification complete (2026-08-23)
-**Date:** 2026-08-23
+**Status:** All Phases (1-5) & Cross-Pillar Verification complete (2026-08-23) — Hotfix applied 2026-08-23 (tsconfig/logger/prettier gaps closed)
+**Date:** 2026-08-23 (updated 2026-08-23 hotfix)
 **Audit source:** Inline audit `src/utils/markdownFormatter.ts:1-1343`, `tsconfig.json:1-26`, `package.json:1-36`, `vite.config.ts:1-22`
 
 ---
@@ -81,6 +81,11 @@
 - `src/main.tsx:3` `'./App.tsx'` → `'./App'` for `allowImportingTsExtensions: false`.
 - Type fix: `Editor.theme` prop widened `'light' | 'dark'` → `ThemeMode` (runtime unchanged); dead `onSetFocusMode` prop removed from Header + App.
 - New files: `eslint.config.js`, `.prettierrc`, `.prettierignore`. HMR guard untouched. Nothing committed.
+
+**Hotfix (2026-08-23)** — verification found 3 drifts, all closed in this session
+- `tsconfig.json:18-21` `allowImportingTsExtensions: true` → `false`, `paths @/*: ["./*"]` → `["./src/*"]` (plan Phase 1:6-7). `src/main.tsx:3` already extensionless, so `npx tsc --noEmit` stays 0 errors. Verified with `rg "allowImportingTsExtensions.*true" tsconfig.json` → 0.
+- `vite.config.ts:12` alias `@` → `path.resolve(__dirname, './src')` aligned to tsconfig (plan optional, now applied; no `from "@/` consumers, so non-breaking).
+- `npx prettier --write .` re-run fixed 31 files that drifted after pillar 2/3 commits; `prettier --check` now `All matched files use Prettier code style!`.
 
 **Anti-pattern guards**
 - Do NOT delete `vite.config.ts:14-21` HMR guard
@@ -272,6 +277,11 @@
 - Barrel decision: `markdownFormatter.ts` kept as pure re-export barrel (5 lines) — consumers unchanged, migration to direct imports deferred.
 - Bundle note: 356.80→386.86 kB — +30 kB is dompurify from pillar-1 Phase 1 (bundled via htmlBuilder), NOT Phase 5 changes (logger is negligible). Verified by stash-rebuild comparison.
 
+**Hotfix (2026-08-23)** — post-verification gaps closed
+- `src/components/ErrorBoundary.tsx:1,24` `console.error` → `logger.error` (added `import { logger } from '../utils/logger'`); audit gap from `cea3fd4` perf commit that added ErrorBoundary after pillar-4 Phase 5. Now `grep console\. src` = only `logger.ts:3,5`.
+- Gap `allowImportingTsExtensions` already false-verified via `npx prettier --write` re-run — no formatting drift introduced by tsconfig change.
+- One `prettier --write .` pass fixed 31 files (all subsequent lint/build green, no functional change).
+
 **Anti-pattern guards**
 - Do NOT swallow errors — `logger.warn` must still log in DEV
 - Do NOT add `eslint-disable` comments to pass lint — fix source
@@ -284,23 +294,32 @@
 ## Final Phase: Cross-Pillar Verification
 
 1. **Match audit** — re-run maintainability grep:
-   - `Select-String -Path "src\**\*.ts" -Pattern "console\."` → 0
-   - `Select-String -Path "src\**\*.ts" -Pattern "DEFAULT_PRESETS|FONT_OPTIONS"` → only `src/constants/`
-   - `Get-ChildItem src/utils/*.ts | Measure` → 5+ small utils vs 1 god file
+   - `Select-String -Path "src\**\*.ts" -Pattern "console\."` → 0 outside `logger.ts` (2026-08-23 hotfix: `ErrorBoundary.tsx:24` migrated to `logger.error`)
+   - `Select-String -Path "src\**\*.ts" -Pattern "DEFAULT_PRESETS|FONT_OPTIONS"` → only `src/constants/` + expected consumer imports (`App.tsx:10`, `Header.tsx:13`)
+   - `Get-ChildItem src/utils/*.ts | Measure` → 5+ small utils vs 1 god file (listNumbering 369, cleanup 294, sanitize 244, htmlBuilder 232, tableConvert 174, barrel 5)
 2. **Anti-pattern grep**
-   - `rg "rm -rf" package.json` → 0
-   - `rg "\"react-example\"" package.json` → 0
-   - `rg "allowImportingTsExtensions.*true" tsconfig.json` → 0
-3. **Tests** — `npm run typecheck && npm run lint && npm test && npm run build`
+   - `rg "rm -rf" package.json` → 0 ✅
+   - `rg "\"react-example\"" package.json` → 0 ✅
+   - `rg "allowImportingTsExtensions.*true" tsconfig.json` → 0 ✅ (hotfix 2026-08-23: `tsconfig.json:21` `true` → `false`)
+3. **Tests** — `npm run typecheck && npm run lint && npm test && npm run build` → all green (prettier `--check` now passes after `prettier --write` on 31 files)
 4. **No regressions** — `vite preview` + manual: paste HTML table, TSV, `(i)` list, copy to clipboard (sanitized HTML)
+
+**Hotfix verification (2026-08-23)**
+- `npx tsc --noEmit` → 0 errors, `allowImportingTsExtensions: false` compatible (`src/main.tsx:3` `from './App'` extensionless)
+- `npx eslint .` → 0 errors
+- `npx prettier --check .` → `All matched files use Prettier code style!` (previously 31 files warn)
+- `npx vitest run` → 7 files / 42 tests PASS
+- `npm run build` → `vendor 3.8kB / ui 22kB / purify 28kB / marked 43kB / index 305kB` — identical to pre-hotfix
+- `Select-String "console\." src` → only `src/utils/logger.ts:3,5` ✅
+- `tsconfig.json:19` `@/*` → `["./src/*"]` and `vite.config.ts:12` `@` → `path.resolve(__dirname, './src')` aligned per plan Phase 1:7 optional
 
 ---
 
 ## Execution Order & Dependencies
 
 ```
-Phase 0 (done) ─┬─> Phase 1 ✅ (tooling) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 ✅ (cn/dedup) ──> Phase 5 ✅ (logger/tests) ──> Final Verify
-                └─ done — strict TS passes; only Final Verify remains
+Phase 0 (done) ─┬─> Phase 1 ✅ (tooling + hotfix 2026-08-23) ──> Phase 2 ✅ (constants) ──> Phase 3 ✅ (split) ──> Phase 4 ✅ (cn/dedup) ──> Phase 5 ✅ (logger/tests + hotfix ErrorBoundary) ──> Final Verify ✅ (hotfix verified)
+                └─ done — strict TS passes; Final Verify now green (prettier/tsconfig/logger)
 ```
 
 - Each phase is **self-contained** with its own doc refs — can be executed in fresh chat context.

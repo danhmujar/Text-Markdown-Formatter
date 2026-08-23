@@ -36,7 +36,9 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
     >
       {/* Numbering and list format buttons */}
       <div className="flex items-center gap-1 flex-wrap">
-        <span className={`text-[10px] font-semibold uppercase tracking-wider mr-1 hidden sm:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+        <span
+          className={`text-[10px] font-semibold uppercase tracking-wider mr-1 hidden sm:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+        >
           Format:
         </span>
 

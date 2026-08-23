@@ -74,9 +74,23 @@ export const ToastContainer: React.FC = () => {
             }`}
           >
             <div className="shrink-0 mt-0.5">
-              {isError && <AlertCircle aria-hidden="true" focusable="false" className="w-4 h-4 text-rose-400" />}
-              {isSuccess && <CheckCircle2 aria-hidden="true" focusable="false" className="w-4 h-4 text-emerald-400" />}
-              {!isError && !isSuccess && <Info aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-400" />}
+              {isError && (
+                <AlertCircle
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-4 h-4 text-rose-400"
+                />
+              )}
+              {isSuccess && (
+                <CheckCircle2
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-4 h-4 text-emerald-400"
+                />
+              )}
+              {!isError && !isSuccess && (
+                <Info aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-400" />
+              )}
             </div>
             <p className="flex-1 leading-relaxed break-words">{toast.msg}</p>
             <button
