@@ -50,9 +50,12 @@ export function buildInlineStyledHtml(
 ): string {
   if (!rawMarkdown) return '';
 
-  const cacheKey = `${rawMarkdown}|${options?.theme || 'light'}|${options?.fontFamily || ''}|${options?.fontSize || 11}|${options?.lineHeight || 1.15}|${options?.primaryColor || ''}|${options?.tableAlternateBg !== false}|${isForWordCopy}`;
+  const cacheKey = `${rawMarkdown}|${options?.theme || 'light'}|${options?.fontFamily || ''}|${options?.fontSize || 11}|${options?.lineHeight || 1.15}|${options?.bulletLevel1 || 'disc'}|${options?.bulletLevel2 || 'circle'}|${options?.bulletLevel3 || 'square'}|${options?.tableBorderColor || ''}|${options?.tableHeaderBg || ''}|${options?.tableHeaderColor || ''}|${options?.primaryColor || ''}|${options?.tableAlternateBg !== false}|${options?.highlightBoldKeys !== false}|${isForWordCopy}`;
   if (htmlCache.has(cacheKey)) {
-    return htmlCache.get(cacheKey)!;
+    const cached = htmlCache.get(cacheKey)!;
+    htmlCache.delete(cacheKey);
+    htmlCache.set(cacheKey, cached);
+    return cached;
   }
 
   try {

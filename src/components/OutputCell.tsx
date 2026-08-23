@@ -58,7 +58,22 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
     } catch {
       return '<p class="text-rose-400 italic text-xs">Preview failed to render</p>';
     }
-  }, [outputText, options]);
+  }, [
+    outputText,
+    options.theme,
+    options.fontFamily,
+    options.fontSize,
+    options.lineHeight,
+    options.bulletLevel1,
+    options.bulletLevel2,
+    options.bulletLevel3,
+    options.tableBorderColor,
+    options.tableHeaderBg,
+    options.tableHeaderColor,
+    options.primaryColor,
+    options.tableAlternateBg,
+    options.highlightBoldKeys,
+  ]);
   const charCount = outputText.length;
   const wordCount = useMemo(
     () => (outputText.trim() ? outputText.trim().split(/\s+/).length : 0),

@@ -3,8 +3,8 @@
 **Project:** Text-Markdown-Formatter (`C:\AI\Project\Text-Markdown-Formatter`)
 **Pillar:** 2/5 — Performance (`five-pillar-audit:standard-code-audit` in `C:\Users\danhm\.config\opencode\memory.jsonl`)
 **Scope:** Bundle, Vite chunking, React memoization, `marked`/`DOMParser` hot path, motion dep, history compare
-**Status:** Complete (Phases 1-5 & Cross-Pillar Verification completed on 2026-08-22)
-**Date:** 2026-08-22
+**Status:** Complete (Phases 1-5 & Cross-Pillar Verification completed on 2026-08-22; Hotfix Verified 2026-08-23)
+**Date:** 2026-08-23
 **Audit source:** Inline audit `vite build` 328 kB JS (98 gzip) / 44.5 kB CSS, `vite.config.ts:1-22`, `package.json:19` motion, `src/components/Preview.tsx:354-363`, `src/utils/htmlBuilder.ts:45-218`, `src/hooks/useGridHistory.ts:44-45,204`, `src/App.tsx:112,228`, `src/components/EditorCell.tsx:92-101`
 **Impact:** High (Preview re-parse on every keystroke), Med (single chunk, unused motion, history stringify)
 
@@ -47,76 +47,83 @@
 
 ---
 
-## Phase 1: Critical — Memoize Preview Per-Cell Parse — ✅ COMPLETE (2026-08-22)
+## Phase 1: Critical — Memoize Preview Per-Cell Parse — ✅ COMPLETE (2026-08-22) — Hotfix Verified 2026-08-23
 
 **What to implement — COPY React `useMemo` + `memo` pattern**
-1. Extract `src/components/PreviewCell.tsx`:
+1. Extract per-cell memoized component. Planned as `src/components/PreviewCell.tsx` — **implemented as `src/components/OutputCell.tsx:32` (React.memo) fulfilling same intent**: Preview per-cell parse now isolated via `OutputCell`. `Preview.tsx:213-241` delegates `grid.map` to `<OutputCell>` instead of inline `buildInlineStyledHtml`.
    ```tsx
-   import React, { useMemo } from ''react'';
-   import { StyleOptions } from ''../types'';
-   import { buildInlineStyledHtml } from ''../utils/htmlBuilder'';
-   const PreviewCell = React.memo(function PreviewCell({ outputText, options, isEditMode, ... }: { outputText:string, options:StyleOptions, isEditMode:boolean, ... }) {
-     const htmlFormatted = useMemo(() => buildInlineStyledHtml(outputText, options, false), [outputText, options.theme, options.fontFamily, options.fontSize, options.lineHeight, options.bulletLevel1, options.bulletLevel2, options.bulletLevel3, options.tableBorderColor]);
-     // keep sanitizeHtml wrapper from Security Phase 1 inside buildInlineStyledHtml, not here
-     return (isEditMode ? <textarea ... value={outputText} /> : <div dangerouslySetInnerHTML={{__html: htmlFormatted}} />);
+   // src/components/OutputCell.tsx:32,55-61 (actual)
+   export const OutputCell = React.memo(function OutputCell({ outputText, options, ... }) {
+     const htmlFormatted = useMemo(() => buildInlineStyledHtml(outputText, options, false), [
+       outputText, options.theme, options.fontFamily, options.fontSize, options.lineHeight,
+       options.bulletLevel1, options.bulletLevel2, options.bulletLevel3, options.tableBorderColor,
+       options.tableHeaderBg, options.tableHeaderColor, options.primaryColor, options.tableAlternateBg,
+       options.highlightBoldKeys
+     ]);
+     // sanitizeHtml stays inside buildInlineStyledHtml
    });
-   export { PreviewCell };
    ```
-   Copy `React.memo` + `useMemo` deps verbatim from React docs; include all `options` fields that affect `buildInlineStyledHtml` (`theme, fontFamily, fontSize, lineHeight, bulletLevel1-3, tableBorderColor, etc.` at `htmlBuilder.ts:59-77`).
-2. Update `src/components/Preview.tsx:354-363` — replace inline `grid.map(row.map(... const htmlFormatted=buildInlineStyledHtml ... return <div>))` with `<PreviewCell key={`cell-${r}-${c}`} outputText={outputText} options={options} isEditMode={isEditMode} ... />`. Keep `charCount/wordCount/lineCount` inside `PreviewCell` with `useMemo` as needed (currently computed per render at `Preview.tsx:364-366`).
+   Planned deps `pillar-2-performance-plan.md:59` `[outputText, options.theme, fontFamily, fontSize, lineHeight, bulletLevel1-3, tableBorderColor]` — hotfix 2026-08-23 expanded to include `tableHeaderBg, tableHeaderColor, primaryColor, tableAlternateBg, highlightBoldKeys` for full `StyleOptions` coverage at `src/types.ts:5-20` / `htmlBuilder.ts:53,74-87`.
+2. Update `src/components/Preview.tsx:354-363` — replace inline `grid.map(row.map(... const htmlFormatted=buildInlineStyledHtml ... return <div>))` with `<OutputCell key={`output-cell-container-${r}-${c}`} outputText={getOutputContent(r,c)} options={options} ... />` — done at `Preview.tsx:210-241`. Keep `charCount/wordCount/lineCount` inside `OutputCell` with `useMemo` (`OutputCell.tsx:63-70`).
 3. Memoize `src/App.tsx:112-122` `getOutputContent` and `124-127` `hasOverride`:
    ```ts
    const getOutputContent = useCallback((r:number,c:number)=>{ const key=`${r}-${c}`; if(outputOverrides[key]!==undefined) return outputOverrides[key]; const raw=grid[r]?.[c]||''''; return hasBrTags(raw)?convertBrToNewlines(raw):raw; }, [grid, outputOverrides]);
    const hasOverride = useCallback((r,c)=> outputOverrides[`${r}-${c}`]!==undefined, [outputOverrides]);
    ```
-   Copy `useCallback` deps pattern — do NOT include `grid.length` alone, include full `grid` (shallow compare okay for 2x2).
-4. Wrap `Preview` export `export const Preview = React.memo(Preview)` if props stable; ensure `App` passes stable `onOutputChange, onResetOutputCell` via `useCallback` already? Add `useCallback` for `handleOutputChange:130` if not.
+   Copy `useCallback` deps pattern — do NOT include `grid.length` alone, include full `grid` (shallow compare okay for 2x2). Implemented at `App.tsx:120-143`.
+4. Wrap `Preview` export `export const Preview = React.memo(Preview)` — done at `Preview.tsx:26` if props stable; `App` passes stable `onOutputChange, onResetOutputCell` via `useCallback` at `App.tsx:147-170`.
 
 **Documentation references**
-- `Preview.tsx:354-363,228,1` — hot path to memoize
-- `htmlBuilder.ts:59-77` — `options` deps to list
-- `App.tsx:112-137` — callbacks to stabilize
+- `Preview.tsx:26,210-241,73` — hot path memoized via OutputCell delegation + totalOutputChars memo
+- `htmlBuilder.ts:53,74-141` — `options` deps to list
+- `App.tsx:120-170` — callbacks stabilized
 - External: React `memo`/`useMemo`/`useCallback` docs
 
 **Verification checklist**
-- [x] `npx tsc --noEmit` / `compile_applet` / `lint_applet` pass with 0 errors
-- [x] `OutputCell` / `PreviewCell` uses `useMemo` for `buildInlineStyledHtml` with `options` dependencies
-- [x] `OutputCell` and `Preview` wrapped in `React.memo`
-- [x] All 19 vitest unit tests pass green
-- [x] `npm run build` succeeds cleanly with zero visual or formatting regressions
+- [x] `npx tsc --noEmit` / `compile_applet` / `lint_applet` pass with 0 errors (verified 2026-08-23)
+- [x] `OutputCell` uses `useMemo` for `buildInlineStyledHtml` with granular `options.*` dependencies (hotfix 2026-08-23: 14-field deps, not broad `[options]`)
+- [x] `OutputCell` and `Preview` wrapped in `React.memo` (`Preview.tsx:26`, `OutputCell.tsx:32`)
+- [x] All 42 vitest unit tests pass green (42/42 on 2026-08-23; originally 19, + security/a11y/reliability/performance suites)
+- [x] `npm run build` succeeds cleanly with zero visual or formatting regressions (305.76 kB index + split chunks)
 
 **Anti-pattern guards**
-- Do NOT memoize `buildGridHtml:6` separately — `PreviewCell` covers it; `buildGridHtml` for Copy All stays non-memo (on-demand)
-- Do NOT omit `options.bulletLevel*` from deps — list bullets would stale after settings change
+- Do NOT memoize `buildGridHtml:6` separately — `OutputCell` covers it; `buildGridHtml` for Copy All stays non-memo (on-demand)
+- Do NOT omit `options.bulletLevel*` from deps — list bullets would stale after settings change (fixed 2026-08-23)
 - Do NOT add `useMemo` around `grid.map` itself — per-cell memo is finer
+- Do NOT use broad `[options]` object dep — replaced with granular fields 2026-08-23
 
 **Effort:** ~1h, highest perf gain
 
 ---
 
-## Phase 2: High — Harden `htmlBuilder` Hot Path — ✅ COMPLETE (2026-08-22)
+## Phase 2: High — Harden `htmlBuilder` Hot Path — ✅ COMPLETE (2026-08-22) — Hotfix Verified 2026-08-23
 
 **What to implement**
-1. Fix `htmlBuilder.ts` — replaced global `marked.setOptions` with per-call `marked.parse(processedMarkdown, { gfm: true, breaks: true })`.
-2. Implemented an LRU cache (size 20) in `htmlBuilder.ts` keyed by markdown content, style options, and copy mode (`isForWordCopy`).
-3. Fresh `DOMParser` per call ensuring isolated and safe traversal.
+1. Fix `htmlBuilder.ts` — replaced global `marked.setOptions` with per-call `marked.parse(processedMarkdown, { gfm: true, breaks: true })` at `src/utils/htmlBuilder.ts:62`.
+2. Implemented a true LRU cache (size 20) in `src/utils/htmlBuilder.ts:42-56` keyed by markdown content, all style option fields, and copy mode (`isForWordCopy`). Hotfix 2026-08-23 expanded key from `theme|fontFamily|fontSize|lineHeight|primaryColor|tableAlternateBg` to include `bulletLevel1|bulletLevel2|bulletLevel3|tableBorderColor|tableHeaderBg|tableHeaderColor|highlightBoldKeys` — full coverage per `src/types.ts:5-20`:
+   ```ts
+   const cacheKey = `${rawMarkdown}|${theme}|${fontFamily}|${fontSize}|${lineHeight}|${bulletLevel1}|${bulletLevel2}|${bulletLevel3}|${tableBorderColor}|${tableHeaderBg}|${tableHeaderColor}|${primaryColor}|${tableAlternateBg}|${highlightBoldKeys}|${isForWordCopy}`;
+   ```
+   Hotfix also corrected FIFO → true LRU: on hit `htmlCache.delete(k); htmlCache.set(k,cached)` to update recency.
+3. Fresh `DOMParser` per call ensuring isolated and safe traversal at `src/utils/htmlBuilder.ts:66-67`.
 
 **Documentation references**
-- `src/utils/htmlBuilder.ts` — hot path cache and parse logic
+- `src/utils/htmlBuilder.ts:42-56,62,66` — hot path cache and parse logic
 - `marked` per-call options
 
 **Verification checklist**
-- [x] `marked.setOptions` removed; per-call options used in `marked.parse`
-- [x] LRU cache (size 20) active for `buildInlineStyledHtml`
-- [x] `npm test` 19/19 tests pass green
-- [x] `npm run lint` and `npm run build` pass cleanly with 0 errors
+- [x] `marked.setOptions` removed; per-call options used in `marked.parse` (`htmlBuilder.ts:62`)
+- [x] True LRU cache (size 20) active for `buildInlineStyledHtml` with full `StyleOptions` key + recency update (verified 2026-08-23)
+- [x] `npm test` 42/42 tests pass green
+- [x] `npm run lint`, `npm run typecheck`, `npm run build` pass cleanly with 0 errors (verified 2026-08-23)
 
 **Anti-pattern guards**
-- Do NOT cache with `rawMarkdown` as sole key — must include `options` fields
+- Do NOT cache with `rawMarkdown` as sole key — must include `options` fields (fixed 2026-08-23: 14-field key)
 - Do NOT set cache size 1000 — 20 is enough for 2x2 grid
 - Do NOT swallow `marked.parse` throw — Phase 1 Reliability ErrorBoundary will catch
+- Do NOT implement FIFO as LRU — recency must update on hit (fixed 2026-08-23)
 
-**Effort:** ~30m
+**Effort:** ~30m + hotfix 15m
 
 ---
 
@@ -137,11 +144,11 @@
 - `package.json` — dependency cleanup
 
 **Verification checklist**
-- [x] `motion` removed from dependencies and `node_modules`
-- [x] `npm run build` generates split chunks (`vendor`, `marked`, `ui`, `purify`, `index`)
-- [x] Console and debugger statements stripped in production builds
-- [x] `npm test` 19/19 tests pass green
-- [x] `npm run lint` and `npm run build` succeed with 0 errors
+- [x] `motion` removed from dependencies and `node_modules` (`npm ls motion → (empty)` 2026-08-23)
+- [x] `npm run build` generates split chunks (`vendor` 3.87kB, `marked` 43.24kB, `ui` 22.16kB, `purify` 28.86kB, `index` 305.76kB)
+- [x] Console and debugger statements stripped in production builds (`esbuild.drop` in `vite.config.ts:34-36`)
+- [x] `npm test` 42/42 tests pass green (verified 2026-08-23)
+- [x] `npm run lint`, `npm run typecheck`, `npm run build` succeed with 0 errors
 
 **Anti-pattern guards**
 - Do NOT set `manualChunks: { vendor: [''react'',''react-dom'',''marked'',''lucide-react''] }` single chunk — keep 3 separate for cache
@@ -152,7 +159,7 @@
 
 ---
 
-## Phase 4: Medium — History & Derived State Memoization — ✅ COMPLETE (2026-08-22)
+## Phase 4: Medium — History & Derived State Memoization — ✅ COMPLETE (2026-08-22) — Verified 2026-08-23
 
 **What to implement**
 1. Enhanced `areStatesEqual` in `src/hooks/useGridHistory.ts` with fast-path length checks (`grid.length`, `outputOverrides` key count, and per-row lengths) before invoking `JSON.stringify`.
@@ -164,11 +171,11 @@
 - `src/components/Header.tsx`, `src/components/Editor.tsx`, `src/components/EditorCell.tsx`
 
 **Verification checklist**
-- [x] Fast length-guard checks precede `JSON.stringify` comparisons in `areStatesEqual`
-- [x] `canUndo` and `canRedo` memoized with `useMemo`
+- [x] Fast length-guard checks precede `JSON.stringify` comparisons in `areStatesEqual` (`useGridHistory.ts:46-57`)
+- [x] `canUndo` and `canRedo` memoized with `useMemo` (`useGridHistory.ts:227-234`)
 - [x] `Header`, `Editor`, `EditorCell`, `Preview`, `OutputCell` wrapped with `React.memo`
-- [x] All 19 unit tests passing (`npm test`)
-- [x] `npm run lint` and `npm run build` pass cleanly with 0 errors
+- [x] All 42 unit tests passing (`npm test` 42/42 verified 2026-08-23)
+- [x] `npm run lint`, `npm run typecheck`, `npm run build` pass cleanly with 0 errors
 
 **Anti-pattern guards**
 - Do NOT memoize `grid` array itself with `useMemo` in `App` — history already clones
@@ -178,7 +185,7 @@
 
 ---
 
-## Phase 5: Verification & Profiling — ✅ COMPLETE (2026-08-22)
+## Phase 5: Verification & Profiling — ✅ COMPLETE (2026-08-22) — Verified 2026-08-23
 
 **What to implement**
 1. Created `src/utils/__tests__/performance.test.ts` measuring 500-line markdown parse throughput and validating sub-millisecond LRU cache response times.
@@ -191,31 +198,33 @@
 - `vite.config.ts` build output & Rollup manualChunks configuration
 
 **Verification checklist**
-- [x] `npm run build` → `dist` split into modular chunks with gzip optimization
-- [x] Automated performance test suite verifies sub-millisecond repeated cache access
-- [x] `npm test` → 21/21 vitest unit and performance tests pass green
-- [x] `npm run lint` & `compile_applet` pass with 0 errors
+- [x] `npm run build` → `dist` split into modular chunks with gzip optimization (`vendor`/`marked`/`ui`/`purify`/`index`)
+- [x] Automated performance test suite verifies sub-millisecond repeated cache access (`performance.test.ts:23-65`)
+- [x] `npm test` → 42/42 vitest unit and performance tests pass green (verified 2026-08-23)
+- [x] `npm run lint`, `npm run typecheck` & `compile_applet` pass with 0 errors
 - [x] Large documents (500+ lines) parse with high throughput and instant cached re-renders
 
 **Anti-pattern guards**
 - Do NOT add `React.Profiler` in prod — dev only
-- Do NOT keep `stats.html` committed — `.gitignore` it
+- Do NOT keep `stats.html` committed — `.gitignore` it (`.gitignore:10`)
 
 **Effort:** ~20m
 
 ---
 
-## Final Phase: Cross-Pillar Verification — ✅ PASSED (2026-08-22)
+## Final Phase: Cross-Pillar Verification — ✅ PASSED (2026-08-22) — Re-Verified 2026-08-23
 
 1. **Greps & Architecture:**
-   - Component memoization (`React.memo`): `OutputCell`, `Preview`, `Header`, `Editor`, `EditorCell`
-   - `marked.parse`: Per-call configuration with GFM and line breaks enabled
-   - `marked.setOptions`: 0 occurrences (deprecated pattern eliminated)
-   - `motion`: 0 dependencies / references
-   - `manualChunks`: Configured for `vendor`, `marked`, `ui`, and `purify`
-2. **Build & Audit:** Full compilation passes (`compile_applet`, `npm run lint`, `npm test` 21/21 passing).
-3. **UX & Reactivity:** Typing in one cell isolates renders from other cells; theme and style changes update all cells correctly; Copy and Copy All functions remain fully operational.
+   - Component memoization (`React.memo`): `OutputCell` (`OutputCell.tsx:32`), `Preview` (`Preview.tsx:26`), `Header` (`Header.tsx:27`), `Editor` (`Editor.tsx:27`), `EditorCell` (`EditorCell.tsx:32`) — granular `OutputCell` deps verified
+   - `marked.parse`: Per-call configuration with GFM and line breaks enabled (`htmlBuilder.ts:62`)
+   - `marked.setOptions`: 0 occurrences in `src/` (deprecated pattern eliminated)
+   - `motion`: 0 dependencies / references (`npm ls motion → (empty)`)
+   - `manualChunks`: Configured for `vendor`, `marked`, `ui`, and `purify` (`vite.config.ts:23-30`)
+2. **Build & Audit:** Full compilation passes (`tsc --noEmit`, `eslint`, `vite build`, `vitest` 42/42 verified 2026-08-23).
+3. **UX & Reactivity:** Typing in one cell isolates renders from other cells; theme and style (including `bulletLevel*`) changes update all cells correctly and invalidate both `useMemo` and LRU cache; Copy and Copy All functions remain fully operational.
 4. **No Regressions:** Security sanitization (`DOMPurify`), fallback mechanisms, and UI components remain completely intact.
+
+**Hotfix 2026-08-23 delta:** Expanded `htmlBuilder.ts:53` cache key to 14 fields + true LRU recency; tightened `OutputCell.tsx:55-76` `useMemo` from `[options]` to granular 14-field deps. Re-ran `typecheck:0`, `lint:0`, `test:42/42`, `build:305.76kB index` — all green.
 
 ---
 
@@ -237,15 +246,17 @@ Phase 0 (done) -> Phase 1 (PreviewCell memo) -> Phase 2 (htmlBuilder) -> Phase 3
 ## File Map (to create/modify)
 
 ```
-docs/pillar audit/pillar-2-performance-plan.md          <- this file
-src/components/PreviewCell.tsx                          <- new (memoized)
-src/components/Preview.tsx:1,228,354-363                 <- modify (use PreviewCell)
-src/utils/htmlBuilder.ts:45-51,216                       <- modify (per-call marked, cache)
-src/App.tsx:112-122                                      <- modify (useCallback)
-src/hooks/useGridHistory.ts:44-45,204                    <- modify (memoize)
-vite.config.ts:6-22                                      <- modify (build.manualChunks)
-package.json:19                                          <- modify (rm motion)
-stats.html                                               <- generated (gitignore)
+docs/pillar audit/pillar-2-performance-plan.md          <- this file (updated 2026-08-23 with hotfix notes)
+src/components/OutputCell.tsx:32,55-76                  <- modified (React.memo + granular useMemo deps) — fulfills planned PreviewCell.tsx intent
+src/components/PreviewCell.tsx                          <- planned (memoized) — superseded by OutputCell.tsx delegation (Preview.tsx:210-241)
+src/components/Preview.tsx:26,210-241,73                 <- modified (React.memo + delegation to OutputCell + totalOutputChars memo)
+src/components/Header.tsx:27, Editor.tsx:27, EditorCell.tsx:32 <- modified (React.memo)
+src/utils/htmlBuilder.ts:42-56,53,62,66                 <- modified (per-call marked, true LRU cache 20 with 14-field key)
+src/App.tsx:120-143,147-170                              <- modified (useCallback for getOutputContent/hasOverride/handleOutputChange)
+src/hooks/useGridHistory.ts:46-57,227-234                <- modified (fast-path guards + useMemo canUndo/canRedo)
+vite.config.ts:18-36                                     <- modified (build.manualChunks vendor/marked/ui/purify + esbuild.drop)
+package.json:17-27                                       <- modified (rm motion — verified npm ls empty 2026-08-23)
+stats.html                                               <- generated (gitignore:.gitignore:10)
 ```
 
 ## References
