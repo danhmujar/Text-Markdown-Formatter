@@ -37,6 +37,27 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       const result = parsePasteToGrid('a\tb\nc\td');
       expect(result).not.toBeNull();
     });
+
+    it('parses bare HTML row fragments (tr/td) into multi-row grid', () => {
+      const htmlFragment = '<tr><td>Row 1</td></tr><tr><td>Row 2</td></tr><tr><td>Row 3</td></tr>';
+      const result = parsePasteToGrid('Row 1\nRow 2\nRow 3', htmlFragment);
+      expect(result).toEqual([['Row 1'], ['Row 2'], ['Row 3']]);
+    });
+
+    it('parses multi-column HTML row fragments into 2D grid', () => {
+      const htmlFragment = '<tr><td>A1</td><td>B1</td></tr><tr><td>A2</td><td>B2</td></tr>';
+      const result = parsePasteToGrid('A1\tB1\nA2\tB2', htmlFragment);
+      expect(result).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+      ]);
+    });
+
+    it('parses plain text with double line breaks from copied HTML elements into rows', () => {
+      const text = 'First Item\n\nSecond Item\n\nThird Item';
+      const result = parsePasteToGrid(text);
+      expect(result).toEqual([['First Item'], ['Second Item'], ['Third Item']]);
+    });
   });
 
   describe('wrapped paragraph unwrapping', () => {

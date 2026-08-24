@@ -55,11 +55,14 @@ export function tsvToMarkdownTable(tsv: string): string {
 }
 
 export function htmlTableToMarkdown(html: string): string | null {
-  if (!html || !html.includes('<table')) return null;
+  if (!html || (!html.includes('<table') && !html.includes('<tr') && !html.includes('<td') && !html.includes('<th'))) return null;
   try {
     const sanitizedHtml = sanitizeHtml(html);
     const parser = new DOMParser();
-    const doc = parser.parseFromString(sanitizedHtml, 'text/html');
+    const doc = parser.parseFromString(
+      sanitizedHtml.includes('<table') ? sanitizedHtml : `<table>${sanitizedHtml}</table>`,
+      'text/html',
+    );
     const table = doc.querySelector('table');
     if (!table) return null;
 
@@ -141,12 +144,13 @@ export function preprocessMarkdownWithTsv(raw: string): string {
 }
 
 export function parsePasteToGrid(text: string, html?: string): string[][] | null {
-  // First check HTML table if available
-  if (html && html.includes('<table')) {
+  // First check HTML table or row fragments if available
+  if (html && (html.includes('<table') || html.includes('<tr') || html.includes('<td') || html.includes('<th'))) {
     try {
       const sanitizedHtml = sanitizeHtml(html);
       const parser = new DOMParser();
-      const doc = parser.parseFromString(sanitizedHtml, 'text/html');
+      const wrappedHtml = sanitizedHtml.includes('<table') ? sanitizedHtml : `<table>${sanitizedHtml}</table>`;
+      const doc = parser.parseFromString(wrappedHtml, 'text/html');
       const table = doc.querySelector('table');
       if (table) {
         const rows: string[][] = [];
@@ -201,7 +205,18 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
         return copy;
       });
     } else if (rawLines.length > 1) {
-      if (isLikelyMarkdownDocument(text, rawLines)) {
+      // If pure double-spaced empty lines from HTML copy e.g. "Row 1\n\nRow 2\n\nRow 3" without document markers
+      const nonEmptyLines = rawLines.filter((l) => l.trim().length > 0);
+      if (
+        nonEmptyLines.length > 1 &&
+        nonEmptyLines.length <= 20 &&
+        !isLikelyMarkdownDocument(text, rawLines, true) &&
+        !isWrappedParagraph(nonEmptyLines)
+      ) {
+        return nonEmptyLines.map((l) => [l.trim()]);
+      }
+
+      if (isLikelyMarkdownDocument(text, rawLines, false)) {
         return null;
       }
       if (isWrappedParagraph(rawLines)) {
@@ -215,8 +230,8 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
   return null;
 }
 
-function isLikelyMarkdownDocument(text: string, rawLines: string[]): boolean {
-  if (text.includes('\n\n')) return true;
+function isLikelyMarkdownDocument(text: string, rawLines: string[], allowSimpleDoubleBreaks = false): boolean {
+  if (!allowSimpleDoubleBreaks && text.includes('\n\n')) return true;
 
   if (rawLines.some((l) => /^\s*#{1,6}\s/.test(l))) return true;
 
