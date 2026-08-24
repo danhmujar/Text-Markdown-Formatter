@@ -104,7 +104,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       if (preparedMatrix.length === 1 && preparedMatrix[0].length === 1) {
         combinedText = preparedMatrix[0][0];
       } else {
-        combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n\n');
+        combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n');
       }
 
       const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
@@ -142,7 +142,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       if (preparedMatrix.length === 1 && preparedMatrix[0].length === 1) {
         combinedText = preparedMatrix[0][0];
       } else {
-        combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n\n');
+        combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n');
       }
       const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
         sanitize: options.sanitizeOutput !== false,
