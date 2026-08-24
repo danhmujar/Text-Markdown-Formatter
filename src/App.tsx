@@ -93,10 +93,10 @@ export default function App() {
       Object.keys(outputOverrides).length > 0;
 
     if (hasContent) {
-      updateAll([['']], {}, false);
+      updateAll([['']], {});
       showToast('Started new blank session', 'info');
     } else {
-      updateAll([['']], {}, false);
+      updateAll([['']], {});
       showToast('Workspace is already empty', 'info');
     }
   }, [grid, outputOverrides, updateAll]);

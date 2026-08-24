@@ -1,8 +1,21 @@
-import React from 'react';
-import { ShieldCheck, ShieldAlert, Undo2, Redo2, Maximize2, Minimize2, FilePlus2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  ShieldCheck,
+  ShieldAlert,
+  Undo2,
+  Redo2,
+  Maximize2,
+  Minimize2,
+  FilePlus2,
+  Menu,
+  X,
+  Type,
+  Sun,
+  Moon,
+} from 'lucide-react';
 import { StyleOptions, FocusMode } from '../types';
 import { FONT_OPTIONS } from '../constants/fonts';
-import { ColorTheme } from '@/constants/themes';
+import { ColorTheme, THEME_SWATCHES } from '@/constants/themes';
 import { ThemeSlider } from './ThemeSlider';
 import { ThemePicker } from './ThemePicker';
 
@@ -39,8 +52,20 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   onToggleDarkMode,
   onSelectColorTheme,
 }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isSanitizeActive = options.sanitizeOutput !== false;
   const isFocused = focusMode !== 'split';
+
+  // Automatically close mobile menu if screen width expands >= 640px
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 640) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSanitize = () => {
     setOptions((prev) => ({
@@ -51,25 +76,76 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
 
   return (
     <header
-      className="border-b px-6 py-2.5 sticky top-0 z-40 transition-colors shadow-sm"
+      className="border-b px-4 sm:px-6 py-2.5 sticky top-0 z-40 transition-colors shadow-sm"
       style={{
         backgroundColor: 'var(--panel-bg)',
         borderColor: 'var(--border-color)',
         color: 'var(--text-primary)',
       }}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Title */}
         <div className="flex items-center gap-3">
           <h1
-            className={`font-bold text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}
+            className={`font-bold text-sm sm:text-base tracking-tight truncate ${
+              isDark ? 'text-white' : 'text-slate-900'
+            }`}
           >
             Text &amp; Markdown Formatter
           </h1>
         </div>
 
-        {/* Undo/Redo, Focus Mode, Font, Font Size, Sanitize Output, and Theme Toggle Controls */}
-        <div className="flex items-center gap-2.5">
+        {/* Mobile Hamburger Toggle Button (Screen width < 640px) */}
+        <div className="flex sm:hidden items-center gap-2">
+          {/* Quick theme toggle on mobile top bar for instant access */}
+          <button
+            id="mobile-quick-theme-btn"
+            type="button"
+            onClick={onToggleDarkMode}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className={`p-2 rounded-md border text-xs transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+              isDark
+                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? (
+              <Sun aria-hidden="true" focusable="false" className="w-4 h-4" />
+            ) : (
+              <Moon aria-hidden="true" focusable="false" className="w-4 h-4" />
+            )}
+          </button>
+
+          {/* Hamburger Menu Toggle Button */}
+          <button
+            id="mobile-menu-toggle-btn"
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-header-menu"
+            className={`p-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+              isMobileMenuOpen
+                ? isDark
+                  ? 'bg-blue-950 border-blue-600 text-blue-300'
+                  : 'bg-blue-50 border-blue-300 text-blue-700'
+                : isDark
+                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+            title="Menu"
+          >
+            {isMobileMenuOpen ? (
+              <X aria-hidden="true" focusable="false" className="w-5 h-5" />
+            ) : (
+              <Menu aria-hidden="true" focusable="false" className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+
+        {/* Desktop Controls (Screen width >= 640px) */}
+        <div className="hidden sm:flex items-center gap-2.5">
           {/* New / Clear All Button */}
           {onClearAll && (
             <button
@@ -326,6 +402,305 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           </div>
         </div>
       </div>
+
+      {/* Collapsed Mobile Menu (< 640px) */}
+      {isMobileMenuOpen && (
+        <nav
+          id="mobile-header-menu"
+          aria-label="Mobile application navigation and settings"
+          className="sm:hidden mt-3 pt-3 border-t max-h-[calc(100vh-80px)] overflow-y-auto space-y-3.5 pb-2 animate-in fade-in slide-in-from-top-2 duration-150"
+          style={{ borderColor: 'var(--border-color)' }}
+        >
+          {/* Group 1: Session & History Actions */}
+          <div>
+            <span
+              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Actions &amp; History
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {onClearAll && (
+                <button
+                  id="mobile-new-btn"
+                  type="button"
+                  onClick={() => {
+                    onClearAll();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                    isDark
+                      ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <FilePlus2 aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-500" />
+                  <span>New</span>
+                </button>
+              )}
+
+              <button
+                id="mobile-undo-btn"
+                type="button"
+                onClick={onUndo}
+                disabled={!canUndo}
+                aria-disabled={!canUndo}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                  canUndo
+                    ? isDark
+                      ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
+                    : isDark
+                      ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
+                      : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <Undo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                <span>Undo</span>
+              </button>
+
+              <button
+                id="mobile-redo-btn"
+                type="button"
+                onClick={onRedo}
+                disabled={!canRedo}
+                aria-disabled={!canRedo}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                  canRedo
+                    ? isDark
+                      ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
+                    : isDark
+                      ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
+                      : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <Redo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                <span>Redo</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Group 2: View & Formatting Options */}
+          <div>
+            <span
+              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              View &amp; Formatting
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                id="mobile-focus-mode-btn"
+                type="button"
+                onClick={() => {
+                  onToggleFocusMode?.();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                  isFocused
+                    ? isDark
+                      ? 'bg-blue-950/70 border-blue-600/70 text-blue-300'
+                      : 'bg-blue-50 border-blue-300 text-blue-700'
+                    : isDark
+                      ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                {isFocused ? (
+                  <>
+                    <Minimize2 aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-400" />
+                    <span>Exit Focus ({focusMode})</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                    <span>Focus Mode</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                id="mobile-sanitize-btn"
+                type="button"
+                onClick={toggleSanitize}
+                aria-pressed={isSanitizeActive}
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                  isSanitizeActive
+                    ? isDark
+                      ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    : isDark
+                      ? 'bg-slate-800 border-slate-700 text-slate-300'
+                      : 'bg-slate-50 border-slate-200 text-slate-600'
+                }`}
+              >
+                {isSanitizeActive ? (
+                  <>
+                    <ShieldCheck aria-hidden="true" focusable="false" className="w-4 h-4 text-emerald-500" />
+                    <span>Sanitize: On</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldAlert aria-hidden="true" focusable="false" className="w-4 h-4 text-slate-400" />
+                    <span>Sanitize: Off</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Group 3: Typography Settings */}
+          <div>
+            <span
+              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Typography
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* Font selector */}
+              <div
+                className={`flex items-center justify-between rounded-md px-3 py-2 border min-h-[44px] ${
+                  isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <label
+                  htmlFor="mobile-font-family-select"
+                  className={`text-xs font-medium flex items-center gap-1.5 ${
+                    isDark ? 'text-slate-300' : 'text-slate-600'
+                  }`}
+                >
+                  <Type aria-hidden="true" focusable="false" className="w-4 h-4" />
+                  Font:
+                </label>
+                <select
+                  id="mobile-font-family-select"
+                  value={options.fontFamily}
+                  onChange={(e) => setOptions((prev) => ({ ...prev, fontFamily: e.target.value }))}
+                  aria-label="Select typography font family"
+                  className={`bg-transparent text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded cursor-pointer py-1 ${
+                    isDark ? 'text-slate-200' : 'text-slate-800'
+                  }`}
+                >
+                  {FONT_OPTIONS.map((f) => (
+                    <option
+                      key={f.label}
+                      value={f.value}
+                      className={isDark ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}
+                    >
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Font size */}
+              <div
+                className={`flex items-center justify-between rounded-md border min-h-[44px] px-2 ${
+                  isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <span
+                  className={`text-xs font-medium pl-1 ${
+                    isDark ? 'text-slate-300' : 'text-slate-600'
+                  }`}
+                >
+                  Font Size
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    id="mobile-font-size-decrease-btn"
+                    type="button"
+                    onClick={() => setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
+                    aria-label="Decrease font size"
+                    className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                      isDark
+                        ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    }`}
+                  >
+                    -
+                  </button>
+                  <span
+                    className={`font-mono text-xs font-semibold px-2 min-w-[36px] text-center ${
+                      isDark ? 'text-slate-200' : 'text-slate-800'
+                    }`}
+                  >
+                    {options.fontSize}pt
+                  </span>
+                  <button
+                    id="mobile-font-size-increase-btn"
+                    type="button"
+                    onClick={() => setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))}
+                    aria-label="Increase font size"
+                    className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                      isDark
+                        ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    }`}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Group 4: Theme & Appearance */}
+          <div>
+            <span
+              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Theme &amp; Appearance
+            </span>
+            <div
+              className={`p-3 rounded-md border space-y-3 ${
+                isDark ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-50 border-slate-200'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium">
+                  Mode: <strong className="font-semibold">{isDark ? 'Dark Theme' : 'Light Theme'}</strong>
+                </span>
+                <ThemeSlider isDark={isDark} onToggle={onToggleDarkMode} />
+              </div>
+
+              <div>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1.5">
+                  Color Accent:
+                </span>
+                <div
+                  className="grid grid-cols-4 gap-2.5 pt-1"
+                  role="radiogroup"
+                  aria-label="Mobile color theme selection"
+                >
+                  {THEME_SWATCHES.map((s) => {
+                    const active = s.id === colorTheme;
+                    return (
+                      <button
+                        key={`mobile-swatch-${s.id || 'default'}`}
+                        id={`mobile-swatch-${s.id || 'default'}`}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        aria-label={s.title}
+                        title={s.title}
+                        onClick={() => {
+                          onSelectColorTheme(s.id);
+                        }}
+                        className={`theme-swatch ${active ? 'active' : ''}`}
+                        style={{ backgroundColor: s.color }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+      )}
     </header>
   );
 });
