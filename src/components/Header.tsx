@@ -403,14 +403,22 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         </div>
       </div>
 
-      {/* Collapsed Mobile Menu (< 640px) */}
+      {/* Collapsed Mobile Menu (< 640px) — overlaying, does not push Input/Output */}
       {isMobileMenuOpen && (
-        <nav
-          id="mobile-header-menu"
-          aria-label="Mobile application navigation and settings"
-          className="sm:hidden mt-3 pt-3 border-t max-h-[calc(100vh-80px)] overflow-y-auto space-y-3.5 pb-2 animate-in fade-in slide-in-from-top-2 duration-150"
-          style={{ borderColor: 'var(--border-color)' }}
-        >
+        <>
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 top-[56px] bg-black/20 backdrop-blur-[1px] sm:hidden z-30 cursor-default"
+            tabIndex={-1}
+          />
+          <nav
+            id="mobile-header-menu"
+            aria-label="Mobile application navigation and settings"
+            className="sm:hidden absolute top-full left-0 right-0 p-4 bg-[var(--panel-bg)] border-t border-b shadow-xl max-h-[calc(100vh-56px)] overflow-y-auto space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-150 z-40"
+            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--panel-bg)' }}
+          >
           {/* Group 1: Session & History Actions */}
           <div>
             <span
@@ -700,6 +708,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             </div>
           </div>
         </nav>
+        </>
       )}
     </header>
   );
