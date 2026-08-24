@@ -11,6 +11,9 @@
   --accent-border: #bfdbfe;
   --code-bg: #f1f5f9;
   --code-text: #0f172a;
+  --font-sans: 'Google Sans Flex', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Google Sans Code', ui-monospace, monospace;
+  --font-symbols: 'Google Symbols';
 }
 
 body.dark-theme {
@@ -203,10 +206,11 @@ body.theme-purple.dark-theme {
   --code-text: #ede9fe;
 }
 
-/* Smooth theme transition */
+/* Smooth theme transition — Antigravity font stack */
 body {
   background-color: var(--bg-color);
   color: var(--text-primary);
+  font-family: var(--font-sans);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
