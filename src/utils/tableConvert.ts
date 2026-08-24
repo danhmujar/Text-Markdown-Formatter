@@ -57,12 +57,10 @@ export function tsvToMarkdownTable(tsv: string): string {
 export function htmlTableToMarkdown(html: string): string | null {
   if (!html || (!html.includes('<table') && !html.includes('<tr') && !html.includes('<td') && !html.includes('<th'))) return null;
   try {
-    const sanitizedHtml = sanitizeHtml(html);
+    const dirtyHtml = html.includes('<table') ? html : `<table><tbody>${html}</tbody></table>`;
+    const sanitizedHtml = sanitizeHtml(dirtyHtml);
     const parser = new DOMParser();
-    const doc = parser.parseFromString(
-      sanitizedHtml.includes('<table') ? sanitizedHtml : `<table>${sanitizedHtml}</table>`,
-      'text/html',
-    );
+    const doc = parser.parseFromString(sanitizedHtml, 'text/html');
     const table = doc.querySelector('table');
     if (!table) return null;
 
@@ -70,12 +68,13 @@ export function htmlTableToMarkdown(html: string): string | null {
     table.querySelectorAll('tr').forEach((tr) => {
       const cells: string[] = [];
       tr.querySelectorAll('th, td').forEach((cell) => {
-        const text = cell.innerHTML
-          .replace(/<br\s*\/?>/gi, '<br>')
-          .replace(/\n/g, ' ')
-          .trim();
+        let inner = cell.innerHTML;
+        inner = inner.replace(/<\/p>\s*<p[^>]*>/gi, '<br>');
+        inner = inner.replace(/<\/?p[^>]*>/gi, '');
+        inner = inner.replace(/<br\s*\/?>/gi, '<br>');
+        inner = inner.replace(/\r?\n/g, ' ').trim();
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = sanitizeHtml(text);
+        tempDiv.innerHTML = sanitizeHtml(inner);
         cells.push(tempDiv.textContent?.trim().replace(/\|/g, '\\|') || '');
       });
       if (cells.length > 0) {
@@ -143,27 +142,35 @@ export function preprocessMarkdownWithTsv(raw: string): string {
   return result.join('\n');
 }
 
+function hasBrTags(text: string): boolean {
+  if (!text) return false;
+  return /<br\s*\/?>/i.test(text);
+}
+
 export function parsePasteToGrid(text: string, html?: string): string[][] | null {
   // First check HTML table or row fragments if available
   if (html && (html.includes('<table') || html.includes('<tr') || html.includes('<td') || html.includes('<th'))) {
     try {
-      const sanitizedHtml = sanitizeHtml(html);
+      const dirtyHtml = html.includes('<table') ? html : `<table><tbody>${html}</tbody></table>`;
+      const sanitizedHtml = sanitizeHtml(dirtyHtml);
       const parser = new DOMParser();
-      const wrappedHtml = sanitizedHtml.includes('<table') ? sanitizedHtml : `<table>${sanitizedHtml}</table>`;
-      const doc = parser.parseFromString(wrappedHtml, 'text/html');
+      const doc = parser.parseFromString(sanitizedHtml, 'text/html');
       const table = doc.querySelector('table');
       if (table) {
         const rows: string[][] = [];
         table.querySelectorAll('tr').forEach((tr) => {
           const cells: string[] = [];
           tr.querySelectorAll('th, td').forEach((cell) => {
-            const cellHtml = cell.innerHTML
-              .replace(/<br\s*\/?>/gi, '<br>')
-              .replace(/\r?\n/g, ' ')
-              .trim();
+            let cellHtml = cell.innerHTML;
+            cellHtml = cellHtml.replace(/<\/p>\s*<p[^>]*>/gi, '<br>');
+            cellHtml = cellHtml.replace(/<\/?p[^>]*>/gi, '');
+            cellHtml = cellHtml.replace(/<br\s*\/?>/gi, '<br>');
+            cellHtml = cellHtml.replace(/\r?\n/g, ' ').trim();
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = sanitizeHtml(cellHtml);
-            cells.push(tempDiv.innerHTML.trim());
+            let cleanedCell = tempDiv.innerHTML.trim();
+            cleanedCell = cleanedCell.replace(/(?:<br>\s*)+/gi, '<br>');
+            cells.push(cleanedCell);
           });
           if (cells.length > 0) {
             rows.push(cells);
@@ -188,8 +195,8 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
   // Check text with tabs or multiple lines
   if (text) {
     const rawLines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-    // Trim trailing empty line if any
-    if (rawLines.length > 1 && rawLines[rawLines.length - 1].trim() === '') {
+    // Trim trailing empty lines if any
+    while (rawLines.length > 1 && rawLines[rawLines.length - 1].trim() === '') {
       rawLines.pop();
     }
 
@@ -205,59 +212,73 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
         return copy;
       });
     } else if (rawLines.length > 1) {
+      // If text contains document-level markdown constructs, keep it intact in a single cell
+      if (isLikelyMarkdownDocument(text, rawLines)) {
+        return null;
+      }
+
+      // If text is a hard-wrapped continuous paragraph (e.g. from PDF copy), keep in single cell
+      if (isWrappedParagraph(rawLines)) {
+        return null;
+      }
+
+      // If text contains intra-cell <br> tags without document markers, each line represents a row
+      if (hasBrTags(text)) {
+        return rawLines.filter((l) => l.trim().length > 0).map((l) => [l.trim()]);
+      }
+
       // If pure double-spaced empty lines from HTML copy e.g. "Row 1\n\nRow 2\n\nRow 3" without document markers
       const nonEmptyLines = rawLines.filter((l) => l.trim().length > 0);
       if (
         nonEmptyLines.length > 1 &&
-        nonEmptyLines.length <= 20 &&
-        !isLikelyMarkdownDocument(text, rawLines, true) &&
+        nonEmptyLines.length <= 50 &&
         !isWrappedParagraph(nonEmptyLines)
       ) {
         return nonEmptyLines.map((l) => [l.trim()]);
       }
 
-      if (isLikelyMarkdownDocument(text, rawLines, false)) {
-        return null;
-      }
-      if (isWrappedParagraph(rawLines)) {
-        return null;
-      }
       // Multiple lines without tabs -> treat each line as a single-col row
-      return rawLines.map((l) => [l]);
+      return rawLines.map((l) => [l.trim()]);
     }
   }
 
   return null;
 }
 
-function isLikelyMarkdownDocument(text: string, rawLines: string[], allowSimpleDoubleBreaks = false): boolean {
-  if (!allowSimpleDoubleBreaks && text.includes('\n\n')) return true;
-
+function isLikelyMarkdownDocument(text: string, rawLines: string[]): boolean {
+  // 1. Headings (#, ##, ###, etc.)
   if (rawLines.some((l) => /^\s*#{1,6}\s/.test(l))) return true;
 
+  // 2. Horizontal rules (---, ***, ___)
   if (rawLines.some((l) => /^\s*(\*\*\*|___|---)\s*$/.test(l))) return true;
 
+  // 3. Blockquotes (> ...)
   if (rawLines.some((l) => /^\s*>/.test(l))) return true;
 
+  // 4. Code fences (```)
   if (rawLines.some((l) => /^\s*```/.test(l))) return true;
 
-  const listLikeCount = rawLines.filter((l) =>
-    /^\s*([*+-]\s+|\d+[\.\)]\s+|\(\d+\)\s+|\([a-zA-Z]\)\s+|\([ivxlcdm]+\)\s+)/i.test(l),
-  ).length;
-  if (listLikeCount >= 2) return true;
+  // 5. Pipe table alongside other prose or headers
+  const hasPipeTable = rawLines.some((l) => /^\s*\|.*\|\s*$/.test(l));
+  const hasNonPipeText = rawLines.some(
+    (l) => !/^\s*\|.*\|\s*$/.test(l) && l.trim().length > 0 && !/^\s*[-:]+[-| :]*$/.test(l),
+  );
+  if (hasPipeTable && hasNonPipeText) return true;
 
-  const boldLines = rawLines.filter((l) => {
-    const stars = (l.match(/\*\*/g) || []).length;
-    const underscores = (l.match(/__/g) || []).length;
-    return stars >= 2 || underscores >= 2;
-  }).length;
-  if (boldLines >= 2) return true;
+  // 6. Markdown bullet lists (* item, - item, + item)
+  const bulletCount = rawLines.filter((l) => /^\s*[*+-]\s+/.test(l)).length;
+  if (bulletCount >= 2) return true;
 
-  if (rawLines.some((l) => l.trim().length > 120)) return true;
+  // 7. Bold headers / sections like **1. Stefan Müller...** or **Verification:**
+  const boldSectionCount = rawLines.filter((l) => /^\s*\*\*[^*]+\*\*/.test(l)).length;
+  if (boldSectionCount >= 2) return true;
 
-  if (rawLines.length > 5) {
-    const avgLen = rawLines.reduce((sum, l) => sum + l.trim().length, 0) / rawLines.length;
-    if (avgLen > 60 && rawLines.some((l) => l.trim().length > 80)) return true;
+  // 8. Multiple paragraphs separated by blank lines
+  if (text.includes('\n\n')) {
+    const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+    if (paragraphs.length >= 2 && paragraphs.some((p) => p.includes('\n') || p.trim().length > 80)) {
+      return true;
+    }
   }
 
   return false;

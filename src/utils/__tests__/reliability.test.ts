@@ -58,6 +58,50 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       const result = parsePasteToGrid(text);
       expect(result).toEqual([['First Item'], ['Second Item'], ['Third Item']]);
     });
+
+    it('parses multi-row records with <br> tags and bullet/roman numeral prefixes into distinct cells', () => {
+      const row1 =
+        '(i) STI / Deferral -<br>a. The target bonus amounted to 10 monthly salaries for all Executive Board members. <br>b. 50% of the STI payout is deferred over 3 years in shares without additional performance conditions.<br>c. Deferred Bonus Vesting - This pertains to the annual bonus deferred in 2022, which expired on December 31, 2025. The resulting amount disbursed is limited to 150% of the initial value.<br> (iii) Other - [Overall Cap] - The maximum remuneration under the remuneration system stands at k€ 3,100 for regular Executive Board members.';
+      const row2 =
+        '(i) STI / Deferral -<br>a. The target bonus amounted to 10 monthly salaries for all Executive Board members. <br>b. 50% of the STI payout is deferred over 3 years in shares without additional performance conditions.';
+      const row3 =
+        '(i) STI / Deferral -<br>a. The target bonus amounted to 10 monthly salaries for all Executive Board members.';
+
+      const multiRowText = `${row1}\n${row2}\n${row3}`;
+      const result = parsePasteToGrid(multiRowText);
+      expect(result).toHaveLength(3);
+      expect(result?.[0][0]).toBe(row1);
+      expect(result?.[1][0]).toBe(row2);
+      expect(result?.[2][0]).toBe(row3);
+    });
+
+    it('retains complex markdown document with headings, tables with <br>, and lists as single cell (returns null)', () => {
+      const doc = `### Phase 1: Corrected Notes in Horizontal Table Format
+
+In accordance with the Data Capture Guidelines, standard notes are applied to capture any intra-year movements in board and committee roles.
+
+| Incumbent Name | Notes |
+| :--- | :--- |
+| Hans-Hermann Lotter | Blank |
+| Stefan Müller | (i) Stefan Müller became chair.<br>(ii) Stefan Müller was chair. |
+| Britta Lehfeldt | (i) Britta Lehfeldt became member.<br>(ii) Britta Lehfeldt became member. |
+
+---
+
+### Phase 2: Validation and Verification of Generated Notes
+
+The generated notes have been systematically verified against **Annual Report 2025 (pages 14, 24, and 44)**.
+
+**Verification of Rule Application:**
+*   *Guideline Rule:* "Indicate if a member had position changes."
+*   *Guideline Templates:* \`[Name] became chair\`; \`[Name] was chair\`.
+
+**1. Stefan Müller (Status: Role Change)**
+*   **Board Movement:** Served as interim Chairman.
+`;
+      const result = parsePasteToGrid(doc);
+      expect(result).toBeNull();
+    });
   });
 
   describe('wrapped paragraph unwrapping', () => {
