@@ -15,6 +15,30 @@ describe('smartCleanupMarkdown', () => {
     expect(report.cleaned).toContain('"hello"');
     expect(report.details.quotesStandardized).toBe(true);
   });
+
+  it('fixes missing spaces around bold delimiters when words are directly glued to **', () => {
+    const rawInput =
+      '**Dispositive Portion:**The Supreme Court**AFFIRMED with MODIFICATION**the RTC Decision. Romeo Molina y Flores was found**GUILTY of MURDER**, and his sentence was reduced from Death to **reclusion perpetua**, the generic aggravating circumstance of dwelling having been offset by the mitigating circumstance of vindication of a grave offense. The award of ₱50,000.00 as civil indemnity, ₱40,000.00 as actual damages, and ₱200,000.00 as moral damages was sustained.';
+
+    const report = smartCleanupMarkdown(rawInput);
+
+    expect(report.cleaned).toContain('**Dispositive Portion:** The Supreme Court');
+    expect(report.cleaned).toContain('Supreme Court **AFFIRMED with MODIFICATION** the RTC Decision');
+    expect(report.cleaned).toContain('was found **GUILTY of MURDER**, and');
+    expect(report.cleaned).toContain('to **reclusion perpetua**, the');
+    expect(report.cleaned).toContain('₱50,000.00');
+    expect(report.hasChanges).toBe(true);
+  });
+
+  it('fixes glued colon and bold tags e.g. **Title**:Text', () => {
+    const report = smartCleanupMarkdown('**Title**:Text and **Note:**Please read');
+    expect(report.cleaned).toBe('**Title**: Text and **Note:** Please read');
+  });
+
+  it('fixes missing spaces around italic and strikethrough delimiters', () => {
+    const report = smartCleanupMarkdown('Check*this*out and ~~old~~new text');
+    expect(report.cleaned).toBe('Check *this* out and ~~old~~ new text');
+  });
 });
 
 describe('isMarkdownTable and prepareCopiedText', () => {

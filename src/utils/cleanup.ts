@@ -1,6 +1,74 @@
 import { isWrappedParagraph } from './textWrap';
 import { isMarkdownTable } from './tableConvert';
 
+const WORD_CHAR_PATTERN =
+  '[a-zA-Z0-9\\u00C0-\\u024F\\u1E00-\\u1EFF\\u0400-\\u04FF\\u4E00-\\u9FFF\\u3040-\\u30FF\\uAC00-\\uD7AF]';
+
+const RE_TRIPLE_STAR_LEFT = new RegExp(
+  `(${WORD_CHAR_PATTERN})(?<!\\*)\\*\\*\\*(?!\\s|\\*)([^\*\\n]+?)(?<!\\s|\\*)\\*\\*\\*(?!\\*)`,
+  'gu',
+);
+const RE_TRIPLE_STAR_RIGHT = new RegExp(
+  `(?<!\\*)\\*\\*\\*(?!\\s|\\*)([^\*\\n]+?)(?<!\\s|\\*)\\*\\*\\*(?!\\*)(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+const RE_TRIPLE_STAR_COLON = new RegExp(
+  `(?<!\\*)\\*\\*\\*(?!\\s|\\*)([^\*\\n]+?)(?<!\\s|\\*)\\*\\*\\*(?!\\*):(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+
+const RE_DOUBLE_STAR_LEFT = new RegExp(
+  `(${WORD_CHAR_PATTERN})(?<!\\*)\\*\\*(?!\\s|\\*)([^\\*\\n]+?)(?<!\\s|\\*)\\*\\*(?!\\*)`,
+  'gu',
+);
+const RE_DOUBLE_STAR_RIGHT = new RegExp(
+  `(?<!\\*)\\*\\*(?!\\s|\\*)([^\\*\\n]+?)(?<!\\s|\\*)\\*\\*(?!\\*)(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+const RE_DOUBLE_STAR_COLON = new RegExp(
+  `(?<!\\*)\\*\\*(?!\\s|\\*)([^\\*\\n]+?)(?<!\\s|\\*)\\*\\*(?!\\*):(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+
+const RE_DOUBLE_UNDERSCORE_LEFT = new RegExp(
+  `(${WORD_CHAR_PATTERN})(?<!_)__(?!\\s|_)([^_\\n]+?)(?<!\\s|_)__(?!_)`,
+  'gu',
+);
+const RE_DOUBLE_UNDERSCORE_RIGHT = new RegExp(
+  `(?<!_)__(?!\\s|_)([^_\\n]+?)(?<!\\s|_)__(?!_)(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+const RE_DOUBLE_UNDERSCORE_COLON = new RegExp(
+  `(?<!_)__(?!\\s|_)([^_\\n]+?)(?<!\\s|_)__(?!_):(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+
+const RE_DOUBLE_TILDE_LEFT = new RegExp(
+  `(${WORD_CHAR_PATTERN})(?<!~)~~(?!\\s|~)([^~\\n]+?)(?<!\\s|~)~~(?!~)`,
+  'gu',
+);
+const RE_DOUBLE_TILDE_RIGHT = new RegExp(
+  `(?<!~)~~(?!\\s|~)([^~\\n]+?)(?<!\\s|~)~~(?!~)(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+const RE_DOUBLE_TILDE_COLON = new RegExp(
+  `(?<!~)~~(?!\\s|~)([^~\\n]+?)(?<!\\s|~)~~(?!~):(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+
+const RE_SINGLE_STAR_LEFT = new RegExp(
+  `(${WORD_CHAR_PATTERN})(?<!\\*)\\*(?!\\s|\\*)([^\*\\n]+?)(?<!\\s|\\*)\\*(?!\\*)`,
+  'gu',
+);
+const RE_SINGLE_STAR_RIGHT = new RegExp(
+  `(?<!\\*)\\*(?!\\s|\\*)([^\*\\n]+?)(?<!\\s|\\*)\\*(?!\\*)(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+const RE_SINGLE_STAR_COLON = new RegExp(
+  `(?<!\\*)\\*(?!\\s|\\*)([^\*\\n]+?)(?<!\\s|\\*)\\*(?!\\*):(${WORD_CHAR_PATTERN})`,
+  'gu',
+);
+
 /**
  * Checks if input text contains <br> tags (<br>, <br/>, <br /> in any case).
  */
@@ -272,6 +340,62 @@ export function smartCleanupMarkdown(
     }
     if (/__\s+([^_]+?)\s+__/.test(line)) {
       line = line.replace(/__\s+([^_]+?)\s+__/g, '__$1__');
+      markdownFixed = true;
+      fixesCount++;
+    }
+    if (/~~\s+([^~]+?)\s+~~/.test(line)) {
+      line = line.replace(/~~\s+([^~]+?)\s+~~/g, '~~$1~~');
+      markdownFixed = true;
+      fixesCount++;
+    }
+
+    // Fix missing boundary spaces around inline markdown formatting (bold, italic, strikethrough)
+    // Handles cases like "Portion:**The" -> "Portion:** The", "Court**AFFIRMED" -> "Court **AFFIRMED",
+    // "**MODIFICATION**the" -> "**MODIFICATION** the", "found**GUILTY" -> "found **GUILTY",
+    // "**Title**:Text" -> "**Title**: Text"
+    const codeSpans: string[] = [];
+    let tempLine = line.replace(/`[^`\n]+`/g, (m) => {
+      codeSpans.push(m);
+      return `__INLINE_CODE_SPAN_${codeSpans.length - 1}__`;
+    });
+
+    const beforeFormatSpacing = tempLine;
+
+    // A. Triple asterisks (***bold italic***)
+    tempLine = tempLine.replace(RE_TRIPLE_STAR_LEFT, '$1 ***$2***');
+    tempLine = tempLine.replace(RE_TRIPLE_STAR_RIGHT, '***$1*** $2');
+    tempLine = tempLine.replace(RE_TRIPLE_STAR_COLON, '***$1***: $2');
+
+    // B. Double asterisks (**bold**)
+    tempLine = tempLine.replace(RE_DOUBLE_STAR_LEFT, '$1 **$2**');
+    tempLine = tempLine.replace(RE_DOUBLE_STAR_RIGHT, '**$1** $2');
+    tempLine = tempLine.replace(RE_DOUBLE_STAR_COLON, '**$1**: $2');
+
+    // C. Double underscores (__bold__)
+    tempLine = tempLine.replace(RE_DOUBLE_UNDERSCORE_LEFT, '$1 __$2__');
+    tempLine = tempLine.replace(RE_DOUBLE_UNDERSCORE_RIGHT, '__$1__ $2');
+    tempLine = tempLine.replace(RE_DOUBLE_UNDERSCORE_COLON, '__$1__: $2');
+
+    // D. Strikethrough (~~strike~~)
+    tempLine = tempLine.replace(RE_DOUBLE_TILDE_LEFT, '$1 ~~$2~~');
+    tempLine = tempLine.replace(RE_DOUBLE_TILDE_RIGHT, '~~$1~~ $2');
+    tempLine = tempLine.replace(RE_DOUBLE_TILDE_COLON, '~~$1~~: $2');
+
+    // E. Single asterisk italic (*italic*)
+    tempLine = tempLine.replace(RE_SINGLE_STAR_LEFT, '$1 *$2*');
+    tempLine = tempLine.replace(RE_SINGLE_STAR_RIGHT, '*$1* $2');
+    tempLine = tempLine.replace(RE_SINGLE_STAR_COLON, '*$1*: $2');
+
+    // Restore inline code spans
+    if (codeSpans.length > 0) {
+      tempLine = tempLine.replace(
+        /__INLINE_CODE_SPAN_(\d+)__/g,
+        (_, idx) => codeSpans[parseInt(idx, 10)] || '',
+      );
+    }
+
+    if (tempLine !== beforeFormatSpacing) {
+      line = tempLine;
       markdownFixed = true;
       fixesCount++;
     }

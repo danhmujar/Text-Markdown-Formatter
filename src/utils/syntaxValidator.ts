@@ -173,6 +173,29 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
     });
   }
 
+  // 4b. Check for Glued Markdown Formatting Markers (Missing Spacing)
+  lines.forEach((line, lineIdx) => {
+    if (line.trim().startsWith('```')) return;
+    const hasGluedBold =
+      /(?:[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]\*\*(?!\*)[^\s*]|[^\s*]\*\*[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]|\*\*:[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF])/u.test(
+        line,
+      );
+    if (hasGluedBold) {
+      const matchSnippet =
+        line.match(/(?:\S{1,15}\*\*[^*]+\*\*\S{0,15}|\S{1,15}\*\*\S{1,15})/)?.[0] ||
+        line.trim().slice(0, 30);
+      warnings.push({
+        id: `glued-bold-line-${lineIdx + 1}`,
+        severity: 'warning',
+        title: 'Missing Space Around Bold (**)',
+        description: `Line ${lineIdx + 1} contains bold markers (**) directly glued to adjacent words without spaces. This causes words to run together in the output.`,
+        line: lineIdx + 1,
+        snippet: matchSnippet,
+        fixSuggestion: 'Add spaces before/after bold markers or click Clean to auto-fix.',
+      });
+    }
+  });
+
   // 5. Check for Broken Markdown Links & Images
   lines.forEach((line, lineIdx) => {
     // Unclosed link target: [text](without-closing-paren
