@@ -18,8 +18,3 @@ export function isWrappedParagraph(rawLines: string[]): boolean {
   return true;
 }
 
-export function unwrapWrappedParagraph(text: string): string {
-  const rawLines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-  if (!isWrappedParagraph(rawLines)) return text;
-  return rawLines.map((l) => l.trim()).join(' ');
-}

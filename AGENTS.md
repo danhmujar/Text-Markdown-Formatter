@@ -35,8 +35,8 @@ src/
   hooks/               # useTheme (palette + slider), useGridHistory (undo/redo), useGridActions, useOutputActions, useCopy
   styles/themes.css    # CSS vars for 7 themes × light/dark (Calculator port)
   utils/               # markdownFormatter, cleanup, tableConvert, listNumbering, htmlBuilder, sanitize, security/sanitize, syntaxValidator, textWrap
-  constants/           # themes (swatches/primaries), presets, fonts, theme
-  types.ts             # StyleOptions, FocusMode, SyntaxWarning, PresetItem
+  constants/           # themes (swatches/primaries), fonts, theme
+  types.ts             # StyleOptions, FocusMode, SyntaxWarning
 tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ```
 

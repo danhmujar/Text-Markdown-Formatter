@@ -6,14 +6,9 @@
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --primary-blue: #2563eb;
-  --primary-hover: #1d4ed8;
   --accent-bg: #eff6ff;
   --accent-border: #bfdbfe;
-  --code-bg: #f1f5f9;
-  --code-text: #0f172a;
   --font-sans: 'Google Sans Flex', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Google Sans Code', ui-monospace, monospace;
-  --font-symbols: 'Google Symbols';
 }
 
 body.dark-theme {
@@ -24,11 +19,8 @@ body.dark-theme {
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --primary-blue: #3b82f6;
-  --primary-hover: #2563eb;
   --accent-bg: #1e293b;
   --accent-border: #334155;
-  --code-bg: #1e293b;
-  --code-text: #e2e8f0;
 }
 
 /* 1. Transformative Teal — 50% lighter (5% darken) */
@@ -38,7 +30,6 @@ body.theme-teal {
   --surface-bg: #dbeeee;
   --border-color: #9fd1d1;
   --primary-blue: #0a7a7a;
-  --primary-hover: #075e5e;
   --accent-bg: #c2e7e7;
   --accent-border: #9fd1d1;
 }
@@ -49,11 +40,8 @@ body.theme-teal.dark-theme {
   --surface-bg: #041616;
   --border-color: #0e3e3e;
   --primary-blue: #23a9a9;
-  --primary-hover: #1a8080;
   --accent-bg: #0a3030;
   --accent-border: #134c4c;
-  --code-bg: #0a3030;
-  --code-text: #ccfbf1;
 }
 
 /* 2. Deep Terracotta — 50% lighter (5% darken) */
@@ -63,7 +51,6 @@ body.theme-terracotta {
   --surface-bg: #fbddd8;
   --border-color: #ddab9d;
   --primary-blue: #c15c3d;
-  --primary-hover: #9e492f;
   --accent-bg: #f1cbbf;
   --accent-border: #ddab9d;
 }
@@ -74,11 +61,8 @@ body.theme-terracotta.dark-theme {
   --surface-bg: #1a0d0a;
   --border-color: #4a2b23;
   --primary-blue: #e27b5a;
-  --primary-hover: #cf6848;
   --accent-bg: #351f18;
   --accent-border: #52352b;
-  --code-bg: #351f18;
-  --code-text: #ffedd5;
 }
 
 /* 3. Forest Green — 50% lighter (5% darken) */
@@ -88,7 +72,6 @@ body.theme-forest {
   --surface-bg: #deeae2;
   --border-color: #a4c3b0;
   --primary-blue: #3e7153;
-  --primary-hover: #2d563d;
   --accent-bg: #c8dfce;
   --accent-border: #a4c3b0;
 }
@@ -99,11 +82,8 @@ body.theme-forest.dark-theme {
   --surface-bg: #09120d;
   --border-color: #1d3627;
   --primary-blue: #61a37b;
-  --primary-hover: #4f8a66;
   --accent-bg: #15271d;
   --accent-border: #234031;
-  --code-bg: #15271d;
-  --code-text: #dcfce7;
 }
 
 /* 4. Slate Graphite — 50% lighter (5% darken) */
@@ -113,7 +93,6 @@ body.theme-slate {
   --surface-bg: #dee4ea;
   --border-color: #bac4d4;
   --primary-blue: #475569;
-  --primary-hover: #334155;
   --accent-bg: #d0dae8;
   --accent-border: #bac4d4;
 }
@@ -124,11 +103,8 @@ body.theme-slate.dark-theme {
   --surface-bg: #0a0d11;
   --border-color: #212c3b;
   --primary-blue: #7e95ad;
-  --primary-hover: #677a8f;
   --accent-bg: #171e28;
   --accent-border: #273344;
-  --code-bg: #171e28;
-  --code-text: #e2e8f0;
 }
 
 /* 5. Dusty Rosewood — 50% lighter (5% darken) */
@@ -138,7 +114,6 @@ body.theme-rosewood {
   --surface-bg: #fadae0;
   --border-color: #d6b1b8;
   --primary-blue: #b86b77;
-  --primary-hover: #9b5561;
   --accent-bg: #f1bfc7;
   --accent-border: #d6b1b8;
 }
@@ -149,11 +124,8 @@ body.theme-rosewood.dark-theme {
   --surface-bg: #1a0c0e;
   --border-color: #46292e;
   --primary-blue: #d58693;
-  --primary-hover: #c3707d;
   --accent-bg: #341e22;
   --accent-border: #503137;
-  --code-bg: #341e22;
-  --code-text: #ffe4e6;
 }
 
 /* 6. Pale Pistachio — 50% lighter (5% darken) */
@@ -163,7 +135,6 @@ body.theme-pistachio {
   --surface-bg: #ddecdf;
   --border-color: #afcfb4;
   --primary-blue: #6a9970;
-  --primary-hover: #537c58;
   --accent-bg: #c8dfcb;
   --accent-border: #afcfb4;
 }
@@ -174,11 +145,8 @@ body.theme-pistachio.dark-theme {
   --surface-bg: #0a140c;
   --border-color: #1f3a24;
   --primary-blue: #8cba92;
-  --primary-hover: #75a37b;
   --accent-bg: #162919;
   --accent-border: #25422a;
-  --code-bg: #162919;
-  --code-text: #dcfce7;
 }
 
 /* 7. Royal Purple — 50% lighter (5% darken) */
@@ -188,7 +156,6 @@ body.theme-purple {
   --surface-bg: #e3d7f9;
   --border-color: #bba3f3;
   --primary-blue: #7c3aed;
-  --primary-hover: #6d28d9;
   --accent-bg: #dbcafe;
   --accent-border: #bba3f3;
 }
@@ -199,11 +166,8 @@ body.theme-purple.dark-theme {
   --surface-bg: #120a24;
   --border-color: #332168;
   --primary-blue: #a276f5;
-  --primary-hover: #915cf2;
   --accent-bg: #23164d;
   --accent-border: #3a287b;
-  --code-bg: #23164d;
-  --code-text: #ede9fe;
 }
 
 /* Smooth theme transition — Antigravity font stack */

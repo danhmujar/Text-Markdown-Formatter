@@ -84,8 +84,8 @@ src/
     textWrap.ts          # isWrappedParagraph heuristic
   constants/
     themes.ts            # ColorTheme, THEME_SWATCHES, THEME_PRIMARIES, getPrimaryForTheme
-    presets.ts / fonts.ts / theme.ts
-  types.ts               # StyleOptions, FocusMode, SyntaxWarning, PresetItem
+    fonts.ts / theme.ts
+  types.ts               # StyleOptions, FocusMode, SyntaxWarning
 tests/
   a11y.spec.ts           # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ```

@@ -29,9 +29,3 @@ export interface SyntaxWarning {
   fixSuggestion?: string;
 }
 
-export interface PresetItem {
-  id: string;
-  name: string;
-  description: string;
-  content: string;
-}
