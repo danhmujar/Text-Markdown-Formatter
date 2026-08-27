@@ -13,8 +13,11 @@ Convert input text and Markdown — with nested lists, tables, custom line break
 - **Syntax Validator** (`syntaxValidator.ts:7`) — real-time warnings for unclosed fences, backticks, HTML tags, `**`/`~~`, broken links, empty list items, and table separator/column mismatches.
 - **Copy for Office** (`sanitize.ts:191`) — `sanitizeOutputHtml` always enforces security (`DOMPurify` + `on*`/`javascript:` stripping); compat mode strips dark backgrounds/meta/office XML/data attrs; clipboard writes `text/html` + `text/plain` with `<!--StartFragment-->` for Word/Outlook/Sheets.
 - **UX** — undo/redo with 60-snapshot debounced history (`useGridHistory.ts:8`), Focus Mode (Split/Input/Output, `Alt+F` / `Esc`), palette + animated slider theming (7 color themes × light/dark, `useTheme.ts:32`), font family & size (9–24pt), presets, toasts, and per-cell output overrides (`"row-col"` keys).
+- **Workspace Persistence** — grid content and per-cell output overrides are restored on reload and saved to `localStorage` under `text-markdown-formatter:workspace` (version 1) with debounced writes; **New** clears the workspace and removes the saved state.
+- **Side-by-Side Comparison** — each output cell can compare its input Markdown with effective output (including output overrides), using line-level additions/removals from `lineDiff`.
+- **About & Release Information** — a fixed About FAB opens app details, version metadata, developer credit for Danh Michael Mujar, and a separate changelog dialog with static release entries.
 - **Theming** — CSS variables (`styles/themes.css:1`) ported from `Calculator` (teal/terracotta/forest/slate/rosewood/pistachio/purple × light/dark at 5% lighten), `body.theme-*` + `body.dark-theme` classes, `localStorage` `formatter-theme-v1` persistence, `ThemePicker` radiogroup + `ThemeSlider` 68×34 animated toggle; `Copy All`/`Preview` and badges use `var(--primary-blue)`/`var(--accent-bg)`.
-- **Accessibility** — WCAG 2.1 AA axe checks, skip link, dialog focus trap, `aria-live` counters, and `jsx-a11y` linting.
+- **Accessibility** — WCAG 2.1 AA axe checks, skip link, `aria-modal` dialogs with focus trapping, inert background content, Escape-to-close, focus restoration, `aria-live` counters, and `jsx-a11y` linting.
 
 ## Quick Start
 
@@ -40,7 +43,7 @@ No backend required. Optional env vars are documented in `.env.example` (`GEMINI
 | `npm run typecheck`                                            | `tsc --noEmit` (strict)                            |
 | `npm run lint`                                                 | `eslint .` (`typescript-eslint` + `jsx-a11y`)      |
 | `npm run format` / `format:check`                              | Prettier (`printWidth:100, singleQuote`)           |
-| `npm run test`                                                 | `vitest run` (jsdom, 52 tests)                     |
+| `npm run test`                                                 | `vitest run` (jsdom, 80 tests)                    |
 | `npx vitest run src/utils/__tests__/markdownFormatter.test.ts` | Single file                                        |
 | `npx vitest run -t "test name"`                                | Single test by name                                |
 | `npm run a11y:check`                                           | `playwright test` (requires `npm run build` first) |
@@ -56,17 +59,21 @@ src/
   main.tsx               # React root + ErrorBoundary
   App.tsx                # grid: string[][] + outputOverrides + FocusMode + StyleOptions + useTheme
   components/
-    Header.tsx           # palette (ThemePicker) + slider (ThemeSlider), font/size, undo/redo, Focus Mode, Sanitize
-    Editor.tsx           # grid layout controls + Smart Cleanup + Settings panel (themed via var(--*))
+    Header.tsx           # palette (ThemePicker) + slider (ThemeSlider), font/size, undo/redo, Focus Mode, New
+    Editor.tsx            # grid layout controls + Smart Cleanup + Settings panel (themed via var(--*))
     EditorCell.tsx       # per-cell textarea, counters, warnings, paste handling (themed)
     Preview.tsx          # output grid + Copy All (var(--primary-blue))
-    OutputCell.tsx       # preview/edit toggle, inline formatting, reset, copy (themed)
+    OutputCell.tsx       # preview/edit toggle, inline formatting, reset, compare, copy (themed)
+    AboutDialog.tsx      # About FAB, app details, version, developer credit, and changelog link
+    ChangelogDialog.tsx  # static release metadata in a separate dialog
+    ComparisonDialog.tsx # side-by-side input/effective-output line comparison
     EditToolbar.tsx      # numbering/bullet/bold/italic/Clean (themed)
     ThemePicker.tsx      # radiogroup palette dropdown
     ThemeSlider.tsx      # 68×34 animated sun/moon toggle
     Toast.tsx / ErrorBoundary.tsx / ui/
   hooks/
     useTheme.ts          # colorTheme + darkMode, body class sync, localStorage formatter-theme-v1
+    useWorkspacePersistence.ts # debounced grid/outputOverrides persistence and reload restoration
     useGridHistory.ts    # history stack (max 60, 500ms debounce when isTyping)
     useGridActions.ts    # cell add/clear/cleanup/paste helpers
     useOutputActions.ts  # output edit, numbering, inline format
@@ -78,11 +85,13 @@ src/
     cleanup.ts           # smartCleanupMarkdown, hasBrTags, convertBrToNewlines
     tableConvert.ts      # tsvToMarkdownTable, parsePasteToGrid, preprocessMarkdownWithTsv
     htmlBuilder.ts       # marked → DOMPurify → inline styled HTML (LRU cache, primaryColor → link color)
+    lineDiff.ts          # line-level input/output comparison
     sanitize.ts          # sanitizeOutputHtml + copyFormattedTextToClipboard
     security/sanitize.ts # DOMPurify wrapper
     syntaxValidator.ts   # analyzeSyntaxWarnings
     textWrap.ts          # isWrappedParagraph heuristic
   constants/
+    release.ts           # APP_VERSION and static CHANGELOG_ENTRIES
     themes.ts            # ColorTheme, THEME_SWATCHES, THEME_PRIMARIES, getPrimaryForTheme
     fonts.ts / theme.ts
   types.ts               # StyleOptions, FocusMode, SyntaxWarning
@@ -95,12 +104,16 @@ Key invariants:
 - Grid is `string[][]`; per-cell output edits live in `Record<"${row}-${col}", string>` and take precedence over input (`App.tsx:125`).
 - `useGridHistory` skips commits when serialized state is equal and skips serialization for payloads >500k chars.
 - Preview and clipboard both go through `sanitizeHtml` before DOM styling; clipboard additionally wraps with `<!DOCTYPE html>…<!--StartFragment-->`.
+- Workspace persistence stores `{ version: 1, grid, outputOverrides }` under `text-markdown-formatter:workspace`; restored state is copied into app state, writes are debounced, and **New** clears both state and storage.
+- Comparison diffs each input cell against its effective output (the output override when present, otherwise the input-derived output).
 
 ## Configuration
 
 - **Path alias** `@/*` → `./src/*` (`tsconfig.json:19`, `vite.config.ts:11`).
 - **Tailwind** via `@tailwindcss/vite` — no `tailwind.config.js`; styles in `src/index.css` + `src/styles/themes.css`.
 - **Theme** — CSS variables on `body` (`--bg-color`, `--panel-bg`, `--surface-bg`, `--border-color`, `--text-primary`, `--primary-blue`, `--accent-bg`), `body.theme-*` + `body.dark-theme` (8 swatches, 5% lighten for light), persisted as `formatter-theme-v1` in `localStorage`; outer/UI uses `var(--*)`, `htmlBuilder` link color uses `primaryColor`.
+- **Workspace persistence** — `useWorkspacePersistence` uses `text-markdown-formatter:workspace` with storage version `1`; grid and `outputOverrides` writes are debounced, invalid/missing storage falls back safely, and **New**/Clear removes the saved workspace.
+- **Dialogs and accessibility** — About, changelog, and comparison dialogs use `aria-modal`, focus trapping, inert background content, Escape-to-close, and focus restoration to the triggering control.
 - **TypeScript** `strict` with `noUnusedLocals/Parameters`, `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`, `noEmit`.
 - **ESLint** `typescript-eslint` + `jsx-a11y`; **Prettier** `printWidth:100, singleQuote, trailingComma:all` (ignores `dist`, `node_modules`, `.playwright-mcp`, `docs`).
 - **CSP** in `index.html:8` (`default-src 'self'`, `style-src 'self' 'unsafe-inline'`) — external scripts/styles are blocked.
@@ -108,7 +121,7 @@ Key invariants:
 
 ## Testing
 
-- **Unit** — `vite.config.ts:15` (`environment:jsdom`, `include: src/**/*.{test,spec}.{ts,tsx}`, `exclude: tests`). Run `npm run test`; 7 files / 52 tests.
+- **Unit** — `vite.config.ts:15` (`environment:jsdom`, `include: src/**/*.{test,spec}.{ts,tsx}`, `exclude: tests`). Run `npm run test`; 11 files / 80 tests.
 - **A11y/E2E** — `playwright.config.ts:4` (`testDir: ./tests`, `baseURL: http://localhost:4173`, `webServer: npm run preview -- --port 4173`, single `chromium` project). Must `npm run build` before `npm run a11y:check`.
 
 ## Shortcuts
