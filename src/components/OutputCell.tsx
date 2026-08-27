@@ -22,6 +22,7 @@ interface OutputCellProps {
   registerTextarea: (el: HTMLTextAreaElement | null) => void;
   onToggleMode: () => void;
   onReset: () => void;
+  onCompare: () => void;
   onCopy: () => void;
   onCopyExcel?: () => void;
   onKeyDown: (e: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
@@ -45,6 +46,7 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
   registerTextarea,
   onToggleMode,
   onReset,
+  onCompare,
   onCopy,
   onCopyExcel,
   onKeyDown,
@@ -196,6 +198,19 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             </button>
           )}
 
+          <button
+            id={`compare-cell-btn-${r}-${c}`}
+            type="button"
+            onClick={onCompare}
+            aria-label={`Compare input and output for ${label}`}
+            className={cn(
+              'px-2 py-0.5 rounded border text-[10px] font-medium transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+              isDark ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300') : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700'),
+            )}
+            title="Compare input and effective output"
+          >
+            Compare
+          </button>
           {/* Copy Cell Button */}
           <button
             id={`copy-cell-btn-${r}-${c}`}
@@ -316,7 +331,7 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
       >
         <div className="flex items-center gap-3">
           <span
-            className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'}`}
+            className={`font-semibold ${charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : isDark ? 'opacity-60' : 'text-slate-600'}`}
           >
             {charCount.toLocaleString()}{' '}
             <span

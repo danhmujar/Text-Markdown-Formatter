@@ -1,17 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { AboutDialog } from './components/AboutDialog';
+import { ChangelogDialog } from './components/ChangelogDialog';
+import { ComparisonDialog } from './components/ComparisonDialog';
 import { Header } from './components/Header';
 import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
 import { ToastContainer, showToast } from './components/Toast';
 import { StyleOptions, FocusMode } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
+import { readWorkspace, useWorkspacePersistence } from './hooks/useWorkspacePersistence';
 import { useCopy } from './hooks/useCopy';
 import { hasBrTags, convertBrToNewlines } from './utils/markdownFormatter';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
 import { getPrimaryForTheme } from './constants/themes';
-
 export default function App() {
+  const [persistedInitialState] = useState(() => readWorkspace());
   // State-based history manager for 2D grid matrix and per-cell output overrides
   const {
     grid,
@@ -23,16 +27,18 @@ export default function App() {
     redo,
     canUndo,
     canRedo,
-  } = useGridHistory({
-    grid: [['']],
-    outputOverrides: {},
-  });
+  } = useGridHistory(persistedInitialState);
+  const { clearStorage } = useWorkspacePersistence(grid, outputOverrides, persistedInitialState);
 
   // Focus Mode state: 'split' (both visible), 'input' (input maximized), 'output' (output maximized)
   const [focusMode, setFocusMode] = useState<FocusMode>('split');
   const [activePanel, setActivePanel] = useState<'input' | 'output'>('input');
 
   const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [changelogOpen, setChangelogOpen] = useState(false);
+  const aboutTriggerRef = useRef<HTMLButtonElement>(null);
+  const appBackgroundRef = useRef<HTMLDivElement>(null);
 
   const [options, setOptions] = useState<StyleOptions>({
     fontFamily: FONT_OPTIONS[0].value,
@@ -83,22 +89,17 @@ export default function App() {
           : 'Output Focus Mode';
     showToast(`${modeName} activated`, 'info');
   }, [focusMode]);
-
   // Clear all / New Blank Session handler
   const handleClearAll = useCallback(() => {
-    // Check if there is existing text to clear
     const hasContent =
       grid.some((row) => row.some((cell) => cell.trim().length > 0)) ||
       Object.keys(outputOverrides).length > 0;
-
-    if (hasContent) {
-      updateAll([['']], {});
-      showToast('Started new blank session', 'info');
-    } else {
-      updateAll([['']], {});
-      showToast('Workspace is already empty', 'info');
-    }
-  }, [grid, outputOverrides, updateAll]);
+    updateAll([['']], {});
+    clearStorage();
+    showToast(hasContent ? 'Started new blank session' : 'Workspace is already empty', 'info');
+  }, [clearStorage, grid, outputOverrides, updateAll]);
+  const [comparison, setComparison] = useState<{ row: number; col: number } | null>(null);
+  const comparisonTriggerRef = useRef<HTMLElement | null>(null);
 
   // Global Keyboard Shortcuts:
   // - Undo: Ctrl+Z / ⌘Z
@@ -232,7 +233,10 @@ export default function App() {
   );
 
   return (
+    <>
     <div
+      ref={appBackgroundRef}
+      id="app-background"
       className="flex flex-col h-screen w-screen overflow-hidden transition-colors"
       style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}
     >
@@ -311,10 +315,42 @@ export default function App() {
               setActivePanel('input');
               setFocusMode('input');
             }}
+            onCompareCell={(row, col) => {
+              comparisonTriggerRef.current = document.activeElement as HTMLElement;
+              setComparison({ row, col });
+            }}
           />
         </section>
       </main>
       <ToastContainer />
     </div>
+    <AboutDialog
+      open={aboutOpen}
+      onOpen={() => setAboutOpen(true)}
+      onClose={() => setAboutOpen(false)}
+      onOpenChangelog={() => {
+        setAboutOpen(false);
+        setChangelogOpen(true);
+      }}
+      triggerRef={aboutTriggerRef}
+      backgroundRef={appBackgroundRef}
+    />
+    <ChangelogDialog
+      open={changelogOpen}
+      onClose={() => setChangelogOpen(false)}
+      triggerRef={aboutTriggerRef}
+      backgroundRef={appBackgroundRef}
+    />
+    {comparison && (
+      <ComparisonDialog
+        open
+        input={grid[comparison.row]?.[comparison.col] || ''}
+        output={getOutputContent(comparison.row, comparison.col)}
+        onClose={() => setComparison(null)}
+        triggerRef={comparisonTriggerRef}
+        backgroundRef={appBackgroundRef}
+      />
+    )}
+    </>
   );
 }

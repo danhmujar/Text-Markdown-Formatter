@@ -403,7 +403,13 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
           <span
             id={`cell-char-count-${rowIndex}-${colIndex}`}
             className={`font-semibold ${
-              charCount > 0 ? (isDark ? 'text-slate-200' : 'text-slate-800') : 'opacity-60'
+              charCount > 0
+                ? isDark
+                  ? 'text-slate-200'
+                  : 'text-slate-800'
+                : isDark
+                  ? 'opacity-60'
+                  : 'text-slate-600'
             }`}
             title="Total character count"
           >

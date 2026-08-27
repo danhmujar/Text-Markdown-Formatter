@@ -28,6 +28,77 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(settingsBtn).toBeFocused();
   });
 
+  test('About and changelog dialogs have accessible focus management', async ({ page }) => {
+    await page.goto('/');
+    const fab = page.getByRole('button', { name: 'About this app' });
+    await fab.click();
+    const aboutDialog = page.locator('[role="dialog"][aria-labelledby="about-dialog-title"]');
+    const closeAbout = page.getByRole('button', { name: 'Close About dialog' });
+    const changelogTrigger = page.getByRole('button', { name: 'View changelog' });
+    const linkedin = page.getByRole('link', { name: 'Connect on LinkedIn' });
+
+    await expect(aboutDialog).toHaveAttribute('aria-modal', 'true');
+    await expect(aboutDialog).toHaveAttribute('aria-labelledby', 'about-dialog-title');
+    await expect(
+      page.getByRole('heading', { name: 'About Text & Markdown Formatter' }),
+    ).toBeVisible();
+    await expect(page.locator('#app-background')).toHaveAttribute('inert', '');
+    await expect(closeAbout).toBeFocused();
+
+    await page.keyboard.press('Tab');
+    await expect(changelogTrigger).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(linkedin).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(closeAbout).toBeFocused();
+    await changelogTrigger.click();
+
+    await expect(aboutDialog).toBeHidden();
+    const changelogDialog = page.locator(
+      '[role="dialog"][aria-labelledby="changelog-dialog-title"]',
+    );
+    await expect(changelogDialog).toBeVisible();
+    await expect(changelogDialog).toHaveAttribute('aria-modal', 'true');
+    await expect(changelogDialog).toHaveAttribute('aria-labelledby', 'changelog-dialog-title');
+    await expect(page.getByRole('heading', { name: 'Changelog' })).toBeVisible();
+    await expect(changelogDialog).toContainText('Version 0.0.0');
+    await expect(changelogDialog).toContainText('Release information');
+    await expect(changelogDialog).toContainText(
+      'About now includes local version and changelog details.',
+    );
+    const closeChangelog = page.getByRole('button', { name: 'Close changelog dialog' });
+    await expect(closeChangelog).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(closeChangelog).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(closeChangelog).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(changelogDialog).toBeHidden();
+    await expect(fab).toBeFocused();
+
+    await fab.click();
+    const backdrop = page.locator('[role="presentation"]');
+    await backdrop.click({ position: { x: 2, y: 2 } });
+    await expect(aboutDialog).toBeHidden();
+    await expect(page.locator('#app-background')).not.toHaveAttribute('inert', '');
+  });
+
+  test('comparison dialog stops Escape propagation and restores focus', async ({ page }) => {
+    await page.goto('/');
+    const compareButton = page.getByRole('button', { name: /Compare input and output for/ }).first();
+    await compareButton.click();
+    const comparisonDialog = page.locator(
+      '[role="dialog"][aria-labelledby="comparison-dialog-title"]',
+    );
+    await expect(comparisonDialog).toBeVisible();
+    const closeComparison = page.getByRole('button', { name: 'Close comparison dialog' });
+    await expect(closeComparison).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(comparisonDialog).toBeHidden();
+    await expect(compareButton).toBeFocused();
+  });
+
   test('skip link is first focusable and jumps to main', async ({ page }) => {
     await page.goto('/');
     await page.keyboard.press('Tab');
