@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ShieldCheck,
-  ShieldAlert,
   Undo2,
   Redo2,
   Maximize2,
@@ -53,7 +51,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   onSelectColorTheme,
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isSanitizeActive = options.sanitizeOutput !== false;
   const isFocused = focusMode !== 'split';
 
   // Automatically close mobile menu if screen width expands >= 640px
@@ -67,12 +64,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const toggleSanitize = () => {
-    setOptions((prev) => ({
-      ...prev,
-      sanitizeOutput: prev.sanitizeOutput === false ? true : false,
-    }));
-  };
 
   return (
     <header
@@ -85,7 +76,12 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <img
+            src="/text-markdown-formatter-icon.png"
+            alt="Text & Markdown Formatter icon"
+            className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 object-contain"
+          />
           <h1
             className={`font-bold text-sm sm:text-base tracking-tight truncate ${
               isDark ? 'text-white' : 'text-slate-900'
@@ -263,45 +259,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             )}
           </button>
 
-          {/* Sanitize Output Toggle */}
-          <button
-            id="sanitize-output-toggle-btn"
-            type="button"
-            onClick={toggleSanitize}
-            aria-label={isSanitizeActive ? 'Sanitize output: on' : 'Sanitize output: off'}
-            aria-pressed={isSanitizeActive}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isSanitizeActive
-                ? isDark
-                  ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/60'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                : isDark
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-slate-100'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-800'
-            }`}
-            title="Automatically strips unwanted background colors, dark mode styles, and meta tags during copy for seamless compatibility with Google Sheets, Excel, and Word"
-          >
-            {isSanitizeActive ? (
-              <>
-                <ShieldCheck
-                  aria-hidden="true"
-                  focusable="false"
-                  className="w-3.5 h-3.5 text-emerald-500"
-                />
-                <span>Sanitize Output</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              </>
-            ) : (
-              <>
-                <ShieldAlert
-                  aria-hidden="true"
-                  focusable="false"
-                  className="w-3.5 h-3.5 text-slate-400"
-                />
-                <span>Sanitize: Off</span>
-              </>
-            )}
-          </button>
 
           {/* Font Selector */}
           <div
@@ -528,33 +485,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                 )}
               </button>
 
-              <button
-                id="mobile-sanitize-btn"
-                type="button"
-                onClick={toggleSanitize}
-                aria-pressed={isSanitizeActive}
-                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                  isSanitizeActive
-                    ? isDark
-                      ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                    : isDark
-                      ? 'bg-slate-800 border-slate-700 text-slate-300'
-                      : 'bg-slate-50 border-slate-200 text-slate-600'
-                }`}
-              >
-                {isSanitizeActive ? (
-                  <>
-                    <ShieldCheck aria-hidden="true" focusable="false" className="w-4 h-4 text-emerald-500" />
-                    <span>Sanitize: On</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldAlert aria-hidden="true" focusable="false" className="w-4 h-4 text-slate-400" />
-                    <span>Sanitize: Off</span>
-                  </>
-                )}
-              </button>
             </div>
           </div>
 

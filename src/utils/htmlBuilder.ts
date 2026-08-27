@@ -155,16 +155,23 @@ export function buildInlineStyledHtml(
 
       listEl.style.cssText = `margin: 0; padding-left: ${paddingLeft}; list-style-type: ${listStyle}; color: ${textColor};`;
 
-      const children = Array.from(listEl.children);
-      children.forEach((child) => {
-        if (child.tagName.toLowerCase() === 'li') {
-          const li = child as HTMLElement;
-          li.style.cssText = `margin: 0; line-height: ${lineH}; font-size: ${baseSize}pt; color: ${textColor}; font-family: ${fontFam};`;
+      const listItems = Array.from(listEl.children).filter(
+        (child) => child.tagName.toLowerCase() === 'li',
+      );
+      listItems.forEach((child, index) => {
+        const li = child as HTMLElement;
+        const itemMargin = isOrdered && level === 1 ? '0 0 4pt 0' : '0';
+        li.style.cssText = `margin: ${itemMargin}; line-height: ${lineH}; font-size: ${baseSize}pt; color: ${textColor}; font-family: ${fontFam};`;
 
-          // Check for nested lists
-          li.querySelectorAll(':scope > ul, :scope > ol').forEach((nested) => {
-            processList(nested as HTMLElement, level + 1);
-          });
+        // Check for nested lists
+        li.querySelectorAll(':scope > ul, :scope > ol').forEach((nested) => {
+          processList(nested as HTMLElement, level + 1);
+        });
+
+        // Word/Outlook commonly ignores list-item margins. Keep the spacing
+        // structural and copy-only, without changing the preview layout.
+        if (isForWordCopy && isOrdered && level === 1 && index < listItems.length - 1) {
+          li.append(doc.createElement('br'));
         }
       });
     };

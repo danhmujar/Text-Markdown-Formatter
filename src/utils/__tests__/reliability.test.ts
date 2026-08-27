@@ -102,6 +102,16 @@ The generated notes have been systematically verified against **Annual Report 20
       const result = parsePasteToGrid(doc);
       expect(result).toBeNull();
     });
+ 
+    it('returns null for numbered bold sections with multi-paragraph prose', () => {
+      const doc = `1. **Executive Summary**
+This section explains the overall outcome in prose.
+
+2. **Key Findings**
+These findings provide additional context and supporting details.`;
+      const result = parsePasteToGrid(doc);
+      expect(result).toBeNull();
+    });
   });
 
   describe('wrapped paragraph unwrapping', () => {

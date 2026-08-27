@@ -17,7 +17,6 @@ describe('Pillar 2: Performance Verification', () => {
     primaryColor: '#000000',
     tableAlternateBg: true,
     highlightBoldKeys: true,
-    sanitizeOutput: true,
   };
 
   it('buildInlineStyledHtml renders large 500-line markdown efficiently and leverages LRU cache', () => {

@@ -101,7 +101,6 @@ describe('Phase 3: Table Parsing & Link Sanitization Security', () => {
       highlightBoldKeys: true,
       primaryColor: '#2563eb',
       theme: 'light',
-      sanitizeOutput: true,
     });
     expect(html).toContain('rel="noopener noreferrer"');
     expect(html).toContain('target="_blank"');

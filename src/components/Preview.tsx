@@ -192,10 +192,10 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
             id="copy-all-containers-btn"
             type="button"
             onClick={onCopyAllGrid}
-            aria-label="Copy all formatted output to clipboard for Word/Outlook"
+            aria-label="Copy all formatted output to Catalyst"
             className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-md font-medium text-xs shadow-sm transition active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none hover:brightness-110"
             style={{ backgroundColor: 'var(--primary-blue)' }}
-            title="Copy for Word & Outlook — <br> becomes line break in tables"
+            title="Copy all formatted output to Catalyst — <br> becomes line break in tables"
           >
             {copiedAll ? (
               <>
@@ -204,12 +204,12 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
                   focusable="false"
                   className="w-3.5 h-3.5 text-emerald-300"
                 />
-                <span>Copied All!</span>
+                <span>Copied all to Catalyst!</span>
               </>
             ) : (
               <>
                 <Copy aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-                <span>Copy All</span>
+                <span>Copy all to Catalyst</span>
               </>
             )}
           </button>

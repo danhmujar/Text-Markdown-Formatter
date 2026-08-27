@@ -34,6 +34,23 @@ describe('smartCleanupMarkdown', () => {
     const report = smartCleanupMarkdown('**Title**:Text and **Note:**Please read');
     expect(report.cleaned).toBe('**Title**: Text and **Note:** Please read');
   });
+  it('leaves valid bold followed by punctuation unchanged', () => {
+    const report = smartCleanupMarkdown('**Compensation**, **Membership**.');
+
+    expect(report.cleaned).toBe('**Compensation**, **Membership**.');
+    expect(report.hasChanges).toBe(false);
+    expect(report.fixesCount).toBe(0);
+  });
+  it('cleans actual glued words on both sides of bold markers', () => {
+    const leftGlued = smartCleanupMarkdown('word**bold**');
+    const rightGlued = smartCleanupMarkdown('**bold**word');
+
+    expect(leftGlued.cleaned).toBe('word **bold**');
+    expect(leftGlued.hasChanges).toBe(true);
+    expect(rightGlued.cleaned).toBe('**bold** word');
+    expect(rightGlued.hasChanges).toBe(true);
+  });
+
 
   it('fixes missing spaces around italic and strikethrough delimiters', () => {
     const report = smartCleanupMarkdown('Check*this*out and ~~old~~new text');

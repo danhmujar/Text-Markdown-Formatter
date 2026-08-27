@@ -48,7 +48,6 @@ export default function App() {
     highlightBoldKeys: true,
     primaryColor: getPrimaryForTheme(colorTheme, isDark),
     theme: isDark ? 'dark' : 'light',
-    sanitizeOutput: true,
   });
 
   useEffect(() => {

@@ -35,7 +35,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
         );
 
         const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-          sanitize: options.sanitizeOutput !== false,
+          sanitize: true,
         });
 
         if (success) {
@@ -65,7 +65,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
           true,
         );
         const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-          sanitize: options.sanitizeOutput !== false,
+          sanitize: true,
         });
         if (success) {
           setCopiedCell(`${rowIndex}-${colIndex}`);
@@ -108,7 +108,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       }
 
       const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
-        sanitize: options.sanitizeOutput !== false,
+        sanitize: true,
       });
 
       if (success) {
@@ -145,7 +145,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
         combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n');
       }
       const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
-        sanitize: options.sanitizeOutput !== false,
+        sanitize: true,
       });
       if (success) {
         setCopiedAll(true);

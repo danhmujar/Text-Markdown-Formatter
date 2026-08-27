@@ -203,8 +203,8 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             onClick={onCopy}
             aria-label={
               inputHadBr
-                ? `Copy formatted text for ${label} (converting line breaks back to <br>)`
-                : `Copy formatted text for ${label}`
+                ? `Copy formatted text for ${label} to Catalyst (converting line breaks back to <br>)`
+                : `Copy formatted text for ${label} to Catalyst`
             }
             style={
               isCopied
@@ -219,19 +219,19 @@ export const OutputCell: React.FC<OutputCellProps> = React.memo(function OutputC
             }`}
             title={
               inputHadBr
-                ? 'Copy formatted text to clipboard (line breaks will convert back to <br> tags)'
-                : 'Copy formatted text for Word & Outlook'
+                ? 'Copy formatted text to Catalyst (line breaks will convert back to <br> tags)'
+                : 'Copy formatted text to Catalyst for Word & Outlook'
             }
           >
             {isCopied ? (
               <>
                 <Check aria-hidden="true" focusable="false" className="w-3 h-3 text-white" />
-                <span>Copied!</span>
+                <span>Copied to Catalyst!</span>
               </>
             ) : (
               <>
                 <Copy aria-hidden="true" focusable="false" className="w-3 h-3 text-white" />
-                <span>{inputHadBr ? 'Copy as <br>' : 'Copy'}</span>
+                <span>Copy to Catalyst</span>
               </>
             )}
           </button>

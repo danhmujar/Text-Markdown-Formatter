@@ -269,8 +269,9 @@ function isLikelyMarkdownDocument(text: string, rawLines: string[]): boolean {
   const bulletCount = rawLines.filter((l) => /^\s*[*+-]\s+/.test(l)).length;
   if (bulletCount >= 2) return true;
 
-  // 7. Bold headers / sections like **1. Stefan Müller...** or **Verification:**
-  const boldSectionCount = rawLines.filter((l) => /^\s*\*\*[^*]+\*\*/.test(l)).length;
+  // 7. Bold headers / sections like **1. Stefan Müller...**, **Verification:**,
+  //    or ordered sections like 1. **Stefan Müller...**
+  const boldSectionCount = rawLines.filter((l) => /^\s*(?:\d+[.)]\s+)?\*\*[^*]+\*\*/.test(l)).length;
   if (boldSectionCount >= 2) return true;
 
   // 8. Multiple paragraphs separated by blank lines

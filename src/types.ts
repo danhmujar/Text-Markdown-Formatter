@@ -16,7 +16,6 @@ export interface StyleOptions {
   highlightBoldKeys: boolean;
   primaryColor: string;
   theme: ThemeMode;
-  sanitizeOutput?: boolean;
 }
 
 export interface SyntaxWarning {
