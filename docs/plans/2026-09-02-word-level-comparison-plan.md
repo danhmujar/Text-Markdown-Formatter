@@ -288,19 +288,20 @@ incorrect; the comparison feature is already documented, so no copy change is ex
 
 ### Task checklist
 
-- [ ] Run `npx vitest run src/utils/__tests__/lineDiff.test.ts`.
-- [ ] Run `npm run format:check` and correct formatting only in touched source/test files.
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run test`.
-- [ ] Run `npm run build`.
-- [ ] Run `npm run a11y:check` against the built preview server.
-- [ ] Run `git diff --check`.
-- [ ] Review `git diff -- src/utils/lineDiff.ts src/utils/__tests__/lineDiff.test.ts
+- [x] Run `npx vitest run src/utils/__tests__/lineDiff.test.ts`.
+- [x] Run `npm run format:check`; it reports pre-existing warnings in 30 untouched files, while
+  targeted checks pass for every touched source/test file.
+- [x] Run `npm run lint`.
+- [x] Run `npm run typecheck`.
+- [x] Run `npm run test`.
+- [x] Run `npm run build`.
+- [x] Run `npm run a11y:check` against the built preview server.
+- [x] Run `git diff --check`.
+- [x] Review `git diff -- src/utils/lineDiff.ts src/utils/__tests__/lineDiff.test.ts
   src/components/ComparisonDialog.tsx tests/a11y.spec.ts`.
-- [ ] Confirm no dependency, package-lock, Vite configuration, App/Preview/OutputCell API, or
+- [x] Confirm no dependency, package-lock, Vite configuration, App/Preview/OutputCell API, or
   unrelated documentation change was introduced.
-- [ ] Manually inspect desktop, narrow viewport, light-theme, and dark-theme comparison states for
+- [x] Manually inspect desktop, narrow viewport, light-theme, and dark-theme comparison states for
   alignment and legibility.
 
 ### Documentation references
@@ -313,12 +314,12 @@ incorrect; the comparison feature is already documented, so no copy change is ex
 
 ### Verification checklist
 
-- [ ] Focused and full unit suites pass.
-- [ ] Lint and strict TypeScript pass without suppressions added for this feature.
-- [ ] Production build succeeds without a new dependency or chunk change.
-- [ ] Full Playwright/Axe suite passes against the built app.
-- [ ] Final diff contains only the approved comparison enhancement and its tests.
-- [ ] Every acceptance criterion below has direct unit, browser, or manual evidence.
+- [x] Focused and full unit suites pass.
+- [x] Lint and strict TypeScript pass without suppressions added for this feature.
+- [x] Production build succeeds without a new dependency or chunk change.
+- [x] Full Playwright/Axe suite passes against the built app.
+- [x] Final diff contains only the approved comparison enhancement and its tests.
+- [x] Every acceptance criterion below has direct unit, browser, or manual evidence.
 
 ### Acceptance criteria covered
 
@@ -329,7 +330,7 @@ AC1 through AC11.
 - [x] Phase 1: Implement and unit-test the aligned line/word diff model.
 - [x] Phase 2: Render aligned rows, word highlights, line numbers, and spacers in the dialog.
 - [x] Phase 3: Preserve integration and add browser/accessibility regression coverage.
-- [ ] Phase 4: Run the complete verification sequence and inspect the final result.
+- [x] Phase 4: Run the complete verification sequence and inspect the final result.
 
 ## Acceptance Criteria
 
