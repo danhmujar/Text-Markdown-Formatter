@@ -69,6 +69,30 @@ const RE_SINGLE_STAR_COLON = new RegExp(
   'gu',
 );
 
+const TABLE_SEPARATOR_PATTERN =
+  /^\|?\s*:?-{3,}:?\s*\|\s*:?-{3,}:?(?:\s*\|\s*:?-{3,}:?)*\s*\|?$/;
+
+function getMarkdownTableLineIndexes(lines: string[]): Set<number> {
+  const tableLineIndexes = new Set<number>();
+
+  for (let separatorIndex = 1; separatorIndex < lines.length; separatorIndex++) {
+    if (!TABLE_SEPARATOR_PATTERN.test(lines[separatorIndex].trim())) continue;
+
+    const headerIndex = separatorIndex - 1;
+    if (!lines[headerIndex].includes('|')) continue;
+
+    tableLineIndexes.add(headerIndex);
+    tableLineIndexes.add(separatorIndex);
+
+    for (let rowIndex = separatorIndex + 1; rowIndex < lines.length; rowIndex++) {
+      if (!lines[rowIndex].includes('|')) break;
+      tableLineIndexes.add(rowIndex);
+    }
+  }
+
+  return tableLineIndexes;
+}
+
 /**
  * Checks if input text contains <br> tags (<br>, <br/>, <br /> in any case).
  */
@@ -435,11 +459,11 @@ export function smartCleanupMarkdown(
     processedLines.push(line);
   }
 
-  // 6. Fix Markdown Table Structure (ensure rows with | have bounding pipes if they are in a table block)
+  // 6. Fix Markdown Table Structure (ensure rows with | have bounding pipes in confirmed table blocks)
+  const markdownTableLineIndexes = getMarkdownTableLineIndexes(processedLines);
   for (let i = 0; i < processedLines.length; i++) {
     const curr = processedLines[i].trim();
-    // Check if line is a table separator like |---|---| or contains multiple pipes
-    if (curr.includes('|') && !curr.startsWith('```')) {
+    if (markdownTableLineIndexes.has(i) && !curr.startsWith('```')) {
       // If line doesn't start with |, add it
       let fixedLine = processedLines[i].trim();
       let tableModified = false;

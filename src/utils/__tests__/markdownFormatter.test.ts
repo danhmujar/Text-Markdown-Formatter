@@ -4,6 +4,29 @@ import { tsvToMarkdownTable, isMarkdownTable } from '../tableConvert';
 import { getNextListPrefix } from '../listNumbering';
 
 describe('smartCleanupMarkdown', () => {
+  it('keeps inline pipes in nested-list prose intact', () => {
+    const input = `4. **Nationality**
+   a. *What was omitted/captured incorrectly:* Dr. Alexandra Gatzemeyer's **Nationality** was captured as "Russian Federation".
+   b. *Correct Capture & Why:* The source lists her nationality as dual ("German | Russian"). Per the guidelines, if two nationalities apply, we must select the first disclosed. Therefore, this should be **Germany**.
+   c. *Citation:* *"Nationality: German | Russian"* (Sartorius AG Annual Report 2025, p. 63)`;
+
+    expect(smartCleanupMarkdown(input).cleaned).toBe(input);
+  });
+
+  it('preserves valid markdown tables', () => {
+    const table = '| Header | Value |\n| :--- | :--- |\n| One | Two |';
+
+    expect(smartCleanupMarkdown(table).cleaned).toBe(table);
+  });
+
+  it('repairs missing outer pipes in confirmed markdown table blocks', () => {
+    const malformedTable = 'Header | Value\n:--- | :---\nOne | Two';
+
+    expect(smartCleanupMarkdown(malformedTable).cleaned).toBe(
+      '| Header | Value |\n| :--- | :--- |\n| One | Two |',
+    );
+  });
+
   it('fixes headings without spaces and strips zero-width characters', () => {
     const report = smartCleanupMarkdown('#Heading\u200B');
     expect(report.cleaned).toBe('# Heading');
