@@ -321,17 +321,17 @@ already documented comparison capability.
 
 ### Task checklist
 
-- [ ] Run `npx vitest run src/utils/__tests__/lineDiff.test.ts`.
-- [ ] Run targeted Prettier checks on all touched source/test files and inspect the Markdown plan.
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run test`.
-- [ ] Run `npm run build`.
-- [ ] Run `npm run a11y:check` against the built preview.
-- [ ] Run `git diff --check` and inspect the final diff/stat.
-- [ ] Confirm no new dependency, route, popup, storage key, or formatter API change exists.
-- [ ] Manually inspect desktop/narrow and light/dark Comparison editing/result states.
-- [ ] Record any pre-existing repository-wide formatting warnings without reformatting unrelated
+- [x] Run `npx vitest run src/utils/__tests__/lineDiff.test.ts`.
+- [x] Run targeted Prettier checks on all touched source/test files and inspect the Markdown plan.
+- [x] Run `npm run lint`.
+- [x] Run `npm run typecheck`.
+- [x] Run `npm run test`.
+- [x] Run `npm run build`.
+- [x] Run `npm run a11y:check` against the built preview.
+- [x] Run `git diff --check` and inspect the final diff/stat.
+- [x] Confirm no new dependency, route, popup, storage key, or formatter API change exists.
+- [x] Manually inspect desktop/narrow and light/dark Comparison editing/result states.
+- [x] Record any pre-existing repository-wide formatting warnings without reformatting unrelated
   files.
 
 ### Documentation references
@@ -345,13 +345,13 @@ already documented comparison capability.
 
 ### Verification checklist
 
-- [ ] Focused and full unit suites pass.
-- [ ] Lint and strict TypeScript pass.
-- [ ] Production build succeeds without dependency/chunk changes.
-- [ ] Full Playwright/Axe suite passes.
-- [ ] Final source has no stale per-cell/modal comparison contract.
-- [ ] Desktop, narrow, light, and dark states are manually usable.
-- [ ] Every acceptance criterion has direct unit, browser, or manual evidence.
+- [x] Focused and full unit suites pass.
+- [x] Lint and strict TypeScript pass.
+- [x] Production build succeeds without dependency/chunk changes.
+- [x] Full Playwright/Axe suite passes.
+- [x] Final source has no stale per-cell/modal comparison contract.
+- [x] Desktop, narrow, light, and dark states are manually usable.
+- [x] Every acceptance criterion has direct unit, browser, or manual evidence.
 
 ### Acceptance criteria covered
 
@@ -363,7 +363,7 @@ AC1 through AC11.
 - [x] Phase 2: Build the standalone Comparison workspace.
 - [x] Phase 3: Integrate app mode and remove the per-cell modal surface.
 - [x] Phase 4: Replace browser/accessibility coverage with standalone flows.
-- [ ] Phase 5: Run full verification and reconcile stale documentation/terminology.
+- [x] Phase 5: Run full verification and reconcile stale documentation/terminology.
 
 ## Acceptance Criteria
 

@@ -19,7 +19,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBack
   const isEditing = view === 'editing';
 
   return (
-    <main
+    <div
       id="comparison-main-content"
       tabIndex={-1}
       className="flex h-full min-h-0 flex-col overflow-hidden p-3 outline-none sm:p-5"
@@ -153,6 +153,6 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBack
           <ComparisonResult leftText={leftText} rightText={rightText} />
         </div>
       )}
-    </main>
+    </div>
   );
 };

@@ -457,7 +457,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                   }`}
                 >
                   <GitCompare aria-hidden="true" focusable="false" className="w-4 h-4" />
-                <span>Comparison</span>
+                  <span>Comparison</span>
                 </button>
 
                 <button
