@@ -86,7 +86,9 @@ test.describe('a11y - WCAG 2.1 AA', () => {
 
   test('comparison dialog stops Escape propagation and restores focus', async ({ page }) => {
     await page.goto('/');
-    const compareButton = page.getByRole('button', { name: /Compare input and output for/ }).first();
+    const compareButton = page
+      .getByRole('button', { name: /Compare input and output for/ })
+      .first();
     await compareButton.click();
     const comparisonDialog = page.locator(
       '[role="dialog"][aria-labelledby="comparison-dialog-title"]',
@@ -94,9 +96,77 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(comparisonDialog).toBeVisible();
     const closeComparison = page.getByRole('button', { name: 'Close comparison dialog' });
     await expect(closeComparison).toBeFocused();
+    await expect(comparisonDialog).toContainText('No differences found.');
+    await expect(page.locator('#app-background')).toHaveAttribute('inert', '');
+    await page.keyboard.press('Tab');
+    await expect(closeComparison).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(closeComparison).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(comparisonDialog).toBeHidden();
     await expect(compareButton).toBeFocused();
+
+    await compareButton.click();
+    await expect(comparisonDialog).toBeVisible();
+    await page.locator('[role="presentation"]').click({ position: { x: 2, y: 2 } });
+    await expect(comparisonDialog).toBeHidden();
+    await expect(page.locator('#app-background')).not.toHaveAttribute('inert', '');
+    await expect(compareButton).toBeFocused();
+  });
+
+  test('comparison aligns edited output and highlights word and line discrepancies', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const input = page.locator('#cell-textarea-0-0');
+    await input.fill('Keep old value.\nAfter');
+
+    await page.locator('#toggle-edit-mode-0-0').click();
+    const output = page.locator('#output-textarea-0-0');
+    await expect(output).toBeVisible();
+    await output.fill('Keep new value.\nInserted\nAfter');
+
+    const compareButton = page.locator('#compare-cell-btn-0-0');
+    await compareButton.click();
+    const dialog = page.locator('[role="dialog"][aria-labelledby="comparison-dialog-title"]');
+    await expect(dialog).toBeVisible();
+
+    const rows = dialog.locator('[data-diff-row]:not([data-diff-row="empty"])');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0).locator('[data-diff-kind="removed"]')).toHaveCount(1);
+    await expect(rows.nth(0).locator('[data-diff-kind="added"]')).toHaveCount(1);
+    await expect(rows.nth(0).locator('[data-diff-segment="changed"]')).toHaveCount(2);
+    await expect(rows.nth(1).locator('[data-diff-kind="spacer"]')).toHaveCount(1);
+    await expect(rows.nth(1).locator('[data-diff-kind="added"]')).toContainText('Inserted');
+    await expect(rows.nth(2).locator('[data-line-number="2"]')).toHaveCount(1);
+    await expect(dialog.getByRole('heading', { name: 'Input Markdown' })).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Effective Output' })).toBeVisible();
+    await expect(input).toHaveValue('Keep old value.\nAfter');
+    await expect(output).toHaveValue('Keep new value.\nInserted\nAfter');
+
+    await page.getByRole('button', { name: 'Close comparison dialog' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(input).toHaveValue('Keep old value.\nAfter');
+    await expect(output).toHaveValue('Keep new value.\nInserted\nAfter');
+  });
+
+  test('comparison keeps one shared scroll region on narrow screens', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.goto('/');
+    await page.locator('#cell-textarea-0-0').fill('left line\nsecond line');
+    await page.locator('#toggle-edit-mode-0-0').click();
+    await page.locator('#output-textarea-0-0').fill('right line\nsecond line');
+    await page.locator('#compare-cell-btn-0-0').click();
+
+    const dialog = page.locator('[role="dialog"][aria-labelledby="comparison-dialog-title"]');
+    const comparison = dialog.getByLabel('Side-by-side comparison');
+    await expect(comparison).toBeVisible();
+    const dimensions = await comparison.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeGreaterThan(dimensions.clientWidth);
+    await expect(dialog.locator('[data-diff-row]:not([data-diff-row="empty"])')).toHaveCount(2);
   });
 
   test('skip link is first focusable and jumps to main', async ({ page }) => {

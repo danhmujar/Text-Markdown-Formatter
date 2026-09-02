@@ -87,7 +87,6 @@ export const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
           key={`${side}-spacer-${rowIndex}`}
           data-diff-side={side}
           data-diff-kind="spacer"
-          data-diff-row={rowIndex}
           role="note"
           aria-label={label}
           className="min-h-8 border-b px-2 py-1.5"
@@ -106,7 +105,6 @@ export const ComparisonDialog: React.FC<ComparisonDialogProps> = ({
         key={`${side}-line-${line.lineNumber}-${rowIndex}`}
         data-diff-side={side}
         data-diff-kind={line.kind}
-        data-diff-row={rowIndex}
         data-line-number={line.lineNumber}
         aria-label={`${side === 'input' ? 'Input Markdown' : 'Effective Output'} line ${line.lineNumber}, ${kindLabel}`}
         className={`min-h-8 border-b px-2 py-1.5 font-mono text-xs leading-5 ${lineBackground}`}
