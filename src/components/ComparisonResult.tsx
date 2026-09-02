@@ -5,6 +5,7 @@ import { diffLines, type DiffLine, type DiffSegment } from '../utils/lineDiff';
 interface ComparisonResultProps {
   leftText: string;
   rightText: string;
+  fontSize: number;
 }
 
 type DiffSide = 'left' | 'right';
@@ -30,7 +31,11 @@ function sideLabel(side: DiffSide): string {
   return side === 'left' ? 'Left' : 'Right';
 }
 
-export const ComparisonResult: React.FC<ComparisonResultProps> = ({ leftText, rightText }) => {
+export const ComparisonResult: React.FC<ComparisonResultProps> = ({
+  leftText,
+  rightText,
+  fontSize,
+}) => {
   const diff = diffLines(leftText, rightText);
 
   const renderLine = (side: DiffSide, line: DiffLine | null, rowIndex: number) => {
@@ -62,8 +67,8 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({ leftText, ri
         data-diff-kind={line.kind}
         data-line-number={line.lineNumber}
         aria-label={`${label} line ${line.lineNumber}, ${kindLabel}`}
-        className={`min-h-8 border-b px-2 py-1.5 font-mono text-xs leading-5 ${lineBackground}`}
-        style={{ borderColor: 'var(--border-color)' }}
+        className={`min-h-8 border-b px-2 py-1.5 font-mono leading-5 ${lineBackground}`}
+        style={{ borderColor: 'var(--border-color)', fontSize: `${fontSize}pt` }}
       >
         <span className="mr-2 inline-block w-7 select-none text-right text-[10px] opacity-50">
           {line.lineNumber}
@@ -103,7 +108,11 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({ leftText, ri
         style={{ borderColor: 'var(--border-color)' }}
         aria-label="Side-by-side comparison"
       >
-        <div className="min-w-[40rem]">
+        <div
+          className="min-w-[40rem]"
+          data-comparison-text="true"
+          style={{ fontSize: `${fontSize}pt` }}
+        >
           <div
             className="sticky top-0 z-10 grid grid-cols-2 border-b text-xs font-semibold uppercase tracking-wide"
             style={{

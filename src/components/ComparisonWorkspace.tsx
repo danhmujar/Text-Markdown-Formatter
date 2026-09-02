@@ -1,22 +1,32 @@
 import React, { useState } from 'react';
-import { ArrowLeft, GitCompare, Pencil } from 'lucide-react';
+import { ArrowLeft, Eraser, GitCompare, Pencil } from 'lucide-react';
 import { ComparisonResult } from './ComparisonResult';
 
 interface ComparisonWorkspaceProps {
   onBackToFormatter: () => void;
+  fontSize: number;
 }
 
 type ComparisonView = 'editing' | 'result';
 
 const editorClassName =
-  'min-h-0 w-full flex-1 resize-none rounded-lg border bg-transparent p-3 font-mono text-sm leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
+  'min-h-0 w-full flex-1 resize-none rounded-lg border bg-transparent p-3 font-mono leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
 
-export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBackToFormatter }) => {
+export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
+  onBackToFormatter,
+  fontSize,
+}) => {
   const [leftText, setLeftText] = useState('');
   const [rightText, setRightText] = useState('');
   const [view, setView] = useState<ComparisonView>('editing');
 
   const isEditing = view === 'editing';
+
+  const clearComparison = () => {
+    setLeftText('');
+    setRightText('');
+    setView('editing');
+  };
 
   return (
     <div
@@ -42,20 +52,36 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBack
             Paste two versions side by side, then compare their differences.
           </p>
         </div>
-        <button
-          id="comparison-back-btn"
-          type="button"
-          onClick={onBackToFormatter}
-          className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
-          style={{
-            backgroundColor: 'var(--surface-bg)',
-            borderColor: 'var(--border-color)',
-            color: 'var(--text-primary)',
-          }}
-        >
-          <ArrowLeft aria-hidden="true" focusable="false" className="h-4 w-4" />
-          Back to Formatter
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            id="comparison-clear-btn"
+            type="button"
+            onClick={clearComparison}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
+            style={{
+              backgroundColor: 'var(--surface-bg)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-primary)',
+            }}
+          >
+            <Eraser aria-hidden="true" focusable="false" className="h-4 w-4" />
+            Clear
+          </button>
+          <button
+            id="comparison-back-btn"
+            type="button"
+            onClick={onBackToFormatter}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
+            style={{
+              backgroundColor: 'var(--surface-bg)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-primary)',
+            }}
+          >
+            <ArrowLeft aria-hidden="true" focusable="false" className="h-4 w-4" />
+            Back to Formatter
+          </button>
+        </div>
       </header>
 
       {isEditing ? (
@@ -87,6 +113,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBack
                 onChange={(event) => setLeftText(event.target.value)}
                 placeholder="Paste or type the left version here..."
                 className={editorClassName}
+                style={{ fontSize: `${fontSize}pt` }}
                 spellCheck={false}
               />
             </section>
@@ -110,6 +137,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBack
                 onChange={(event) => setRightText(event.target.value)}
                 placeholder="Paste or type the right version here..."
                 className={editorClassName}
+                style={{ fontSize: `${fontSize}pt` }}
                 spellCheck={false}
               />
             </section>
@@ -150,7 +178,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({ onBack
               Edit comparison
             </button>
           </div>
-          <ComparisonResult leftText={leftText} rightText={rightText} />
+          <ComparisonResult leftText={leftText} rightText={rightText} fontSize={fontSize} />
         </div>
       )}
     </div>

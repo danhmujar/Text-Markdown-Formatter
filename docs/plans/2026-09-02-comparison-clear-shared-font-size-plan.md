@@ -71,15 +71,15 @@ with stable ID `comparison-clear-btn` to each view; both buttons invoke the same
 
 ### Task checklist
 
-- [ ] Add `fontSize: number` to `ComparisonWorkspaceProps` and `ComparisonResultProps`.
-- [ ] Pass `fontSize={options.fontSize}` from the existing `App` Comparison mount.
-- [ ] Add a local `clearComparison` handler that clears both strings and returns to editing.
-- [ ] Render `comparison-clear-btn` with visible `Clear` text, `type="button"`, and focus styles
+- [x] Add `fontSize: number` to `ComparisonWorkspaceProps` and `ComparisonResultProps`.
+- [x] Pass `fontSize={options.fontSize}` from the existing `App` Comparison mount.
+- [x] Add a local `clearComparison` handler that clears both strings and returns to editing.
+- [x] Render `comparison-clear-btn` with visible `Clear` text, `type="button"`, and focus styles
       in editing and result controls.
-- [ ] Apply `${fontSize}pt` to both Comparison textareas without changing placeholders or labels.
-- [ ] Apply `${fontSize}pt` to diff line text while preserving line numbers, prefixes, highlights,
+- [x] Apply `${fontSize}pt` to both Comparison textareas without changing placeholders or labels.
+- [x] Apply `${fontSize}pt` to diff line text while preserving line numbers, prefixes, highlights,
       spacers, empty states, and shared scrolling.
-- [ ] Keep the Formatter Header controls and all persistence/history wiring unchanged.
+- [x] Keep the Formatter Header controls and all persistence/history wiring unchanged.
 
 ### Documentation references
 
@@ -91,12 +91,12 @@ with stable ID `comparison-clear-btn` to each view; both buttons invoke the same
 
 ### Verification checklist
 
-- [ ] TypeScript accepts the new required props at every call site.
-- [ ] Both editing and result views expose exactly one visible Clear control.
-- [ ] Clear resets both values and view without touching Formatter state.
-- [ ] Computed textarea and diff-line styles use the shared `fontSize` in `pt` units.
-- [ ] No new font-size control, storage key, or formatter mutation path exists.
-- [ ] Targeted lint and Prettier checks pass.
+- [x] TypeScript accepts the new required props at every call site.
+- [x] Both editing and result views expose exactly one visible Clear control.
+- [x] Clear resets both values and view without touching Formatter state.
+- [x] Computed textarea and diff-line styles use the shared `fontSize` in `pt` units.
+- [x] No new font-size control, storage key, or formatter mutation path exists.
+- [x] Targeted lint and Prettier checks pass.
 
 ### Acceptance criteria covered
 
@@ -114,14 +114,14 @@ continues to pass.
 
 ### Task checklist
 
-- [ ] Add a Clear flow after comparing populated Left/Right content and verify both blank textareas
+- [x] Add a Clear flow after comparing populated Left/Right content and verify both blank textareas
       plus editing controls are restored.
-- [ ] Verify Clear is available and harmless for already-empty sides.
-- [ ] Increase Formatter font size through `#font-size-increase-btn`, enter Comparison, and assert
+- [x] Verify Clear is available and harmless for already-empty sides.
+- [x] Increase Formatter font size through `#font-size-increase-btn`, enter Comparison, and assert
       both textareas use the matching point size.
-- [ ] Compare content and assert diff line text uses the same point size.
-- [ ] Assert no Comparison-specific font-size control or duplicate font-size state is exposed.
-- [ ] Preserve existing mode-entry, retention, formatter-isolation, responsive, and Axe coverage.
+- [x] Compare content and assert diff line text uses the same point size.
+- [x] Assert no Comparison-specific font-size control or duplicate font-size state is exposed.
+- [x] Preserve existing mode-entry, retention, formatter-isolation, responsive, and Axe coverage.
 
 ### Documentation references
 
@@ -132,11 +132,11 @@ continues to pass.
 
 ### Verification checklist
 
-- [ ] Clear assertions prove both sides are empty and result content is gone.
-- [ ] Font-size assertions prove `14pt → 15pt` (or current value plus one) in editors and diff rows.
-- [ ] No new Comparison font-size control is present.
-- [ ] Existing browser tests remain green at desktop and narrow widths.
-- [ ] Axe reports no new violations.
+- [x] Clear assertions prove both sides are empty and result content is gone.
+- [x] Font-size assertions prove `14pt → 15pt` (or current value plus one) in editors and diff rows.
+- [x] No new Comparison font-size control is present.
+- [x] Existing browser tests remain green at desktop and narrow widths.
+- [x] Axe reports no new violations.
 
 ### Acceptance criteria covered
 
@@ -186,8 +186,8 @@ AC1 through AC6.
 
 ## Consolidated task list
 
-- [ ] Phase 1: Add Clear and shared font-size plumbing.
-- [ ] Phase 2: Extend browser regression coverage.
+- [x] Phase 1: Add Clear and shared font-size plumbing.
+- [x] Phase 2: Extend browser regression coverage.
 - [ ] Phase 3: Run full verification and reconcile documentation.
 
 ## Acceptance Criteria

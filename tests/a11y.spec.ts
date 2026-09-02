@@ -160,6 +160,62 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     ).toContainText('Only on the right');
   });
 
+  test('Comparison Clear empties both sides and returns to blank editing', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('#comparison-mode-btn').click();
+    const left = page.locator('#comparison-left-textarea');
+    const right = page.locator('#comparison-right-textarea');
+    await left.fill('Left content');
+    await right.fill('Right content');
+    await page.locator('#comparison-run-btn').click();
+
+    const clearButton = page.locator('#comparison-clear-btn');
+    await expect(clearButton).toBeVisible();
+    await clearButton.click();
+    await expect(left).toBeVisible();
+    await expect(right).toBeVisible();
+    await expect(left).toHaveValue('');
+    await expect(right).toHaveValue('');
+    await expect(page.getByLabel('Side-by-side comparison')).toBeHidden();
+    await expect(page.locator('#comparison-run-btn')).toBeVisible();
+
+    // Clear remains available and harmless when the workspace is already empty.
+    await clearButton.click();
+    await expect(left).toHaveValue('');
+    await expect(right).toHaveValue('');
+  });
+
+  test('Comparison uses the Formatter font-size setting for editors and results', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.locator('#cell-textarea-0-0').fill('Shared font size sample');
+    await page.locator('#font-size-increase-btn').click();
+    await expect(page.getByText('15pt', { exact: true })).toBeVisible();
+    await expect(page.locator('#output-formatted-0-0 p')).toHaveCount(1);
+    expect(
+      await page
+        .locator('#output-formatted-0-0 p')
+        .evaluate((element) => (element as HTMLElement).style.fontSize),
+    ).toBe('15pt');
+
+    await page.locator('#comparison-mode-btn').click();
+    const left = page.locator('#comparison-left-textarea');
+    const right = page.locator('#comparison-right-textarea');
+    expect(await left.evaluate((element) => (element as HTMLElement).style.fontSize)).toBe('15pt');
+    expect(await right.evaluate((element) => (element as HTMLElement).style.fontSize)).toBe('15pt');
+    await expect(page.locator('#comparison-main-content [id*="font-size"]')).toHaveCount(0);
+
+    await left.fill('same size');
+    await right.fill('same size');
+    await page.locator('#comparison-run-btn').click();
+    expect(
+      await page
+        .locator('[data-comparison-text="true"]')
+        .evaluate((element) => (element as HTMLElement).style.fontSize),
+    ).toBe('15pt');
+  });
+
   test('mobile navigation opens Comparison mode and closes after activation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await page.goto('/');

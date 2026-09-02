@@ -327,7 +327,10 @@ export default function App() {
             </div>
           </div>
           <div className="h-full" hidden={appMode !== 'comparison'}>
-            <ComparisonWorkspace onBackToFormatter={() => setAppMode('formatter')} />
+            <ComparisonWorkspace
+              onBackToFormatter={() => setAppMode('formatter')}
+              fontSize={options.fontSize}
+            />
           </div>
         </main>
         <ToastContainer />
