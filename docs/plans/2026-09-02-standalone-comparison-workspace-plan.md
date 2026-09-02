@@ -105,16 +105,16 @@ scroll container for result rows and retain stable semantic hooks (`data-diff-ro
 
 ### Task checklist
 
-- [ ] Create `src/components/ComparisonResult.tsx` from the reusable renderer portions of
+- [x] Create `src/components/ComparisonResult.tsx` from the reusable renderer portions of
   `ComparisonDialog`.
-- [ ] Change all visible and accessible terminology to Left and Right.
-- [ ] Render aligned rows from `diff.rows` with real line numbers and null-side spacer cells.
-- [ ] Preserve line-level add/remove backgrounds, visible prefixes, and changed word segments.
-- [ ] Preserve exact identical, empty-side, whitespace-only, LF/CRLF, and trailing-newline
+- [x] Change all visible and accessible terminology to Left and Right.
+- [x] Render aligned rows from `diff.rows` with real line numbers and null-side spacer cells.
+- [x] Preserve line-level add/remove backgrounds, visible prefixes, and changed word segments.
+- [x] Preserve exact identical, empty-side, whitespace-only, LF/CRLF, and trailing-newline
   behavior from the utility contract.
-- [ ] Keep source text in React text nodes and retain semantic browser hooks.
-- [ ] Ensure the result uses one shared scroll region at narrow widths.
-- [ ] Remove modal-only props, refs, effects, dialog roles, backdrop, and close control from the
+- [x] Keep source text in React text nodes and retain semantic browser hooks.
+- [x] Ensure the result uses one shared scroll region at narrow widths.
+- [x] Remove modal-only props, refs, effects, dialog roles, backdrop, and close control from the
   extracted presentation.
 
 ### Documentation references
@@ -129,13 +129,13 @@ scroll container for result rows and retain stable semantic hooks (`data-diff-ro
 
 ### Verification checklist
 
-- [ ] `ComparisonResult` has no `open`, `onClose`, `backgroundRef`, or `triggerRef` props.
-- [ ] Rendered headings and `data-diff-side` values are Left/Right only.
-- [ ] Result row count and spacer pairing match `diffLines` output.
-- [ ] No modal roles, inert mutations, focus traps, backdrops, or Escape handlers exist in the
+- [x] `ComparisonResult` has no `open`, `onClose`, `backgroundRef`, or `triggerRef` props.
+- [x] Rendered headings and `data-diff-side` values are Left/Right only.
+- [x] Result row count and spacer pairing match `diffLines` output.
+- [x] No modal roles, inert mutations, focus traps, backdrops, or Escape handlers exist in the
   result component.
-- [ ] Existing aligned diff unit tests remain green.
-- [ ] `npx eslint src/components/ComparisonResult.tsx` and targeted Prettier checks pass.
+- [x] Existing aligned diff unit tests remain green.
+- [x] `npx eslint src/components/ComparisonResult.tsx` and targeted Prettier checks pass.
 
 ### Acceptance criteria covered
 
@@ -359,7 +359,7 @@ AC1 through AC11.
 
 ## Consolidated task list
 
-- [ ] Phase 1: Extract the neutral aligned result component.
+- [x] Phase 1: Extract the neutral aligned result component.
 - [ ] Phase 2: Build the standalone Comparison workspace.
 - [ ] Phase 3: Integrate app mode and remove the per-cell modal surface.
 - [ ] Phase 4: Replace browser/accessibility coverage with standalone flows.
