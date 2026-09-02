@@ -75,12 +75,12 @@ manifest to `scripts/auto-version.mjs`’s generated version surfaces.
 
 ### Verification checklist
 
-- [ ] `npm run version:manifest` creates a valid ignored `public/version.json` with the current
+- [x] `npm run version:manifest` creates a valid ignored `public/version.json` with the current
       package version.
-- [ ] `npm run dev` and `npm run build` invoke the generator through `predev`/`prebuild`.
-- [ ] `dist/version.json` exists after build and contains only the expected version field.
-- [ ] An invalid package version produces a non-zero generator exit without a malformed manifest.
-- [ ] Node tests cover successful generation, directory creation, invalid input, and output shape.
+- [x] `npm run dev` and `npm run build` invoke the generator through `predev`/`prebuild`.
+- [x] `dist/version.json` exists after build and contains only the expected version field.
+- [x] An invalid package version produces a non-zero generator exit without a malformed manifest.
+- [x] Node tests cover successful generation, directory creation, invalid input, and output shape.
 
 ### Anti-pattern guards
 
@@ -122,12 +122,12 @@ Follow the cleanup style from `src/hooks/useGridHistory.ts` and storage error ha
 
 ### Verification checklist
 
-- [ ] Utility tests prove strict SemVer parsing and numeric comparison.
-- [ ] Hook tests prove startup, visibility-return, and 30-minute scheduling behavior.
-- [ ] Hook tests prove equal/older/no-manifest/network/timeout/malformed responses are silent.
-- [ ] Hook tests prove one notification per remote version and notification for a later higher version.
-- [ ] Hook tests prove in-flight requests, timers, listeners, and storage failures are cleaned up safely.
-- [ ] Strict typecheck and lint pass with no Node-only imports in browser modules.
+- [x] Utility tests prove strict SemVer parsing and numeric comparison.
+- [x] Hook tests prove startup, visibility-return, and 30-minute scheduling behavior.
+- [x] Hook tests prove equal/older/no-manifest/network/timeout/malformed responses are silent.
+- [x] Hook tests prove one notification per remote version and notification for a later higher version.
+- [x] Hook tests prove in-flight requests, timers, listeners, and storage failures are cleaned up safely.
+- [x] Strict typecheck and lint pass with no Node-only imports in browser modules.
 
 ### Anti-pattern guards
 
@@ -165,11 +165,11 @@ callers remain unchanged.
 
 ### Verification checklist
 
-- [ ] Existing two-argument `showToast` callers compile and retain four-second behavior.
-- [ ] Persistent update toast stays visible until action/close and removes cleanly.
-- [ ] Reload and close controls have accessible names, keyboard focus, and visible focus styles.
-- [ ] Timer cleanup prevents updates after dismissal/unmount.
-- [ ] Existing toast roles, colors, and error behavior remain unchanged.
+- [x] Existing two-argument `showToast` callers compile and retain four-second behavior.
+- [x] Persistent update toast stays visible until action/close and removes cleanly.
+- [x] Reload and close controls have accessible names, keyboard focus, and visible focus styles.
+- [x] Timer cleanup prevents updates after dismissal/unmount.
+- [x] Existing toast roles, colors, and error behavior remain unchanged.
 
 ### Anti-pattern guards
 
@@ -200,18 +200,18 @@ deduplication key, silent-failure behavior, and test commands. Keep changelog po
 
 ### Verification checklist
 
-- [ ] Unit tests cover manifest generation, comparison, update/no-update, deduplication, failures,
+- [x] Unit tests cover manifest generation, comparison, update/no-update, deduplication, failures,
       visibility, timers, toast actions, and reload dispatch.
-- [ ] Browser tests cover the visible update toast, accessible controls, no focus theft, and matching
+- [x] Browser tests cover the visible update toast, accessible controls, no focus theft, and matching
       manifest behavior.
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes, including Node manifest/versioning tests.
-- [ ] `npm run build` produces `dist/version.json` with the current version.
-- [ ] `npm run version:check` passes and the generated manifest remains ignored.
-- [ ] `npm run a11y:check` passes against the built preview.
-- [ ] Targeted Prettier checks and `git diff --check` pass.
-- [ ] Final searches find no external manifest URL, committed `public/version.json`, duplicate hook
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes, including Node manifest/versioning tests.
+- [x] `npm run build` produces `dist/version.json` with the current version.
+- [x] `npm run version:check` passes and the generated manifest remains ignored.
+- [x] `npm run a11y:check` passes against the built preview.
+- [x] Targeted Prettier checks and `git diff --check` pass.
+- [x] Final searches find no external manifest URL, committed `public/version.json`, duplicate hook
       mounts, stale update wording, or test artifacts.
 
 ### Anti-pattern guards
@@ -223,10 +223,10 @@ deduplication key, silent-failure behavior, and test commands. Keep changelog po
 
 ## Consolidated task list
 
-- [ ] Phase 1: Generate and serve the version manifest.
-- [ ] Phase 2: Add browser-safe comparison and update-check lifecycle.
-- [ ] Phase 3: Extend the toast surface and expose Reload.
-- [ ] Phase 4: Add regression coverage, documentation, and final verification.
+- [x] Phase 1: Generate and serve the version manifest.
+- [x] Phase 2: Add browser-safe comparison and update-check lifecycle.
+- [x] Phase 3: Extend the toast surface and expose Reload.
+- [x] Phase 4: Add regression coverage, documentation, and final verification.
 
 ## Acceptance Criteria
 

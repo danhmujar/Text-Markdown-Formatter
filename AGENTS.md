@@ -13,6 +13,7 @@
 | Unit tests       | `npm run test` — `vitest run` (jsdom)                                                                        |
 | Versioning tests | `npm run test:versioning` — Node built-in versioning and hook integration tests                              |
 | Version check    | `npm run version:check` — read-only synchronized-version validation                                          |
+| Version manifest | `npm run version:manifest` — generate ignored `public/version.json`                                          |
 | Hook setup       | `npm run prepare` — configure repository-local `.githooks`                                                   |
 | Single unit test | `npx vitest run src/utils/__tests__/markdownFormatter.test.ts` or `npx vitest run -t "test name"`            |
 | A11y / e2e       | `npm run a11y:check` — builds then `playwright test`; filtered: `npm run test:a11y` (`--grep a11y`)          |
@@ -31,6 +32,7 @@ Verification order: `lint` -> `typecheck` -> `test` -> `build` -> `a11y:check` (
 - Versioning: `scripts/auto-version.mjs` parses commit intent, updates synchronized version surfaces,
   and performs one guarded same-commit amend from `.githooks/post-commit`; `scripts/check-version.mjs`
   is the read-only CI/local consistency check and `scripts/setup-git-hooks.mjs` configures the hook.
+  `scripts/generate-version-manifest.mjs` writes the ignored same-origin manifest before `dev`/`build`.
 
 ## Architecture
 
@@ -41,12 +43,13 @@ src/
                        # EditToolbar, AboutDialog, ChangelogDialog, ComparisonWorkspace/Result,
                        # ErrorBoundary, Toast, ui/
   hooks/               # useTheme, useGridHistory, useGridActions, useOutputActions,
-                       # useWorkspacePersistence, useCopy
+                       # useWorkspacePersistence, useCopy, useVersionUpdate
   styles/themes.css    # CSS vars for 8 themes × light/dark (Calculator port)
   utils/               # markdownFormatter, cleanup, tableConvert, listNumbering, htmlBuilder,
-                       # sanitize, security/sanitize, syntaxValidator, textWrap, lineDiff
+                       # sanitize, security/sanitize, syntaxValidator, textWrap, lineDiff, version
   constants/           # themes (swatches/primaries), fonts, theme, release metadata/changelog
   types.ts             # StyleOptions, FocusMode, SyntaxWarning
+scripts/               # version manifest generator/tests plus automatic Git versioning
 tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ```
 
@@ -56,10 +59,11 @@ tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 - `ComparisonWorkspace` is a standalone non-modal view with independent Left and Right editors. `ComparisonResult` compares the pasted sides using aligned line- and word-level `diffLines` output, with Clear returning to blank editing; Comparison state is intentionally not persisted with Formatter workspace data.
 - About is a fixed FAB with developer credit for Danh Michael Mujar and a LinkedIn link; its separate changelog view uses static `APP_VERSION`/`CHANGELOG_ENTRIES` from `src/constants/release.ts`.
 - About and changelog use `role="dialog"`/`aria-modal`, focus the close control, trap Tab, close on Escape/backdrop, restore the trigger focus, and set the app background `inert`. Comparison is a non-modal in-app surface and does not use dialog focus trapping, backdrop dismissal, or `inert`.
+- `public/version.json` is generated (and ignored) before `dev` and `build`. `useVersionUpdate` checks it on startup, visible-tab return, and every 30 minutes, stores the last announced version under `text-markdown-formatter:last-notified-version:v1`, and fails silently on unavailable, malformed, stale, or timed-out manifests. A newer version uses the existing global toast with a persistent Reload action.
 
 ## Tests
 
-- Vitest: `vite.config.ts:15` `environment:jsdom`, `include: ['src/**/*.{test,spec}.{ts,tsx}']`, `exclude: ['tests']`. 11 files / 92 tests under `src/**/__tests__/`; `npm run test` also runs `scripts/auto-version.test.mjs`.
+- Vitest: `vite.config.ts:15` `environment:jsdom`, `include: ['src/**/*.{test,spec}.{ts,tsx}']`, `exclude: ['tests']`. 14 files / 104 tests under `src/**/__tests__/`; `npm run test` also runs the Node manifest/versioning tests.
 - Versioning tests: `scripts/auto-version.test.mjs` uses Node’s built-in runner and disposable Git
   repositories to verify parsing, synchronized writes, hook setup, and same-commit behavior.
 - Playwright: `playwright.config.ts:4` `testDir: ./tests`, `baseURL: http://localhost:4173`, single `chromium` project, `webServer: npm run preview -- --port 4173` with `reuseExistingServer: !CI`. Must `npm run build` before `npm run a11y:check`.
@@ -67,6 +71,7 @@ tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ## Gotchas
 
 - Both `bun.lock` and `package-lock.json` exist; scripts assume `npm` (Playwright `webServer` uses `npm run preview`).
+- `npm run dev` and `npm run build` invoke `npm run version:manifest` through npm lifecycle hooks; do not commit the generated `public/version.json`.
 - `npm install` runs `prepare`, which configures the repository-local `.githooks/post-commit` hook.
   The hook amends the just-created commit once under a recursion guard; `git commit --no-verify` does
   not skip post-commit. For an emergency bypass, use `TEXT_MARKDOWN_FORMATTER_SKIP=1` and then run

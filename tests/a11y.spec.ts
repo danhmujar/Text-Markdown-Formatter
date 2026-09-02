@@ -13,6 +13,26 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
+  test('new-version notification exposes a persistent accessible reload action', async ({
+    page,
+  }) => {
+    const availableVersion = '99.0.0';
+    await page.route('**/version.json*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ version: availableVersion }),
+      });
+    });
+    await page.goto('/');
+
+    const notification = page.getByRole('status').filter({
+      hasText: `Version ${availableVersion} is available.`,
+    });
+    await expect(notification).toBeVisible();
+    await expect(notification.getByRole('button', { name: 'Reload' })).toBeVisible();
+    await expect(notification.getByRole('button', { name: 'Close notification' })).toBeVisible();
+  });
+
   test('settings dialog has accessible name and focus trap', async ({ page }) => {
     await page.goto('/');
     const settingsBtn = page.locator('#editor-settings-btn');

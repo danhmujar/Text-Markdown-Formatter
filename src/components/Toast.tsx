@@ -1,19 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info';
+
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
 
 export interface ToastMessage {
   id: string;
   msg: string;
   type: ToastType;
+  action?: ToastAction;
+  duration?: number | null;
 }
 
-export function showToast(msg: string, type: ToastType = 'info'): void {
+export function showToast(
+  msg: string,
+  type: ToastType = 'info',
+  options?: Pick<ToastMessage, 'action' | 'duration'>,
+): void {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent<Omit<ToastMessage, 'id'>>('app-toast', {
-        detail: { msg, type },
+        detail: { msg, type, ...options },
       }),
     );
   }
@@ -21,6 +32,7 @@ export function showToast(msg: string, type: ToastType = 'info'): void {
 
 export const ToastContainer: React.FC = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const timeoutIdsRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
     const handleToastEvent = (e: Event) => {
@@ -31,20 +43,35 @@ export const ToastContainer: React.FC = () => {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         msg: customEvent.detail.msg,
         type: customEvent.detail.type || 'info',
+        action: customEvent.detail.action,
+        duration: customEvent.detail.duration,
       };
 
       setToasts((prev) => [...prev.slice(-4), newToast]);
 
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
-      }, 4000);
+      if (newToast.duration !== null) {
+        const timeoutId = setTimeout(() => {
+          timeoutIdsRef.current.delete(newToast.id);
+          setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
+        }, newToast.duration ?? 4000);
+        timeoutIdsRef.current.set(newToast.id, timeoutId);
+      }
     };
 
     window.addEventListener('app-toast', handleToastEvent);
-    return () => window.removeEventListener('app-toast', handleToastEvent);
+    return () => {
+      window.removeEventListener('app-toast', handleToastEvent);
+      timeoutIdsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+      timeoutIdsRef.current.clear();
+    };
   }, []);
 
   const removeToast = (id: string) => {
+    const timeoutId = timeoutIdsRef.current.get(id);
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+      timeoutIdsRef.current.delete(id);
+    }
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
@@ -93,6 +120,18 @@ export const ToastContainer: React.FC = () => {
               )}
             </div>
             <p className="flex-1 leading-relaxed break-words">{toast.msg}</p>
+            {toast.action && (
+              <button
+                type="button"
+                onClick={() => {
+                  removeToast(toast.id);
+                  toast.action?.onClick();
+                }}
+                className="shrink-0 rounded px-2 py-1 font-semibold text-blue-300 hover:text-blue-100 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+              >
+                {toast.action.label}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => removeToast(toast.id)}

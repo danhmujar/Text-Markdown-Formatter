@@ -13,6 +13,7 @@ import { useCopy } from './hooks/useCopy';
 import { hasBrTags, convertBrToNewlines } from './utils/markdownFormatter';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
+import { useVersionUpdate } from './hooks/useVersionUpdate';
 import { getPrimaryForTheme } from './constants/themes';
 
 type AppMode = 'formatter' | 'comparison';
@@ -39,6 +40,7 @@ export default function App() {
   const [appMode, setAppMode] = useState<AppMode>('formatter');
 
   const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
+  useVersionUpdate();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [changelogOpen, setChangelogOpen] = useState(false);
   const aboutTriggerRef = useRef<HTMLButtonElement>(null);

@@ -2,7 +2,7 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.2.4**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.3.0**.
 
 ## Features
 
@@ -16,6 +16,7 @@ Convert input text and Markdown — with nested lists, tables, custom line break
 - **Workspace Persistence** — grid content and per-cell output overrides are restored on reload and saved to `localStorage` under `text-markdown-formatter:workspace` (version 1) with debounced writes; **New** clears the workspace and removes the saved state.
 - **Standalone Comparison workspace** — open Comparison from the Header, paste independent Left and Right text, then Compare to see aligned line- and word-level discrepancy highlighting with spacer rows. Clear empties both sides and returns to the blank editing view; Comparison uses the Formatter’s shared font-size setting.
 - **About & Release Information** — a fixed About FAB opens app details, version metadata, developer credit for Danh Michael Mujar, and a separate changelog dialog with static release entries.
+- **Version update notifications** — the app checks a generated same-origin manifest on startup, when a hidden tab becomes visible, and every 30 minutes. A newer release appears as a persistent Reload toast, with one notification per version in each browser profile; unavailable or malformed manifests fail silently.
 - **Theming** — CSS variables (`styles/themes.css:1`) ported from `Calculator` (default plus seven named themes × light/dark at 5% lighten), `body.theme-*` + `body.dark-theme` classes, `localStorage` `formatter-theme-v1` persistence, `ThemePicker` radiogroup + `ThemeSlider` 68×34 animated toggle; `Copy All`/`Preview` and badges use `var(--primary-blue)`/`var(--accent-bg)`.
 - **Accessibility** — WCAG 2.1 AA axe checks, skip link, keyboard-labeled controls, a non-modal Comparison workspace, modal About/changelog dialogs with focus trapping and inert background content, Escape-to-close, focus restoration, `aria-live` counters, and `jsx-a11y` linting.
 
@@ -29,6 +30,7 @@ npm run dev        # http://localhost:3000
 ```bash
 npm run build      # production build → dist/
 npm run preview    # serve dist/ (Playwright uses :4173)
+npm run version:manifest # regenerate public/version.json on demand
 ```
 
 No backend required. Optional env vars are documented in `.env.example` (`GEMINI_API_KEY`, `APP_URL`) and only needed when deploying via AI Studio/Cloud Run.
@@ -50,6 +52,12 @@ logical commit, tag, push, or changelog entry. Changelog entries remain curated 
 same read-only check. The post-commit hook still runs with `git commit --no-verify`, so an emergency
 bypass should use `TEXT_MARKDOWN_FORMATTER_SKIP=1 git commit ...` and be followed by
 `npm run version:check`.
+
+The generated `public/version.json` is intentionally not part of the synchronized Git surfaces. npm
+runs `version:manifest` automatically before `dev` and `build`, and Vite serves/copies the manifest at
+`/version.json`. The browser requests it with a cache-busting query and `cache: 'no-store'`; update
+checks are silent on network, timeout, validation, or storage errors. The last announced version is
+stored under `text-markdown-formatter:last-notified-version:v1`.
 
 When you intentionally publish a release, review the generated commit first, then create and push a
 tag explicitly:
@@ -73,6 +81,7 @@ git push origin main --follow-tags
 | `npm run test:versioning`                                      | Node versioning and hook integration tests         |
 | `npm run prepare`                                              | Configure repository-local `.githooks`             |
 | `npm run version:check`                                        | Verify all version surfaces are synchronized       |
+| `npm run version:manifest`                                     | Generate the ignored `public/version.json`         |
 | `npx vitest run src/utils/__tests__/markdownFormatter.test.ts` | Single file                                        |
 | `npx vitest run -t "test name"`                                | Single test by name                                |
 | `npm run a11y:check`                                           | `playwright test` (requires `npm run build` first) |
@@ -108,6 +117,7 @@ src/
     useGridActions.ts    # cell add/clear/cleanup/paste helpers
     useOutputActions.ts  # output edit, numbering, inline format
     useCopy.ts           # clipboard logic
+    useVersionUpdate.ts  # manifest polling, visibility checks, deduplication, update toast
   styles/
     themes.css           # :root / body.dark-theme / body.theme-* vars + slider/picker styles (Calculator port)
   utils/
@@ -118,6 +128,7 @@ src/
     lineDiff.ts          # aligned line- and word-level comparison
     sanitize.ts          # sanitizeOutputHtml + copyFormattedTextToClipboard
     security/sanitize.ts # DOMPurify wrapper
+    version.ts            # strict browser-safe SemVer comparison
     syntaxValidator.ts   # analyzeSyntaxWarnings
     textWrap.ts          # isWrappedParagraph heuristic
   constants/
@@ -125,6 +136,9 @@ src/
     themes.ts            # ColorTheme, THEME_SWATCHES, THEME_PRIMARIES, getPrimaryForTheme
     fonts.ts / theme.ts
   types.ts               # StyleOptions, FocusMode, SyntaxWarning
+scripts/
+  generate-version-manifest.mjs # validates package version and writes public/version.json
+  version-manifest.test.mjs     # manifest generator tests
 tests/
   a11y.spec.ts           # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ```
@@ -136,6 +150,7 @@ Key invariants:
 - Preview and clipboard both go through `sanitizeHtml` before DOM styling; clipboard additionally wraps with `<!DOCTYPE html>…<!--StartFragment-->`.
 - Workspace persistence stores `{ version: 1, grid, outputOverrides }` under `text-markdown-formatter:workspace`; restored state is copied into app state, writes are debounced, and **New** clears both state and storage.
 - Comparison owns transient Left/Right text and a result view separate from the Formatter grid. `ComparisonResult` uses `diffLines` for aligned line- and word-level highlighting; Comparison state is intentionally not persisted.
+- `public/version.json` is generated before `dev` and `build`, ignored by Git, and contains only the synchronized package version. `useVersionUpdate` checks it on startup, visible-tab return, and a 30-minute interval; it stores the last announced version under `text-markdown-formatter:last-notified-version:v1` and fails silently when the manifest is unavailable.
 
 ## Configuration
 
@@ -147,11 +162,11 @@ Key invariants:
 - **TypeScript** `strict` with `noUnusedLocals/Parameters`, `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`, `noEmit`.
 - **ESLint** `typescript-eslint` + `jsx-a11y`; **Prettier** `printWidth:100, singleQuote, trailingComma:all` (ignores `dist`, `node_modules`, `.playwright-mcp`, `docs`).
 - **CSP** in `index.html:8` (`default-src 'self'`, `style-src 'self' 'unsafe-inline'`) — external scripts/styles are blocked.
-- **Build** chunks `vendor`/`marked`/`ui`/`purify` separately; `esbuild.drop: ['console','debugger']` strips logs in prod only; `DISABLE_HMR=true` disables HMR/watch for AI Studio.
+- **Build** runs `version:manifest` through npm’s `predev`/`prebuild` lifecycle, then chunks `vendor`/`marked`/`ui`/`purify` separately; `esbuild.drop: ['console','debugger']` strips logs in prod only; `DISABLE_HMR=true` disables HMR/watch for AI Studio.
 
 ## Testing
 
-- **Unit** — `vite.config.ts:15` (`environment:jsdom`, `include: src/**/*.{test,spec}.{ts,tsx}`, `exclude: tests`). Run `npm run test`; 11 files / 92 tests.
+- **Unit** — `vite.config.ts:15` (`environment:jsdom`, `include: src/**/*.{test,spec}.{ts,tsx}`, `exclude: tests`). Run `npm run test`; 14 files / 104 tests, plus Node manifest/versioning tests.
 - **A11y/E2E** — `playwright.config.ts:4` (`testDir: ./tests`, `baseURL: http://localhost:4173`, `webServer: npm run preview -- --port 4173`, single `chromium` project). Must `npm run build` before `npm run a11y:check`.
 
 ## Shortcuts
