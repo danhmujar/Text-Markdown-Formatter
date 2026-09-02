@@ -10,6 +10,7 @@ import {
   Type,
   Sun,
   Moon,
+  GitCompare,
 } from 'lucide-react';
 import { StyleOptions, FocusMode } from '../types';
 import { FONT_OPTIONS } from '../constants/fonts';
@@ -28,6 +29,8 @@ interface HeaderProps {
   focusMode?: FocusMode;
   activePanel?: 'input' | 'output';
   onToggleFocusMode?: () => void;
+  onToggleComparisonMode: () => void;
+  isComparisonMode: boolean;
   colorTheme: ColorTheme;
   isDark: boolean;
   onToggleDarkMode: () => void;
@@ -45,6 +48,8 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   focusMode = 'split',
   activePanel = 'input',
   onToggleFocusMode,
+  onToggleComparisonMode,
+  isComparisonMode,
   colorTheme,
   isDark,
   onToggleDarkMode,
@@ -63,7 +68,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
 
   return (
     <header
@@ -156,10 +160,36 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
               }`}
               title="Start a new blank session / Clear all cells"
             >
-              <FilePlus2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5 text-blue-500" />
+              <FilePlus2
+                aria-hidden="true"
+                focusable="false"
+                className="w-3.5 h-3.5 text-blue-500"
+              />
               <span>New</span>
             </button>
           )}
+
+          {/* Standalone Comparison Mode */}
+          <button
+            id="comparison-mode-btn"
+            type="button"
+            onClick={onToggleComparisonMode}
+            aria-label={isComparisonMode ? 'Exit Comparison Mode' : 'Open Comparison Mode'}
+            aria-pressed={isComparisonMode}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+              isComparisonMode
+                ? isDark
+                  ? 'bg-blue-950/70 border-blue-600/70 text-blue-300 hover:bg-blue-900/70 shadow-2xs'
+                  : 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100 shadow-2xs'
+                : isDark
+                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+            title={isComparisonMode ? 'Return to Formatter' : 'Open Comparison Mode'}
+          >
+            <GitCompare aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+            <span>Comparison</span>
+          </button>
 
           {/* Undo / Redo Control Group */}
           <div
@@ -258,7 +288,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
               </>
             )}
           </button>
-
 
           {/* Font Selector */}
           <div
@@ -376,268 +405,309 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             className="sm:hidden absolute top-full left-0 right-0 p-4 bg-[var(--panel-bg)] border-t border-b shadow-xl max-h-[calc(100vh-56px)] overflow-y-auto space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-150 z-40"
             style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--panel-bg)' }}
           >
-          {/* Group 1: Session & History Actions */}
-          <div>
-            <span
-              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Actions &amp; History
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              {onClearAll && (
-                <button
-                  id="mobile-new-btn"
-                  type="button"
-                  onClick={() => {
-                    onClearAll();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                    isDark
-                      ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <FilePlus2 aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-500" />
-                  <span>New</span>
-                </button>
-              )}
-
-              <button
-                id="mobile-undo-btn"
-                type="button"
-                onClick={onUndo}
-                disabled={!canUndo}
-                aria-disabled={!canUndo}
-                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                  canUndo
-                    ? isDark
-                      ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
-                    : isDark
-                      ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
-                      : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
-                }`}
+            {/* Group 1: Session & History Actions */}
+            <div>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+                style={{ color: 'var(--text-secondary)' }}
               >
-                <Undo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
-                <span>Undo</span>
-              </button>
-
-              <button
-                id="mobile-redo-btn"
-                type="button"
-                onClick={onRedo}
-                disabled={!canRedo}
-                aria-disabled={!canRedo}
-                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                  canRedo
-                    ? isDark
-                      ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
-                    : isDark
-                      ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
-                      : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
-                }`}
-              >
-                <Redo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
-                <span>Redo</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Group 2: View & Formatting Options */}
-          <div>
-            <span
-              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              View &amp; Formatting
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                id="mobile-focus-mode-btn"
-                type="button"
-                onClick={() => {
-                  onToggleFocusMode?.();
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                  isFocused
-                    ? isDark
-                      ? 'bg-blue-950/70 border-blue-600/70 text-blue-300'
-                      : 'bg-blue-50 border-blue-300 text-blue-700'
-                    : isDark
-                      ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                {isFocused ? (
-                  <>
-                    <Minimize2 aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-400" />
-                    <span>Exit Focus ({focusMode})</span>
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 aria-hidden="true" focusable="false" className="w-4 h-4" />
-                    <span>Focus Mode</span>
-                  </>
-                )}
-              </button>
-
-            </div>
-          </div>
-
-          {/* Group 3: Typography Settings */}
-          <div>
-            <span
-              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Typography
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* Font selector */}
-              <div
-                className={`flex items-center justify-between rounded-md px-3 py-2 border min-h-[44px] ${
-                  isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
-                }`}
-              >
-                <label
-                  htmlFor="mobile-font-family-select"
-                  className={`text-xs font-medium flex items-center gap-1.5 ${
-                    isDark ? 'text-slate-300' : 'text-slate-600'
-                  }`}
-                >
-                  <Type aria-hidden="true" focusable="false" className="w-4 h-4" />
-                  Font:
-                </label>
-                <select
-                  id="mobile-font-family-select"
-                  value={options.fontFamily}
-                  onChange={(e) => setOptions((prev) => ({ ...prev, fontFamily: e.target.value }))}
-                  aria-label="Select typography font family"
-                  className={`bg-transparent text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded cursor-pointer py-1 ${
-                    isDark ? 'text-slate-200' : 'text-slate-800'
-                  }`}
-                >
-                  {FONT_OPTIONS.map((f) => (
-                    <option
-                      key={f.label}
-                      value={f.value}
-                      className={isDark ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}
-                    >
-                      {f.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Font size */}
-              <div
-                className={`flex items-center justify-between rounded-md border min-h-[44px] px-2 ${
-                  isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
-                }`}
-              >
-                <span
-                  className={`text-xs font-medium pl-1 ${
-                    isDark ? 'text-slate-300' : 'text-slate-600'
-                  }`}
-                >
-                  Font Size
-                </span>
-                <div className="flex items-center gap-1">
+                Actions &amp; History
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                {onClearAll && (
                   <button
-                    id="mobile-font-size-decrease-btn"
+                    id="mobile-new-btn"
                     type="button"
-                    onClick={() => setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
-                    aria-label="Decrease font size"
-                    className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                    onClick={() => {
+                      onClearAll();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
                       isDark
-                        ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
-                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    -
+                    <FilePlus2
+                      aria-hidden="true"
+                      focusable="false"
+                      className="w-4 h-4 text-blue-500"
+                    />
+                    <span>New</span>
                   </button>
-                  <span
-                    className={`font-mono text-xs font-semibold px-2 min-w-[36px] text-center ${
+                )}
+
+                <button
+                  id="mobile-comparison-mode-btn"
+                  type="button"
+                  onClick={() => {
+                    onToggleComparisonMode();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  aria-label={isComparisonMode ? 'Exit Comparison Mode' : 'Open Comparison Mode'}
+                  aria-pressed={isComparisonMode}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                    isComparisonMode
+                      ? isDark
+                        ? 'bg-blue-950/70 border-blue-600/70 text-blue-300'
+                        : 'bg-blue-50 border-blue-300 text-blue-700'
+                      : isDark
+                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <GitCompare aria-hidden="true" focusable="false" className="w-4 h-4" />
+                <span>Comparison</span>
+                </button>
+
+                <button
+                  id="mobile-undo-btn"
+                  type="button"
+                  onClick={onUndo}
+                  disabled={!canUndo}
+                  aria-disabled={!canUndo}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                    canUndo
+                      ? isDark
+                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
+                      : isDark
+                        ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
+                        : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  <Undo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                  <span>Undo</span>
+                </button>
+
+                <button
+                  id="mobile-redo-btn"
+                  type="button"
+                  onClick={onRedo}
+                  disabled={!canRedo}
+                  aria-disabled={!canRedo}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                    canRedo
+                      ? isDark
+                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
+                      : isDark
+                        ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
+                        : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  <Redo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                  <span>Redo</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Group 2: View & Formatting Options */}
+            <div>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                View &amp; Formatting
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  id="mobile-focus-mode-btn"
+                  type="button"
+                  onClick={() => {
+                    onToggleFocusMode?.();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                    isFocused
+                      ? isDark
+                        ? 'bg-blue-950/70 border-blue-600/70 text-blue-300'
+                        : 'bg-blue-50 border-blue-300 text-blue-700'
+                      : isDark
+                        ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {isFocused ? (
+                    <>
+                      <Minimize2
+                        aria-hidden="true"
+                        focusable="false"
+                        className="w-4 h-4 text-blue-400"
+                      />
+                      <span>Exit Focus ({focusMode})</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                      <span>Focus Mode</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Group 3: Typography Settings */}
+            <div>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Typography
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Font selector */}
+                <div
+                  className={`flex items-center justify-between rounded-md px-3 py-2 border min-h-[44px] ${
+                    isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <label
+                    htmlFor="mobile-font-family-select"
+                    className={`text-xs font-medium flex items-center gap-1.5 ${
+                      isDark ? 'text-slate-300' : 'text-slate-600'
+                    }`}
+                  >
+                    <Type aria-hidden="true" focusable="false" className="w-4 h-4" />
+                    Font:
+                  </label>
+                  <select
+                    id="mobile-font-family-select"
+                    value={options.fontFamily}
+                    onChange={(e) =>
+                      setOptions((prev) => ({ ...prev, fontFamily: e.target.value }))
+                    }
+                    aria-label="Select typography font family"
+                    className={`bg-transparent text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded cursor-pointer py-1 ${
                       isDark ? 'text-slate-200' : 'text-slate-800'
                     }`}
                   >
-                    {options.fontSize}pt
-                  </span>
-                  <button
-                    id="mobile-font-size-increase-btn"
-                    type="button"
-                    onClick={() => setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))}
-                    aria-label="Increase font size"
-                    className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                      isDark
-                        ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
-                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    {FONT_OPTIONS.map((f) => (
+                      <option
+                        key={f.label}
+                        value={f.value}
+                        className={
+                          isDark ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'
+                        }
+                      >
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Font size */}
+                <div
+                  className={`flex items-center justify-between rounded-md border min-h-[44px] px-2 ${
+                    isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <span
+                    className={`text-xs font-medium pl-1 ${
+                      isDark ? 'text-slate-300' : 'text-slate-600'
                     }`}
                   >
-                    +
-                  </button>
+                    Font Size
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      id="mobile-font-size-decrease-btn"
+                      type="button"
+                      onClick={() =>
+                        setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))
+                      }
+                      aria-label="Decrease font size"
+                      className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                        isDark
+                          ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                          : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                      }`}
+                    >
+                      -
+                    </button>
+                    <span
+                      className={`font-mono text-xs font-semibold px-2 min-w-[36px] text-center ${
+                        isDark ? 'text-slate-200' : 'text-slate-800'
+                      }`}
+                    >
+                      {options.fontSize}pt
+                    </span>
+                    <button
+                      id="mobile-font-size-increase-btn"
+                      type="button"
+                      onClick={() =>
+                        setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))
+                      }
+                      aria-label="Increase font size"
+                      className={`w-8 h-8 rounded flex items-center justify-center font-bold text-sm transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                        isDark
+                          ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                          : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                      }`}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Group 4: Theme & Appearance */}
-          <div>
-            <span
-              className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Theme &amp; Appearance
-            </span>
-            <div
-              className={`p-3 rounded-md border space-y-3 ${
-                isDark ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-50 border-slate-200'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium">
-                  Mode: <strong className="font-semibold">{isDark ? 'Dark Theme' : 'Light Theme'}</strong>
-                </span>
-                <ThemeSlider isDark={isDark} onToggle={onToggleDarkMode} />
-              </div>
+            {/* Group 4: Theme & Appearance */}
+            <div>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Theme &amp; Appearance
+              </span>
+              <div
+                className={`p-3 rounded-md border space-y-3 ${
+                  isDark ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">
+                    Mode:{' '}
+                    <strong className="font-semibold">
+                      {isDark ? 'Dark Theme' : 'Light Theme'}
+                    </strong>
+                  </span>
+                  <ThemeSlider isDark={isDark} onToggle={onToggleDarkMode} />
+                </div>
 
-              <div>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1.5">
-                  Color Accent:
-                </span>
-                <div
-                  className="grid grid-cols-4 gap-2.5 pt-1"
-                  role="radiogroup"
-                  aria-label="Mobile color theme selection"
-                >
-                  {THEME_SWATCHES.map((s) => {
-                    const active = s.id === colorTheme;
-                    return (
-                      <button
-                        key={`mobile-swatch-${s.id || 'default'}`}
-                        id={`mobile-swatch-${s.id || 'default'}`}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        aria-label={s.title}
-                        title={s.title}
-                        onClick={() => {
-                          onSelectColorTheme(s.id);
-                        }}
-                        className={`theme-swatch ${active ? 'active' : ''}`}
-                        style={{ backgroundColor: s.color }}
-                      />
-                    );
-                  })}
+                <div>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1.5">
+                    Color Accent:
+                  </span>
+                  <div
+                    className="grid grid-cols-4 gap-2.5 pt-1"
+                    role="radiogroup"
+                    aria-label="Mobile color theme selection"
+                  >
+                    {THEME_SWATCHES.map((s) => {
+                      const active = s.id === colorTheme;
+                      return (
+                        <button
+                          key={`mobile-swatch-${s.id || 'default'}`}
+                          id={`mobile-swatch-${s.id || 'default'}`}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          aria-label={s.title}
+                          title={s.title}
+                          onClick={() => {
+                            onSelectColorTheme(s.id);
+                          }}
+                          className={`theme-swatch ${active ? 'active' : ''}`}
+                          style={{ backgroundColor: s.color }}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </nav>
+          </nav>
         </>
       )}
     </header>

@@ -214,19 +214,19 @@ persistence, or theme behavior.
 
 ### Task checklist
 
-- [ ] Add `AppMode` and `appMode` state to `src/App.tsx`.
-- [ ] Keep Header common and add an app-level Comparison Mode callback/active-state prop.
-- [ ] Add a desktop Comparison Mode action near existing Header session actions.
-- [ ] Add the same action to the mobile menu with a minimum 44px target and menu dismissal.
-- [ ] Mount Formatter and `ComparisonWorkspace` once and toggle native `hidden` wrappers.
-- [ ] Wire `Back to Formatter` to switch only `appMode`.
-- [ ] Remove `ComparisonDialog` import, state, trigger ref, callback, and JSX from `App.tsx`.
-- [ ] Remove `onCompareCell` from `Preview` and `onCompare` from `OutputCell` plus the per-cell
+- [x] Add `AppMode` and `appMode` state to `src/App.tsx`.
+- [x] Keep Header common and add an app-level Comparison Mode callback/active-state prop.
+- [x] Add a desktop Comparison Mode action near existing Header session actions.
+- [x] Add the same action to the mobile menu with a minimum 44px target and menu dismissal.
+- [x] Mount Formatter and `ComparisonWorkspace` once and toggle native `hidden` wrappers.
+- [x] Wire `Back to Formatter` to switch only `appMode`.
+- [x] Remove `ComparisonDialog` import, state, trigger ref, callback, and JSX from `App.tsx`.
+- [x] Remove `onCompareCell` from `Preview` and `onCompare` from `OutputCell` plus the per-cell
   Compare button.
-- [ ] Delete `src/components/ComparisonDialog.tsx` after its renderer is transferred.
-- [ ] Verify no `Compare input and output`, `Input Markdown`, or `Effective Output` comparison
+- [x] Delete `src/components/ComparisonDialog.tsx` after its renderer is transferred.
+- [x] Verify no `Compare input and output`, `Input Markdown`, or `Effective Output` comparison
   labels remain in production code.
-- [ ] Leave `getOutputContent`, `useGridHistory`, `useWorkspacePersistence`, formatter grid, and
+- [x] Leave `getOutputContent`, `useGridHistory`, `useWorkspacePersistence`, formatter grid, and
   output override behavior unchanged.
 
 ### Documentation references
@@ -242,14 +242,14 @@ persistence, or theme behavior.
 
 ### Verification checklist
 
-- [ ] Comparison Mode is reachable from desktop Header and mobile menu.
-- [ ] Active mode is communicated with `aria-pressed` or equivalent.
-- [ ] Formatter content survives entering and leaving Comparison mode unchanged.
-- [ ] Comparison state survives hide/re-enter within one App session.
-- [ ] Inactive workspace controls are absent from the accessibility tree via native `hidden`.
-- [ ] No per-cell Compare controls or modal comparison identifiers remain.
-- [ ] No formatter persistence/history APIs receive comparison values.
-- [ ] Existing formatter behavior is unchanged outside the new mode.
+- [x] Comparison Mode is reachable from desktop Header and mobile menu.
+- [x] Active mode is communicated with `aria-pressed` or equivalent.
+- [x] Formatter content survives entering and leaving Comparison mode unchanged.
+- [x] Comparison state survives hide/re-enter within one App session.
+- [x] Inactive workspace controls are absent from the accessibility tree via native `hidden`.
+- [x] No per-cell Compare controls or modal comparison identifiers remain.
+- [x] No formatter persistence/history APIs receive comparison values.
+- [x] Existing formatter behavior is unchanged outside the new mode.
 
 ### Acceptance criteria covered
 
@@ -361,7 +361,7 @@ AC1 through AC11.
 
 - [x] Phase 1: Extract the neutral aligned result component.
 - [x] Phase 2: Build the standalone Comparison workspace.
-- [ ] Phase 3: Integrate app mode and remove the per-cell modal surface.
+- [x] Phase 3: Integrate app mode and remove the per-cell modal surface.
 - [ ] Phase 4: Replace browser/accessibility coverage with standalone flows.
 - [ ] Phase 5: Run full verification and reconcile stale documentation/terminology.
 

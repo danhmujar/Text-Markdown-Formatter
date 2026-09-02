@@ -12,7 +12,6 @@ interface PreviewProps {
   options: StyleOptions;
   getOutputContent: (rowIndex: number, colIndex: number) => string;
   hasOverride: (rowIndex: number, colIndex: number) => boolean;
-  onCompareCell: (rowIndex: number, colIndex: number) => void;
   onOutputChange: (rowIndex: number, colIndex: number, val: string, isTyping?: boolean) => void;
   onResetOutputCell: (rowIndex: number, colIndex: number) => void;
   onCopyCell: (rowIndex: number, colIndex: number) => void;
@@ -29,7 +28,6 @@ interface PreviewProps {
 export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
   grid,
   options,
-  onCompareCell,
   getOutputContent,
   hasOverride,
   onOutputChange,
@@ -279,7 +277,6 @@ export const Preview: React.FC<PreviewProps> = React.memo(function Preview({
                     handleApplyInlineFormat(r, c, wrapper, formatLabel)
                   }
                   onSmartClean={() => handleSmartCleanOutputCell(r, c)}
-                  onCompare={() => onCompareCell(r, c)}
                 />
               );
             }),

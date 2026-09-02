@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AboutDialog } from './components/AboutDialog';
 import { ChangelogDialog } from './components/ChangelogDialog';
-import { ComparisonDialog } from './components/ComparisonDialog';
+import { ComparisonWorkspace } from './components/ComparisonWorkspace';
 import { Header } from './components/Header';
 import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
@@ -14,6 +14,9 @@ import { hasBrTags, convertBrToNewlines } from './utils/markdownFormatter';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
 import { getPrimaryForTheme } from './constants/themes';
+
+type AppMode = 'formatter' | 'comparison';
+
 export default function App() {
   const [persistedInitialState] = useState(() => readWorkspace());
   // State-based history manager for 2D grid matrix and per-cell output overrides
@@ -33,6 +36,7 @@ export default function App() {
   // Focus Mode state: 'split' (both visible), 'input' (input maximized), 'output' (output maximized)
   const [focusMode, setFocusMode] = useState<FocusMode>('split');
   const [activePanel, setActivePanel] = useState<'input' | 'output'>('input');
+  const [appMode, setAppMode] = useState<AppMode>('formatter');
 
   const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -98,9 +102,6 @@ export default function App() {
     clearStorage();
     showToast(hasContent ? 'Started new blank session' : 'Workspace is already empty', 'info');
   }, [clearStorage, grid, outputOverrides, updateAll]);
-  const [comparison, setComparison] = useState<{ row: number; col: number } | null>(null);
-  const comparisonTriggerRef = useRef<HTMLElement | null>(null);
-
   // Global Keyboard Shortcuts:
   // - Undo: Ctrl+Z / ⌘Z
   // - Redo: Ctrl+Y / ⌘⇧Z / ⌘Y
@@ -109,6 +110,8 @@ export default function App() {
   // - Exit Focus Mode: Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (appMode !== 'formatter') return;
+
       // Escape exits Focus Mode to Split View
       if (e.key === 'Escape' && focusMode !== 'split') {
         e.preventDefault();
@@ -154,7 +157,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, focusMode, handleToggleFocusMode, handleClearAll]);
+  }, [undo, redo, focusMode, appMode, handleToggleFocusMode, handleClearAll]);
 
   // Get current effective content for output cell:
   // If the cell was edited in output layer, return override;
@@ -234,123 +237,118 @@ export default function App() {
 
   return (
     <>
-    <div
-      ref={appBackgroundRef}
-      id="app-background"
-      className="flex flex-col h-screen w-screen overflow-hidden transition-colors"
-      style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}
-    >
-      {/* Title + Font + Font Size + Undo/Redo + New/Blank + Focus Mode + Theme Toggle Header */}
-      <Header
-        options={options}
-        setOptions={setOptions}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        onUndo={undo}
-        onRedo={redo}
-        onClearAll={handleClearAll}
-        focusMode={focusMode}
-        activePanel={activePanel}
-        onToggleFocusMode={handleToggleFocusMode}
-        colorTheme={colorTheme}
-        isDark={isDark}
-        onToggleDarkMode={toggleDarkMode}
-        onSelectColorTheme={setColorTheme}
-      />
-
-      {/* Input & Output Panels - In Focus Mode, inactive panel collapses completely */}
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className={`flex-1 overflow-hidden focus:outline-none ${
-          focusMode === 'split' ? 'grid grid-cols-1 lg:grid-cols-2' : 'grid grid-cols-1'
-        }`}
+      <div
+        ref={appBackgroundRef}
+        id="app-background"
+        className="flex flex-col h-screen w-screen overflow-hidden transition-colors"
+        style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}
       >
-        {/* Input Panel */}
-        <section
-          id="input-container-panel"
-          aria-labelledby="input-heading"
-          onFocusCapture={() => setActivePanel('input')}
-          style={{ borderColor: 'var(--border-color)' }}
-          className={`h-full overflow-hidden ${focusMode === 'output' ? 'hidden' : 'block'} ${
-            focusMode === 'split' ? 'border-b lg:border-b-0 lg:border-r' : ''
-          }`}
-        >
-          <Editor
-            grid={grid}
-            onChangeGrid={handleGridChange}
-            theme={options.theme}
-            isFocusMode={focusMode === 'input'}
-            onExitFocus={() => setFocusMode('split')}
-            onSwitchFocus={() => {
-              setActivePanel('output');
-              setFocusMode('output');
-            }}
-          />
-        </section>
+        {/* Title + Font + Font Size + Undo/Redo + New/Blank + Focus Mode + Theme Toggle Header */}
+        <Header
+          options={options}
+          setOptions={setOptions}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+          onClearAll={handleClearAll}
+          focusMode={focusMode}
+          activePanel={activePanel}
+          onToggleFocusMode={handleToggleFocusMode}
+          onToggleComparisonMode={() =>
+            setAppMode((prev) => (prev === 'formatter' ? 'comparison' : 'formatter'))
+          }
+          isComparisonMode={appMode === 'comparison'}
+          colorTheme={colorTheme}
+          isDark={isDark}
+          onToggleDarkMode={toggleDarkMode}
+          onSelectColorTheme={setColorTheme}
+        />
 
-        {/* Output Panel */}
-        <section
-          id="output-container-panel"
-          aria-labelledby="output-heading"
-          onFocusCapture={() => setActivePanel('output')}
-          className={`h-full overflow-hidden ${focusMode === 'input' ? 'hidden' : 'block'}`}
-        >
-          <Preview
-            grid={grid}
-            options={options}
-            getOutputContent={getOutputContent}
-            hasOverride={hasOverride}
-            onOutputChange={handleOutputChange}
-            onResetOutputCell={handleResetOutputCell}
-            onCopyCell={handleCopyCell}
-            onCopyCellExcel={handleCopyCellExcel}
-            onCopyAllGrid={handleCopyAllGrid}
-            onCopyAllGridExcel={handleCopyAllGridExcel}
-            copiedCell={copiedCell}
-            copiedAll={copiedAll}
-            isFocusMode={focusMode === 'output'}
-            onExitFocus={() => setFocusMode('split')}
-            onSwitchFocus={() => {
-              setActivePanel('input');
-              setFocusMode('input');
-            }}
-            onCompareCell={(row, col) => {
-              comparisonTriggerRef.current = document.activeElement as HTMLElement;
-              setComparison({ row, col });
-            }}
-          />
-        </section>
-      </main>
-      <ToastContainer />
-    </div>
-    <AboutDialog
-      open={aboutOpen}
-      onOpen={() => setAboutOpen(true)}
-      onClose={() => setAboutOpen(false)}
-      onOpenChangelog={() => {
-        setAboutOpen(false);
-        setChangelogOpen(true);
-      }}
-      triggerRef={aboutTriggerRef}
-      backgroundRef={appBackgroundRef}
-    />
-    <ChangelogDialog
-      open={changelogOpen}
-      onClose={() => setChangelogOpen(false)}
-      triggerRef={aboutTriggerRef}
-      backgroundRef={appBackgroundRef}
-    />
-    {comparison && (
-      <ComparisonDialog
-        open
-        input={grid[comparison.row]?.[comparison.col] || ''}
-        output={getOutputContent(comparison.row, comparison.col)}
-        onClose={() => setComparison(null)}
-        triggerRef={comparisonTriggerRef}
+        <main id="main-content" tabIndex={-1} className="flex-1 min-h-0 overflow-hidden">
+          <div className="h-full" hidden={appMode !== 'formatter'}>
+            {/* Input & Output Panels - In Focus Mode, inactive panel collapses completely */}
+            <div
+              className={`h-full overflow-hidden focus:outline-none ${
+                focusMode === 'split' ? 'grid grid-cols-1 lg:grid-cols-2' : 'grid grid-cols-1'
+              }`}
+            >
+              {/* Input Panel */}
+              <section
+                id="input-container-panel"
+                aria-labelledby="input-heading"
+                onFocusCapture={() => setActivePanel('input')}
+                style={{ borderColor: 'var(--border-color)' }}
+                className={`h-full overflow-hidden ${focusMode === 'output' ? 'hidden' : 'block'} ${
+                  focusMode === 'split' ? 'border-b lg:border-b-0 lg:border-r' : ''
+                }`}
+              >
+                <Editor
+                  grid={grid}
+                  onChangeGrid={handleGridChange}
+                  theme={options.theme}
+                  isFocusMode={focusMode === 'input'}
+                  onExitFocus={() => setFocusMode('split')}
+                  onSwitchFocus={() => {
+                    setActivePanel('output');
+                    setFocusMode('output');
+                  }}
+                />
+              </section>
+
+              {/* Output Panel */}
+              <section
+                id="output-container-panel"
+                aria-labelledby="output-heading"
+                onFocusCapture={() => setActivePanel('output')}
+                className={`h-full overflow-hidden ${focusMode === 'input' ? 'hidden' : 'block'}`}
+              >
+                <Preview
+                  grid={grid}
+                  options={options}
+                  getOutputContent={getOutputContent}
+                  hasOverride={hasOverride}
+                  onOutputChange={handleOutputChange}
+                  onResetOutputCell={handleResetOutputCell}
+                  onCopyCell={handleCopyCell}
+                  onCopyCellExcel={handleCopyCellExcel}
+                  onCopyAllGrid={handleCopyAllGrid}
+                  onCopyAllGridExcel={handleCopyAllGridExcel}
+                  copiedCell={copiedCell}
+                  copiedAll={copiedAll}
+                  isFocusMode={focusMode === 'output'}
+                  onExitFocus={() => setFocusMode('split')}
+                  onSwitchFocus={() => {
+                    setActivePanel('input');
+                    setFocusMode('input');
+                  }}
+                />
+              </section>
+            </div>
+          </div>
+          <div className="h-full" hidden={appMode !== 'comparison'}>
+            <ComparisonWorkspace onBackToFormatter={() => setAppMode('formatter')} />
+          </div>
+        </main>
+        <ToastContainer />
+      </div>
+      <AboutDialog
+        open={aboutOpen}
+        onOpen={() => setAboutOpen(true)}
+        onClose={() => setAboutOpen(false)}
+        onOpenChangelog={() => {
+          setAboutOpen(false);
+          setChangelogOpen(true);
+        }}
+        triggerRef={aboutTriggerRef}
         backgroundRef={appBackgroundRef}
       />
-    )}
+      <ChangelogDialog
+        open={changelogOpen}
+        onClose={() => setChangelogOpen(false)}
+        triggerRef={aboutTriggerRef}
+        backgroundRef={appBackgroundRef}
+      />
     </>
   );
 }
