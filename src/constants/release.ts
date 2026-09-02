@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.2.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-02',
+    title: 'Standalone Comparison workspace',
+    description:
+      'Comparison is now a dedicated in-app workspace with blank Left and Right editors, aligned line- and word-level diff highlighting, Clear, and shared Formatter font sizing.',
+  },
   {
     date: '2026-08-28',
     title: 'Workspace persistence',
@@ -8,8 +14,8 @@ export const CHANGELOG_ENTRIES = [
   },
   {
     date: '2026-08-28',
-    title: 'Side-by-side comparison',
-    description: 'Compare raw Markdown with the effective output for each cell.',
+    title: 'Comparison foundation',
+    description: 'Added the aligned line- and word-level diff engine that powers Comparison.',
   },
   {
     date: '2026-08-28',
