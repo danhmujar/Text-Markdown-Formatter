@@ -158,17 +158,17 @@ or modal refs.
 
 ### Task checklist
 
-- [ ] Add `ComparisonWorkspace` with local blank Left/Right text and editing/result state.
-- [ ] Render accessible `label`/`textarea` pairs with stable IDs
+- [x] Add `ComparisonWorkspace` with local blank Left/Right text and editing/result state.
+- [x] Render accessible `label`/`textarea` pairs with stable IDs
   `comparison-left-textarea` and `comparison-right-textarea`.
-- [ ] Add paste-friendly placeholders, Compare, Edit comparison, and Back to Formatter controls.
-- [ ] Keep Compare enabled for empty, one-sided, whitespace-only, and populated text.
-- [ ] Preserve both sides when entering result, returning to edit, navigating back, and re-entering
+- [x] Add paste-friendly placeholders, Compare, Edit comparison, and Back to Formatter controls.
+- [x] Keep Compare enabled for empty, one-sided, whitespace-only, and populated text.
+- [x] Preserve both sides when entering result, returning to edit, navigating back, and re-entering
   during the same App session.
-- [ ] Ensure no stale result remains visible while editing.
-- [ ] Compose `ComparisonResult` with Left/Right labels and aligned row hooks.
-- [ ] Keep editing usable on narrow screens and result rows in one shared scroll container.
-- [ ] Use theme variables and React text nodes; add no persistence or formatter-state calls.
+- [x] Ensure no stale result remains visible while editing.
+- [x] Compose `ComparisonResult` with Left/Right labels and aligned row hooks.
+- [x] Keep editing usable on narrow screens and result rows in one shared scroll container.
+- [x] Use theme variables and React text nodes; add no persistence or formatter-state calls.
 
 ### Documentation references
 
@@ -181,15 +181,15 @@ or modal refs.
 
 ### Verification checklist
 
-- [ ] Fresh mount shows blank Left and Right textareas.
-- [ ] Filling one side never changes the other side.
-- [ ] Compare switches to a result without changing either string.
-- [ ] Edit comparison returns to both textareas with exact values preserved.
-- [ ] Back to Formatter calls only the supplied navigation callback.
-- [ ] Re-entering while mounted preserves text and current editing/result view.
-- [ ] The workspace has no `role="dialog"`, `aria-modal`, inert mutation, backdrop, focus trap,
+- [x] Fresh mount shows blank Left and Right textareas.
+- [x] Filling one side never changes the other side.
+- [x] Compare switches to a result without changing either string.
+- [x] Edit comparison returns to both textareas with exact values preserved.
+- [x] Back to Formatter calls only the supplied navigation callback.
+- [x] Re-entering while mounted preserves text and current editing/result view.
+- [x] The workspace has no `role="dialog"`, `aria-modal`, inert mutation, backdrop, focus trap,
   or modal Escape handling.
-- [ ] Empty and identical result states remain explicit.
+- [x] Empty and identical result states remain explicit.
 
 ### Acceptance criteria covered
 
@@ -360,7 +360,7 @@ AC1 through AC11.
 ## Consolidated task list
 
 - [x] Phase 1: Extract the neutral aligned result component.
-- [ ] Phase 2: Build the standalone Comparison workspace.
+- [x] Phase 2: Build the standalone Comparison workspace.
 - [ ] Phase 3: Integrate app mode and remove the per-cell modal surface.
 - [ ] Phase 4: Replace browser/accessibility coverage with standalone flows.
 - [ ] Phase 5: Run full verification and reconcile stale documentation/terminology.
