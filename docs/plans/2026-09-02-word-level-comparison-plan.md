@@ -241,20 +241,20 @@ dialog does not mutate either value.
 
 ### Task checklist
 
-- [ ] Retain `OutputCell`'s existing Compare ID and accessible name.
-- [ ] Retain the Preview callback route and App's raw-input/effective-output operand selection.
-- [ ] Extend `tests/a11y.spec.ts` or add a focused Playwright spec using semantic diff hooks rather
+- [x] Retain `OutputCell`'s existing Compare ID and accessible name.
+- [x] Retain the Preview callback route and App's raw-input/effective-output operand selection.
+- [x] Extend `tests/a11y.spec.ts` or add a focused Playwright spec using semantic diff hooks rather
   than Tailwind class-string ordering.
-- [ ] Verify raw input appears only in the input column and an edited effective override appears in
+- [x] Verify raw input appears only in the input column and an edited effective override appears in
   the output column.
-- [ ] Verify replacement rows contain changed-word segments on both sides.
-- [ ] Verify insertion and deletion rows contain one real side and one spacer side.
-- [ ] Verify `No differences found.` appears only for exact identity and empty states remain clear.
-- [ ] Verify `#app-background` is inert while open and returns to its prior state after close.
-- [ ] Verify initial close focus, Tab/Shift+Tab wrapping, Escape, backdrop close, and Compare-trigger
+- [x] Verify replacement rows contain changed-word segments on both sides.
+- [x] Verify insertion and deletion rows contain one real side and one spacer side.
+- [x] Verify `No differences found.` appears only for exact identity and empty states remain clear.
+- [x] Verify `#app-background` is inert while open and returns to its prior state after close.
+- [x] Verify initial close focus, Tab/Shift+Tab wrapping, Escape, backdrop close, and Compare-trigger
   focus restoration.
-- [ ] Verify the aligned grid remains usable at a narrow viewport.
-- [ ] Verify input and output values are unchanged after the dialog closes.
+- [x] Verify the aligned grid remains usable at a narrow viewport.
+- [x] Verify input and output values are unchanged after the dialog closes.
 
 ### Documentation references
 
@@ -267,12 +267,12 @@ dialog does not mutate either value.
 
 ### Verification checklist
 
-- [ ] Every output cell still exposes the accessible Compare action.
-- [ ] Normal and overridden output both supply the correct comparison operands.
-- [ ] Browser assertions prove alignment, word highlights, spacers, and empty/identical states.
-- [ ] Opening and closing comparison leaves workspace input and output unchanged.
-- [ ] Axe finds no new WCAG 2.1 A/AA violations.
-- [ ] Existing modal keyboard and focus behavior passes at desktop and narrow viewport sizes.
+- [x] Every output cell still exposes the accessible Compare action.
+- [x] Normal and overridden output both supply the correct comparison operands.
+- [x] Browser assertions prove alignment, word highlights, spacers, and empty/identical states.
+- [x] Opening and closing comparison leaves workspace input and output unchanged.
+- [x] Axe finds no new WCAG 2.1 A/AA violations.
+- [x] Existing modal keyboard and focus behavior passes at desktop and narrow viewport sizes.
 
 ### Acceptance criteria covered
 
@@ -328,7 +328,7 @@ AC1 through AC11.
 
 - [x] Phase 1: Implement and unit-test the aligned line/word diff model.
 - [x] Phase 2: Render aligned rows, word highlights, line numbers, and spacers in the dialog.
-- [ ] Phase 3: Preserve integration and add browser/accessibility regression coverage.
+- [x] Phase 3: Preserve integration and add browser/accessibility regression coverage.
 - [ ] Phase 4: Run the complete verification sequence and inspect the final result.
 
 ## Acceptance Criteria
