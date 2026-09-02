@@ -182,21 +182,21 @@ source content in React text nodes.
 
 ### Task checklist
 
-- [ ] Replace independent panel mapping in `src/components/ComparisonDialog.tsx` with one shared
+- [x] Replace independent panel mapping in `src/components/ComparisonDialog.tsx` with one shared
   aligned-row grid and shared vertical/horizontal scroll region.
-- [ ] Add fixed column headings for `Input Markdown` and `Effective Output` inside the aligned
+- [x] Add fixed column headings for `Input Markdown` and `Effective Output` inside the aligned
   comparison structure.
-- [ ] Render real one-based line numbers and visible same/add/remove prefixes.
-- [ ] Render line-level rose/emerald states and stronger highlights only around changed segments.
-- [ ] Render `null` sides as visually blank, nonfocusable spacers with an accessible corresponding-
+- [x] Render real one-based line numbers and visible same/add/remove prefixes.
+- [x] Render line-level rose/emerald states and stronger highlights only around changed segments.
+- [x] Render `null` sides as visually blank, nonfocusable spacers with an accessible corresponding-
   line description and no fabricated line number.
-- [ ] Add stable semantic hooks such as `data-diff-row`, `data-diff-side`, `data-diff-kind`,
+- [x] Add stable semantic hooks such as `data-diff-row`, `data-diff-side`, `data-diff-kind`,
   `data-diff-segment`, and `data-line-number`.
-- [ ] Preserve the identical message and implement explicit both-empty `No content` cells.
-- [ ] Keep raw Markdown/HTML-like text as escaped React text nodes.
-- [ ] Copy prior-inert-state preservation from `AboutDialog` while retaining focus trap, Escape,
+- [x] Preserve the identical message and implement explicit both-empty `No content` cells.
+- [x] Keep raw Markdown/HTML-like text as escaped React text nodes.
+- [x] Copy prior-inert-state preservation from `AboutDialog` while retaining focus trap, Escape,
   backdrop close, close-button focus, and trigger focus restoration.
-- [ ] Confirm mobile uses a shared horizontally scrollable two-column view, not two stacked or
+- [x] Confirm mobile uses a shared horizontally scrollable two-column view, not two stacked or
   independently scrolling panels.
 
 ### Documentation references
@@ -211,16 +211,16 @@ source content in React text nodes.
 
 ### Verification checklist
 
-- [ ] Each DOM diff row contains exactly one input cell and one output cell.
-- [ ] Changed lines remain aligned when one side wraps or is a spacer.
-- [ ] Changed word spans are stronger than their line background and unchanged text is not given
+- [x] Each DOM diff row contains exactly one input cell and one output cell.
+- [x] Changed lines remain aligned when one side wraps or is a spacer.
+- [x] Changed word spans are stronger than their line background and unchanged text is not given
   changed-segment styling.
-- [ ] Addition/removal meaning remains available without color through prefixes and accessible
+- [x] Addition/removal meaning remains available without color through prefixes and accessible
   labels.
-- [ ] Real rows expose correct line numbers; spacers expose neither text nor a fake number.
-- [ ] Identical, one-side-empty, and both-empty states are legible and correctly aligned.
-- [ ] Narrow viewport content remains usable through one shared scroll region.
-- [ ] Dialog content cannot execute Markdown or HTML-like source text.
+- [x] Real rows expose correct line numbers; spacers expose neither text nor a fake number.
+- [x] Identical, one-side-empty, and both-empty states are legible and correctly aligned.
+- [x] Narrow viewport content remains usable through one shared scroll region.
+- [x] Dialog content cannot execute Markdown or HTML-like source text.
 
 ### Acceptance criteria covered
 
@@ -327,7 +327,7 @@ AC1 through AC11.
 ## Consolidated task list
 
 - [x] Phase 1: Implement and unit-test the aligned line/word diff model.
-- [ ] Phase 2: Render aligned rows, word highlights, line numbers, and spacers in the dialog.
+- [x] Phase 2: Render aligned rows, word highlights, line numbers, and spacers in the dialog.
 - [ ] Phase 3: Preserve integration and add browser/accessibility regression coverage.
 - [ ] Phase 4: Run the complete verification sequence and inspect the final result.
 
