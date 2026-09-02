@@ -271,20 +271,20 @@ mobile, no-modal, and re-entry retention coverage.
 
 ### Task checklist
 
-- [ ] Remove assertions for per-cell Compare buttons, modal role, inert state, backdrop, Escape
+- [x] Remove assertions for per-cell Compare buttons, modal role, inert state, backdrop, Escape
   closure, and trigger-focus restoration.
-- [ ] Assert the desktop app-level Comparison Mode action and absence of per-cell Compare controls.
-- [ ] Assert mobile menu exposes Comparison Mode and closes after activation.
-- [ ] Assert first entry presents blank, independently labeled Left and Right textareas.
-- [ ] Fill independent multiline values and assert Compare produces Left/Right aligned output,
+- [x] Assert the desktop app-level Comparison Mode action and absence of per-cell Compare controls.
+- [x] Assert mobile menu exposes Comparison Mode and closes after activation.
+- [x] Assert first entry presents blank, independently labeled Left and Right textareas.
+- [x] Fill independent multiline values and assert Compare produces Left/Right aligned output,
   changed segments, line kinds, and spacer rows.
-- [ ] Assert exact identical and empty-side states.
-- [ ] Assert Edit comparison preserves both values and restores editable controls.
-- [ ] Assert Back to Formatter preserves formatter input/output and re-entry preserves comparison
+- [x] Assert exact identical and empty-side states.
+- [x] Assert Edit comparison preserves both values and restores editable controls.
+- [x] Assert Back to Formatter preserves formatter input/output and re-entry preserves comparison
   session state.
-- [ ] Assert comparison is not a dialog, does not set `inert`, and does not trap Tab.
-- [ ] Assert narrow editing layout and shared-scroll result behavior.
-- [ ] Run targeted `npm run test:a11y -- --grep comparison` or the repository-equivalent filter
+- [x] Assert comparison is not a dialog, does not set `inert`, and does not trap Tab.
+- [x] Assert narrow editing layout and shared-scroll result behavior.
+- [x] Run targeted `npm run test:a11y -- --grep comparison` or the repository-equivalent filter
   against a built preview.
 
 ### Documentation references
@@ -299,12 +299,12 @@ mobile, no-modal, and re-entry retention coverage.
 
 ### Verification checklist
 
-- [ ] Desktop and mobile mode-entry flows pass.
-- [ ] Blank Left/Right, independent editing, Compare, Edit, Back, and re-entry assertions pass.
-- [ ] Diff result assertions prove word highlights and spacer rows.
-- [ ] Formatter state is unchanged after all mode transitions.
-- [ ] No-modal semantics are asserted and Axe reports no new violations.
-- [ ] Narrow layout has usable editing and one shared result scroll region.
+- [x] Desktop and mobile mode-entry flows pass.
+- [x] Blank Left/Right, independent editing, Compare, Edit, Back, and re-entry assertions pass.
+- [x] Diff result assertions prove word highlights and spacer rows.
+- [x] Formatter state is unchanged after all mode transitions.
+- [x] No-modal semantics are asserted and Axe reports no new violations.
+- [x] Narrow layout has usable editing and one shared result scroll region.
 
 ### Acceptance criteria covered
 
@@ -362,7 +362,7 @@ AC1 through AC11.
 - [x] Phase 1: Extract the neutral aligned result component.
 - [x] Phase 2: Build the standalone Comparison workspace.
 - [x] Phase 3: Integrate app mode and remove the per-cell modal surface.
-- [ ] Phase 4: Replace browser/accessibility coverage with standalone flows.
+- [x] Phase 4: Replace browser/accessibility coverage with standalone flows.
 - [ ] Phase 5: Run full verification and reconcile stale documentation/terminology.
 
 ## Acceptance Criteria
