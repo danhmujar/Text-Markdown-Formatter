@@ -152,16 +152,16 @@ artifacts. Update this plan’s checkboxes only after evidence exists.
 
 ### Task checklist
 
-- [ ] Run focused Comparison/browser tests and inspect results.
-- [ ] Run targeted Prettier checks and `git diff --check`.
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run test`.
-- [ ] Run `npm run build`.
-- [ ] Run `npm run a11y:check` against the built preview.
-- [ ] Confirm no dependency, route, popup, storage, or Formatter API changes were introduced.
-- [ ] Confirm Clear and shared font-size behavior in desktop/narrow light/dark states.
-- [ ] Remove generated test artifacts and inspect final status/stat.
+- [x] Run focused Comparison/browser tests and inspect results.
+- [x] Run targeted Prettier checks and `git diff --check`.
+- [x] Run `npm run lint`.
+- [x] Run `npm run typecheck`.
+- [x] Run `npm run test`.
+- [x] Run `npm run build`.
+- [x] Run `npm run a11y:check` against the built preview.
+- [x] Confirm no dependency, route, popup, storage, or Formatter API changes were introduced.
+- [x] Confirm Clear and shared font-size behavior in desktop/narrow light/dark states.
+- [x] Remove generated test artifacts and inspect final status/stat.
 
 ### Documentation references
 
@@ -172,13 +172,13 @@ artifacts. Update this plan’s checkboxes only after evidence exists.
 
 ### Verification checklist
 
-- [ ] Focused and full unit suites pass.
-- [ ] Lint and strict TypeScript pass.
-- [ ] Production build succeeds without dependency/chunk changes.
-- [ ] Full Playwright/Axe suite passes.
-- [ ] Final source has no stale per-cell/modal contract or separate font-size state.
-- [ ] Clear and shared font-size behavior is manually usable at desktop/narrow and light/dark.
-- [ ] Every acceptance criterion has direct browser, source, or manual evidence.
+- [x] Focused and full unit suites pass.
+- [x] Lint and strict TypeScript pass.
+- [x] Production build succeeds without dependency/chunk changes.
+- [x] Full Playwright/Axe suite passes.
+- [x] Final source has no stale per-cell/modal contract or separate font-size state.
+- [x] Clear and shared font-size behavior is manually usable at desktop/narrow and light/dark.
+- [x] Every acceptance criterion has direct browser, source, or manual evidence.
 
 ### Acceptance criteria covered
 
@@ -188,7 +188,7 @@ AC1 through AC6.
 
 - [x] Phase 1: Add Clear and shared font-size plumbing.
 - [x] Phase 2: Extend browser regression coverage.
-- [ ] Phase 3: Run full verification and reconcile documentation.
+- [x] Phase 3: Run full verification and reconcile documentation.
 
 ## Acceptance Criteria
 
