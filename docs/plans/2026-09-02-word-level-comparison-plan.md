@@ -117,22 +117,22 @@ reconstruction, tie-breaking, and empty/newline behavior cannot drift.
 
 ### Task checklist
 
-- [ ] Replace the independent-array types in `src/utils/lineDiff.ts` with aligned row, line, and
+- [x] Replace the independent-array types in `src/utils/lineDiff.ts` with aligned row, line, and
   segment types while retaining the `diffLines(input, output)` signature.
-- [ ] Add exact unit assertions for identical multiline input and one-based line numbers.
-- [ ] Add replacement tests proving unchanged context and changed words are segmented correctly.
-- [ ] Add punctuation/repeated-whitespace tests proving joined segments exactly reconstruct each
+- [x] Add exact unit assertions for identical multiline input and one-based line numbers.
+- [x] Add replacement tests proving unchanged context and changed words are segmented correctly.
+- [x] Add punctuation/repeated-whitespace tests proving joined segments exactly reconstruct each
   original line.
-- [ ] Add middle insertion and deletion tests proving unchanged anchors remain aligned and the
+- [x] Add middle insertion and deletion tests proving unchanged anchors remain aligned and the
   opposite side is `null`.
-- [ ] Add unequal replacement-block and repeated-line tests that lock down ordered pairing and the
+- [x] Add unequal replacement-block and repeated-line tests that lock down ordered pairing and the
   removal-first LCS tie-break.
-- [ ] Add empty-left, empty-right, both-empty, LF, CRLF, and trailing-newline tests.
-- [ ] Implement deterministic line LCS and primitive same/removed/added operations.
-- [ ] Implement per-block replacement pairing and spacer-row emission.
-- [ ] Implement lossless token LCS and adjacent-segment coalescing.
-- [ ] Add invariants for purity/determinism and `segments.map(...).join('') === line.text`.
-- [ ] Run `npx vitest run src/utils/__tests__/lineDiff.test.ts`.
+- [x] Add empty-left, empty-right, both-empty, LF, CRLF, and trailing-newline tests.
+- [x] Implement deterministic line LCS and primitive same/removed/added operations.
+- [x] Implement per-block replacement pairing and spacer-row emission.
+- [x] Implement lossless token LCS and adjacent-segment coalescing.
+- [x] Add invariants for purity/determinism and `segments.map(...).join('') === line.text`.
+- [x] Run `npx vitest run src/utils/__tests__/lineDiff.test.ts`.
 
 ### Documentation references
 
@@ -146,16 +146,16 @@ reconstruction, tie-breaking, and empty/newline behavior cannot drift.
 
 ### Verification checklist
 
-- [ ] Identical rows populate both sides with `same`, exact text, and correct line numbers.
-- [ ] An insertion or deletion leaves all following unchanged anchors aligned.
-- [ ] Replacement blocks pair only within their own non-matching block.
-- [ ] Unequal blocks use `null` spacers without fabricated content or line numbers.
-- [ ] Changed segments isolate replacement words while retaining unchanged context.
-- [ ] Every real line reconstructs exactly from its segments, including Unicode, punctuation, and
+- [x] Identical rows populate both sides with `same`, exact text, and correct line numbers.
+- [x] An insertion or deletion leaves all following unchanged anchors aligned.
+- [x] Replacement blocks pair only within their own non-matching block.
+- [x] Unequal blocks use `null` spacers without fabricated content or line numbers.
+- [x] Changed segments isolate replacement words while retaining unchanged context.
+- [x] Every real line reconstructs exactly from its segments, including Unicode, punctuation, and
   repeated whitespace.
-- [ ] Repeated inputs return deeply equal results and repeated-line cases follow the documented
+- [x] Repeated inputs return deeply equal results and repeated-line cases follow the documented
   tie-break.
-- [ ] Empty flags, exact identity, LF/CRLF splitting, and terminal blank-line behavior match the
+- [x] Empty flags, exact identity, LF/CRLF splitting, and terminal blank-line behavior match the
   explicit decisions above.
 
 ### Acceptance criteria covered
@@ -326,7 +326,7 @@ AC1 through AC11.
 
 ## Consolidated task list
 
-- [ ] Phase 1: Implement and unit-test the aligned line/word diff model.
+- [x] Phase 1: Implement and unit-test the aligned line/word diff model.
 - [ ] Phase 2: Render aligned rows, word highlights, line numbers, and spacers in the dialog.
 - [ ] Phase 3: Preserve integration and add browser/accessibility regression coverage.
 - [ ] Phase 4: Run the complete verification sequence and inspect the final result.
