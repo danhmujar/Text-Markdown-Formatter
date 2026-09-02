@@ -51,11 +51,12 @@ function makeTempRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'formatter-versioning-'));
 }
 
-function git(rootDir, args) {
+function git(rootDir, args, options = {}) {
   return execFileSync('git', args, {
     cwd: rootDir,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, ...options.env },
   });
 }
 
@@ -153,8 +154,43 @@ test('checks synchronized versions and reports drift', () => {
   try {
     writeFixture(rootDir);
     assert.equal(checkVersion(rootDir), '0.2.0');
-    fs.writeFileSync(path.join(rootDir, 'README.md'), '# Fixture\n\nCurrent release: **0.1.9**.\n');
-    assert.throws(() => checkVersion(rootDir), /inconsistent/);
+    const mutations = [
+      () => {
+        const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+        packageJson.version = '0.1.9';
+        fs.writeFileSync(
+          path.join(rootDir, 'package.json'),
+          `${JSON.stringify(packageJson, null, 2)}\n`,
+        );
+      },
+      () => {
+        const packageLock = JSON.parse(
+          fs.readFileSync(path.join(rootDir, 'package-lock.json'), 'utf8'),
+        );
+        packageLock.version = '0.1.9';
+        fs.writeFileSync(
+          path.join(rootDir, 'package-lock.json'),
+          `${JSON.stringify(packageLock, null, 2)}\n`,
+        );
+      },
+      () => {
+        fs.writeFileSync(
+          path.join(rootDir, 'src', 'constants', 'release.ts'),
+          "export const APP_VERSION = '0.1.9';\nexport const CHANGELOG_ENTRIES = [];\n",
+        );
+      },
+      () => {
+        fs.writeFileSync(
+          path.join(rootDir, 'README.md'),
+          '# Fixture\n\nCurrent release: **0.1.9**.\n',
+        );
+      },
+    ];
+    for (const mutate of mutations) {
+      writeFixture(rootDir);
+      mutate();
+      assert.throws(() => checkVersion(rootDir), /inconsistent/);
+    }
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
   }
@@ -219,6 +255,26 @@ test('post-commit hook applies minor, major, and exact release intent', () => {
       assert.equal(assertConsistentVersions(readVersionSurfaces(rootDir)), expectedVersion);
     }
     assert.equal(git(rootDir, ['rev-list', '--count', 'HEAD']).trim(), '4');
+  } finally {
+    fs.rmSync(rootDir, { recursive: true, force: true });
+  }
+});
+
+test('explicit hook bypass leaves the working tree version surfaces intact', () => {
+  const rootDir = makeTempRoot();
+  try {
+    setupHookRepository(rootDir);
+    fs.writeFileSync(path.join(rootDir, 'bypass.txt'), 'emergency maintenance\n');
+    git(rootDir, ['add', 'bypass.txt']);
+    git(rootDir, ['commit', '-m', 'fix: emergency maintenance'], {
+      env: { TEXT_MARKDOWN_FORMATTER_SKIP: '1' },
+    });
+    assert.equal(checkVersion(rootDir), '0.2.0');
+    assert.equal(git(rootDir, ['rev-list', '--count', 'HEAD']).trim(), '2');
+    assert.deepEqual(
+      git(rootDir, ['show', '--format=', '--name-only', 'HEAD']).split(/\r?\n/).filter(Boolean),
+      ['bypass.txt'],
+    );
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
   }

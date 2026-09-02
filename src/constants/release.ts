@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.2.1';
+export const APP_VERSION = '0.2.2';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-02',
+    title: 'Automatic commit versioning',
+    description:
+      'Version metadata now advances automatically with each commit, supports feature, breaking-change, and exact release bumps, and stays synchronized across the app, package metadata, and README with a CI consistency check.',
+  },
   {
     date: '2026-09-02',
     title: 'Standalone Comparison workspace',

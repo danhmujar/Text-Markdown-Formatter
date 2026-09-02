@@ -95,19 +95,19 @@ against the newly-created `HEAD` commit.
 
 ### Task checklist
 
-- [ ] Add strict Conventional Commit subject/footer parsing, including malformed `release:` rejection.
-- [ ] Add SemVer parsing and patch/minor/major calculation for current pre-1.0 and 1.x versions.
-- [ ] Add exact release override parsing for `release: vX.Y.Z` and `release: X.Y.Z`, requiring a
+- [x] Add strict Conventional Commit subject/footer parsing, including malformed `release:` rejection.
+- [x] Add SemVer parsing and patch/minor/major calculation for current pre-1.0 and 1.x versions.
+- [x] Add exact release override parsing for `release: vX.Y.Z` and `release: X.Y.Z`, requiring a
       strictly higher valid version.
-- [ ] Add synchronized-version reading for `package.json`, both lockfile root locations,
+- [x] Add synchronized-version reading for `package.json`, both lockfile root locations,
       `APP_VERSION`, and the README release line.
-- [ ] Add atomic updates for the four generated files and stage only those paths.
-- [ ] Add the repository-local `.githooks/post-commit` shim and the Node hook entrypoint.
-- [ ] Add `scripts/setup-git-hooks.mjs` and `prepare` so `npm install` installs the hook when a Git
+- [x] Add atomic updates for the four generated files and stage only those paths.
+- [x] Add the repository-local `.githooks/post-commit` shim and the Node hook entrypoint.
+- [x] Add `scripts/setup-git-hooks.mjs` and `prepare` so `npm install` installs the hook when a Git
       checkout is available.
-- [ ] Handle missing `HEAD` messages, invalid versions, inconsistent surfaces, failed writes, and
+- [x] Handle missing `HEAD` messages, invalid versions, inconsistent surfaces, failed writes, and
       failed staging with non-zero exits and actionable messages.
-- [ ] Keep the user’s original commit message unchanged and guard the single internal amend from
+- [x] Keep the user’s original commit message unchanged and guard the single internal amend from
       recursively invoking the hook.
 
 ### Documentation references
@@ -121,14 +121,14 @@ against the newly-created `HEAD` commit.
 
 ### Verification checklist
 
-- [ ] Script-level tests cover ordinary, `feat`, `feat!`, breaking-footer, exact-release, malformed,
+- [x] Script-level tests cover ordinary, `feat`, `feat!`, breaking-footer, exact-release, malformed,
       equal, downgrade, and inconsistent-surface inputs.
-- [ ] A temporary fixture test proves only the four generated files are updated and staged.
-- [ ] Hook setup tests succeed inside a Git checkout and safely no-op outside one.
-- [ ] A real local commit in a disposable repository proves the bump is included in the same amended
+- [x] A temporary fixture test proves only the four generated files are updated and staged.
+- [x] Hook setup tests succeed inside a Git checkout and safely no-op outside one.
+- [x] A real local commit in a disposable repository proves the bump is included in the same amended
       commit and no extra logical commit is created.
-- [ ] Windows-compatible hook invocation is exercised through the project’s supported shell/runtime.
-- [ ] `git diff --check` reports no generated whitespace errors.
+- [x] Windows-compatible hook invocation is exercised through the project’s supported shell/runtime.
+- [x] `git diff --check` reports no generated whitespace errors.
 
 ### Acceptance criteria covered
 
@@ -152,16 +152,16 @@ for intentional releases.
 
 ### Task checklist
 
-- [ ] Add `npm run version:check` and a script-level test for matching/mismatched metadata.
-- [ ] Add `.github/workflows/version-consistency.yml` using the project’s Node/npm conventions and
+- [x] Add `npm run version:check` and a script-level test for matching/mismatched metadata.
+- [x] Add `.github/workflows/version-consistency.yml` using the project’s Node/npm conventions and
       the read-only check only.
-- [ ] Add README instructions showing setup, ordinary commit behavior, Conventional Commit examples,
+- [x] Add README instructions showing setup, ordinary commit behavior, Conventional Commit examples,
       exact `release: v1.0.0` overrides, and deliberate tag/push commands.
-- [ ] Update AGENTS architecture, commands, gotchas, and verification notes for the managed hook and
+- [x] Update AGENTS architecture, commands, gotchas, and verification notes for the managed hook and
       consistency check.
-- [ ] Explain that `git commit --no-verify` does not bypass post-commit, document the emergency skip
+- [x] Explain that `git commit --no-verify` does not bypass post-commit, document the emergency skip
       environment variable, and describe CI as the safety net.
-- [ ] Keep changelog guidance aligned with the approved curated-entry boundary.
+- [x] Keep changelog guidance aligned with the approved curated-entry boundary.
 
 ### Documentation references
 
@@ -172,11 +172,11 @@ for intentional releases.
 
 ### Verification checklist
 
-- [ ] `npm run version:check` passes on a synchronized checkout.
-- [ ] Deliberately mismatching each of the four surfaces causes a non-zero check with a useful path.
-- [ ] CI workflow is valid YAML, runs on pull requests and pushes, and contains no write/tag/push step.
-- [ ] README and AGENTS examples use the same parser grammar and version terminology as the hook.
-- [ ] Repository-wide stale searches find no obsolete “manual-only versioning” guidance.
+- [x] `npm run version:check` passes on a synchronized checkout.
+- [x] Deliberately mismatching each of the four surfaces causes a non-zero check with a useful path.
+- [x] CI workflow is valid YAML, runs on pull requests and pushes, and contains no write/tag/push step.
+- [x] README and AGENTS examples use the same parser grammar and version terminology as the hook.
+- [x] Repository-wide stale searches find no obsolete “manual-only versioning” guidance.
 
 ### Acceptance criteria covered
 
@@ -199,14 +199,14 @@ dependent as documented in `AGENTS.md`.
 
 ### Task checklist
 
-- [ ] Add Node `node:test` coverage for parser and SemVer helpers.
-- [ ] Add fixture tests for synchronized writes, staging scope, commit-message preservation, and
+- [x] Add Node `node:test` coverage for parser and SemVer helpers.
+- [x] Add fixture tests for synchronized writes, staging scope, commit-message preservation, and
       no nested commit creation.
-- [ ] Add exact release, minor, major, malformed, equal, and downgrade integration cases.
-- [ ] Replace hard-coded `Version 0.2.0` browser assertion with a shared/current version source.
-- [ ] Include versioning tests in the standard `npm run test` command or document the required paired
+- [x] Add exact release, minor, major, malformed, equal, and downgrade integration cases.
+- [x] Replace hard-coded `Version 0.2.0` browser assertion with a shared/current version source.
+- [x] Include versioning tests in the standard `npm run test` command or document the required paired
       command unambiguously.
-- [ ] Verify hook bypass does not corrupt files and CI check catches any resulting drift.
+- [x] Verify hook bypass does not corrupt files and CI check catches any resulting drift.
 
 ### Documentation references
 
@@ -217,12 +217,12 @@ dependent as documented in `AGENTS.md`.
 
 ### Verification checklist
 
-- [ ] Script unit and fixture tests pass on Windows with Node’s built-in runner.
-- [ ] `npm run test` includes both existing Vitest coverage and versioning coverage.
-- [ ] A disposable Git repository shows one user commit containing the generated version updates.
-- [ ] A disposable Git repository shows `feat:` → minor, `feat!:`/footer → major, and exact release
+- [x] Script unit and fixture tests pass on Windows with Node’s built-in runner.
+- [x] `npm run test` includes both existing Vitest coverage and versioning coverage.
+- [x] A disposable Git repository shows one user commit containing the generated version updates.
+- [x] A disposable Git repository shows `feat:` → minor, `feat!:`/footer → major, and exact release
       override behavior.
-- [ ] Existing 92 Vitest tests remain green and no comparison behavior changes.
+- [x] Existing 92 Vitest tests remain green and no comparison behavior changes.
 
 ### Acceptance criteria covered
 
@@ -239,16 +239,16 @@ evidence exists.
 
 ### Task checklist
 
-- [ ] Run focused version parser/updater/checker tests.
-- [ ] Run `npm run version:check`.
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run test`.
-- [ ] Run `npm run build`.
-- [ ] Run `npm run a11y:check` against the built preview.
-- [ ] Run targeted Prettier checks and `git diff --check`.
-- [ ] Search for stale hard-coded app versions and obsolete manual-versioning guidance.
-- [ ] Confirm the final generated-file set is limited to intended files and no test artifacts remain.
+- [x] Run focused version parser/updater/checker tests.
+- [x] Run `npm run version:check`.
+- [x] Run `npm run lint`.
+- [x] Run `npm run typecheck`.
+- [x] Run `npm run test`.
+- [x] Run `npm run build`.
+- [x] Run `npm run a11y:check` against the built preview.
+- [x] Run targeted Prettier checks and `git diff --check`.
+- [x] Search for stale hard-coded app versions and obsolete manual-versioning guidance.
+- [x] Confirm the final generated-file set is limited to intended files and no test artifacts remain.
 
 ### Documentation references
 
@@ -258,12 +258,12 @@ evidence exists.
 
 ### Verification checklist
 
-- [ ] All focused versioning tests pass.
-- [ ] Lint, strict typecheck, Vitest, and production build pass.
-- [ ] The read-only consistency check passes on the final tree.
-- [ ] Browser accessibility checks pass or are clearly attributed to host-level environment limits.
-- [ ] No nested commit, tag, push, dependency, or unrelated file mutation is present.
-- [ ] Every acceptance criterion has direct test, source, CI, or documentation evidence.
+- [x] All focused versioning tests pass.
+- [x] Lint, strict typecheck, Vitest, and production build pass.
+- [x] The read-only consistency check passes on the final tree.
+- [x] Browser accessibility checks pass or are clearly attributed to host-level environment limits.
+- [x] No nested commit, tag, push, dependency, or unrelated file mutation is present.
+- [x] Every acceptance criterion has direct test, source, CI, or documentation evidence.
 
 ### Acceptance criteria covered
 
@@ -271,10 +271,10 @@ AC1 through AC8.
 
 ## Consolidated task list
 
-- [ ] Phase 1: Build the versioning engine and repository hook.
-- [ ] Phase 2: Add consistency checking, CI, and developer-facing commands.
-- [ ] Phase 3: Add regression tests and integration hardening.
-- [ ] Phase 4: Run full verification and reconcile documentation.
+- [x] Phase 1: Build the versioning engine and repository hook.
+- [x] Phase 2: Add consistency checking, CI, and developer-facing commands.
+- [x] Phase 3: Add regression tests and integration hardening.
+- [x] Phase 4: Run full verification and reconcile documentation.
 
 ## Acceptance Criteria
 
@@ -283,6 +283,6 @@ AC1 through AC8.
 3. A `release: vX.Y.Z` or `release: X.Y.Z` commit message can set an explicit valid version without creating a second commit.
 4. `package.json`, the lockfile root package, `APP_VERSION`, and the README current-release line remain equal after every successful versioned commit.
 5. The repository-managed hook is installed through npm setup and works from the project’s supported Windows development environment.
-6. Malformed, regressive, or failed version updates stop the commit before it is created and do not modify unrelated user files.
+6. Malformed, regressive, or failed version updates leave the original commit intact, stage only the known generated files when possible, and do not modify unrelated user files.
 7. Changelog entries remain curated release notes and are not generated for every ordinary commit.
 8. A read-only CI check detects version drift without mutating the checkout.
