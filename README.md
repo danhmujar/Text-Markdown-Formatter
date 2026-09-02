@@ -2,7 +2,7 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.2.0**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.2.1**.
 
 ## Features
 
@@ -33,6 +33,32 @@ npm run preview    # serve dist/ (Playwright uses :4173)
 
 No backend required. Optional env vars are documented in `.env.example` (`GEMINI_API_KEY`, `APP_URL`) and only needed when deploying via AI Studio/Cloud Run.
 
+## Automatic versioning
+
+The repository-managed Git hook is configured automatically by `npm install` (or `npm run prepare`)
+when the checkout is a Git repository. Each commit advances the synchronized version surfaces in the
+same logical commit: `package.json`, `package-lock.json`, `src/constants/release.ts`, and this README.
+
+- Ordinary commits (`fix:`, `docs:`, `chore:`, and similar) bump the patch version.
+- `feat:` bumps the minor version.
+- `feat!:` or a `BREAKING CHANGE:` footer bumps the major version.
+- `release: v1.0.0` (or `release: 1.0.0`) sets an explicitly higher version.
+
+The hook amends the just-created commit once with the generated files; it does not create a second
+logical commit, tag, push, or changelog entry. Changelog entries remain curated in
+`src/constants/release.ts`. Check synchronization locally with `npm run version:check`; CI runs the
+same read-only check. The post-commit hook still runs with `git commit --no-verify`, so an emergency
+bypass should use `TEXT_MARKDOWN_FORMATTER_SKIP=1 git commit ...` and be followed by
+`npm run version:check`.
+
+When you intentionally publish a release, review the generated commit first, then create and push a
+tag explicitly:
+
+```bash
+git tag v1.0.0
+git push origin main --follow-tags
+```
+
 ## Scripts
 
 | Script                                                         | Description                                        |
@@ -43,7 +69,10 @@ No backend required. Optional env vars are documented in `.env.example` (`GEMINI
 | `npm run typecheck`                                            | `tsc --noEmit` (strict)                            |
 | `npm run lint`                                                 | `eslint .` (`typescript-eslint` + `jsx-a11y`)      |
 | `npm run format` / `format:check`                              | Prettier (`printWidth:100, singleQuote`)           |
-| `npm run test`                                                 | `vitest run` (jsdom, 92 tests)                     |
+| `npm run test`                                                 | Vitest (jsdom) plus versioning tests               |
+| `npm run test:versioning`                                      | Node versioning and hook integration tests         |
+| `npm run prepare`                                              | Configure repository-local `.githooks`             |
+| `npm run version:check`                                        | Verify all version surfaces are synchronized       |
 | `npx vitest run src/utils/__tests__/markdownFormatter.test.ts` | Single file                                        |
 | `npx vitest run -t "test name"`                                | Single test by name                                |
 | `npm run a11y:check`                                           | `playwright test` (requires `npm run build` first) |

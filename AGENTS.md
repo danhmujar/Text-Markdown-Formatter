@@ -11,6 +11,9 @@
 | Lint             | `npm run lint` — `eslint .` with `typescript-eslint` + `jsx-a11y` (see `eslint.config.js:5` ignores `dist/`) |
 | Format / check   | `npm run format` / `npm run format:check` — Prettier `printWidth:100, singleQuote, trailingComma:all`        |
 | Unit tests       | `npm run test` — `vitest run` (jsdom)                                                                        |
+| Versioning tests | `npm run test:versioning` — Node built-in versioning and hook integration tests                              |
+| Version check    | `npm run version:check` — read-only synchronized-version validation                                          |
+| Hook setup       | `npm run prepare` — configure repository-local `.githooks`                                                   |
 | Single unit test | `npx vitest run src/utils/__tests__/markdownFormatter.test.ts` or `npx vitest run -t "test name"`            |
 | A11y / e2e       | `npm run a11y:check` — builds then `playwright test`; filtered: `npm run test:a11y` (`--grep a11y`)          |
 | Clean            | `npm run clean` — `rimraf dist`                                                                              |
@@ -25,6 +28,9 @@ Verification order: `lint` -> `typecheck` -> `test` -> `build` -> `a11y:check` (
 - Path alias `@/*` -> `./src/*` (`tsconfig.json:19`, `vite.config.ts:11`). Use it for imports.
 - Markdown pipeline: `marked` + `dompurify` -> `src/utils/markdownFormatter.ts` re-exports `cleanup`/`tableConvert`/`listNumbering`/`htmlBuilder`/`sanitize`; `htmlBuilder` link color uses `primaryColor` from theme.
 - Theme: `src/constants/themes.ts:1` (8 swatches, `THEME_PRIMARIES`, `getPrimaryForTheme`), `src/hooks/useTheme.ts:32` persists `formatter-theme-v1` and syncs `body.theme-*` + `body.dark-theme`.
+- Versioning: `scripts/auto-version.mjs` parses commit intent, updates synchronized version surfaces,
+  and performs one guarded same-commit amend from `.githooks/post-commit`; `scripts/check-version.mjs`
+  is the read-only CI/local consistency check and `scripts/setup-git-hooks.mjs` configures the hook.
 
 ## Architecture
 
@@ -53,16 +59,22 @@ tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 
 ## Tests
 
-- Vitest: `vite.config.ts:15` `environment:jsdom`, `include: ['src/**/*.{test,spec}.{ts,tsx}']`, `exclude: ['tests']`. 11 files / 92 tests under `src/**/__tests__/`.
+- Vitest: `vite.config.ts:15` `environment:jsdom`, `include: ['src/**/*.{test,spec}.{ts,tsx}']`, `exclude: ['tests']`. 11 files / 92 tests under `src/**/__tests__/`; `npm run test` also runs `scripts/auto-version.test.mjs`.
+- Versioning tests: `scripts/auto-version.test.mjs` uses Node’s built-in runner and disposable Git
+  repositories to verify parsing, synchronized writes, hook setup, and same-commit behavior.
 - Playwright: `playwright.config.ts:4` `testDir: ./tests`, `baseURL: http://localhost:4173`, single `chromium` project, `webServer: npm run preview -- --port 4173` with `reuseExistingServer: !CI`. Must `npm run build` before `npm run a11y:check`.
 
 ## Gotchas
 
 - Both `bun.lock` and `package-lock.json` exist; scripts assume `npm` (Playwright `webServer` uses `npm run preview`).
+- `npm install` runs `prepare`, which configures the repository-local `.githooks/post-commit` hook.
+  The hook amends the just-created commit once under a recursion guard; `git commit --no-verify` does
+  not skip post-commit. For an emergency bypass, use `TEXT_MARKDOWN_FORMATTER_SKIP=1` and then run
+  `npm run version:check`.
 - `vite.config.ts:37` `esbuild.drop: ['console','debugger']` — console stripped in prod builds, not in dev.
 - `vite.config.ts:42` HMR/file-watching disabled when `DISABLE_HMR=true` (AI Studio). Don't edit those guards.
 - `index.html:8` CSP is strict (`default-src 'self'`, `style-src 'unsafe-inline'`). External scripts/styles will be blocked.
-- Prettier ignores `dist`, `node_modules`, `.playwright-mcp`, `docs` (`.prettierignore:1`).
+- Prettier ignores `dist`, `node_modules`, `.playwright-mcp`, `.githooks`, `docs` (`.prettierignore:1`).
 - `sanitizeOutputHtml` + `copyFormattedTextToClipboard` (`src/utils/sanitize.ts:21`) always enforces security sanitization; `compat` stripping is optional. Clipboard writes `text/html` + `text/plain` with `<!--StartFragment-->` wrapper for Word/Outlook.
 - `smartCleanupMarkdown` (`src/utils/cleanup.ts`) behaves differently with `{isTyping:true}` — e.g. won't auto-close `**bold` mid-typing (`src/utils/__tests__/reliability.test.ts:82`). `parsePasteToGrid` has heuristics to avoid turning hard-wrapped single paragraphs (avg line >40 chars, no tabs) into a multi-row grid (`src/utils/__tests__/reliability.test.ts:25`).
 - `vite.config.ts:27` `manualChunks: vendor/marked/ui/purify` — don't inline those into main chunk.

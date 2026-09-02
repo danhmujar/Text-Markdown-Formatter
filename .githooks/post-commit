@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ "${TEXT_MARKDOWN_FORMATTER_SKIP:-}" = "1" ] || [ "${TEXT_MARKDOWN_FORMATTER_AMENDING:-}" = "1" ]; then
+  exit 0
+fi
+exec node "$(git rev-parse --show-toplevel)/scripts/auto-version.mjs" --post-commit

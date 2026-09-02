@@ -1,7 +1,7 @@
 {
   "name": "text-markdown-formatter",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -12,7 +12,10 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:versioning",
+    "test:versioning": "node --test scripts/auto-version.test.mjs",
+    "prepare": "node scripts/setup-git-hooks.mjs",
+    "version:check": "node scripts/check-version.mjs",
     "test:a11y": "playwright test --grep a11y",
     "a11y:check": "playwright test"
   },

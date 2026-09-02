@@ -39,7 +39,7 @@ stays readable.
 
 ### Repository-managed hook
 
-Store a portable `commit-msg` hook under `.githooks/` and configure Git to use that directory. Add
+Store a portable `post-commit` hook under `.githooks/` and configure Git to use that directory. Add
 an npm setup/prepare script that runs `git config core.hooksPath .githooks` when a local Git
 checkout is available, while safely doing nothing in source archives or non-Git environments.
 
@@ -48,16 +48,18 @@ and making the calculation testable on Windows and Unix-like systems.
 
 ### Commit-time flow
 
-1. Git supplies the temporary commit-message file to `.githooks/commit-msg`.
-2. The Node script reads the current package version and parses the commit message.
+1. Git creates the user’s commit and invokes `.githooks/post-commit`.
+2. The Node script reads the new commit message from `HEAD` and the current package version.
 3. It calculates the next patch/minor/major version or validates an exact `release:` override.
 4. It updates the package version, lockfile root version, `APP_VERSION`, and the README release line.
-5. It stages only those generated version files so they become part of the pending commit.
-6. Git completes the original commit with the user’s original message.
+5. It stages only those generated version files.
+6. It amends the just-created commit with `--no-edit`; an environment guard prevents the amend from
+   recursively invoking the versioning logic. The final history contains one logical user commit.
 
-The script must be idempotent for a single hook invocation and must not create another commit. If a
-file update, version parse, or staging command fails, the hook exits non-zero and leaves the commit
-uncreated so the user can inspect and recover the working tree.
+The script must be idempotent for a single hook invocation and must not create a second logical
+commit. If a file update, version parse, staging, or amend command fails, the original commit remains
+and the generated files stay staged with a diagnostic so the user can inspect and recover the
+working tree.
 
 ### CI consistency check
 
@@ -67,7 +69,7 @@ pushes. CI verifies synchronization but never changes files or creates releases.
 
 ## File and data changes
 
-- `.githooks/commit-msg` — invokes the versioning script with Git’s message-file argument.
+- `.githooks/post-commit` — invokes the versioning script after the commit is created.
 - `scripts/auto-version.mjs` — parses commit intent, computes/validates SemVer, updates files, and
   stages generated changes.
 - `scripts/check-version.mjs` — read-only consistency validation used locally and in CI.
@@ -83,11 +85,12 @@ pushes. CI verifies synchronization but never changes files or creates releases.
 
 ## Error handling and safety
 
-- Refuse to run when the commit-message file is missing or unreadable.
+- Refuse to run when the just-created `HEAD` message is missing or unreadable.
 - Refuse malformed Conventional Commit release syntax and invalid exact versions.
 - Refuse an exact version lower than the current version.
 - Preserve the user’s staged content; only known generated version files may be staged by the hook.
-- Never amend, create, or push a second commit from inside the hook.
+- Never create or push a second logical commit from inside the hook; the post-commit implementation
+  may amend the just-created commit once with a recursion guard.
 - Make hook setup a no-op outside a Git checkout and report a concise setup warning rather than
   failing dependency installation.
 - Keep changelog editing out of ordinary commit hooks; release notes remain intentional and reviewable.
@@ -111,6 +114,6 @@ pushes. CI verifies synchronization but never changes files or creates releases.
 3. A `release: vX.Y.Z` or `release: X.Y.Z` commit message can set an explicit valid version without creating a second commit.
 4. `package.json`, the lockfile root package, `APP_VERSION`, and the README current-release line remain equal after every successful versioned commit.
 5. The repository-managed hook is installed through npm setup and works from the project’s supported Windows development environment.
-6. Malformed, regressive, or failed version updates stop the commit before it is created and do not modify unrelated user files.
+6. Malformed or regressive version updates fail safely, and failed updates do not modify unrelated user files or create a second logical commit.
 7. Changelog entries remain curated release notes and are not generated for every ordinary commit.
 8. A read-only CI check detects version drift without mutating the checkout.

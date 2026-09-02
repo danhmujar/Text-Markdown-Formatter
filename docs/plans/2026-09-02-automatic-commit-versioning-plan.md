@@ -33,7 +33,7 @@ without creating a second commit.
 
 - Node ESM built-ins: `node:fs`, `node:path`, `node:child_process`, `node:os`, `node:url`, and
   `node:process`; no new runtime dependency is needed.
-- Repository-managed `.githooks/commit-msg` shell entrypoint delegating to a Node `.mjs` script.
+- Repository-managed `.githooks/post-commit` shell entrypoint delegating to a Node `.mjs` script.
 - Local Git configuration through `git config core.hooksPath .githooks`.
 - JSON parsing/stringification for `package.json` and `package-lock.json`, preserving two-space
   formatting and a final newline.
@@ -46,12 +46,13 @@ without creating a second commit.
 ### Explicit architecture decisions
 
 - `scripts/auto-version.mjs` owns commit-message parsing, SemVer calculation/validation, synchronized
-  updates, and staging. The hook remains shell glue only.
-- The hook runs at `commit-msg`, after the message is available and before the commit is created.
+  updates, staging, and the guarded same-commit amend. The hook remains shell glue only.
+- The hook runs at `post-commit`, reads the just-created `HEAD` message, and amends that same logical
+  commit after adding the generated files.
 - Ordinary commits default to a patch bump; `feat:` selects minor; `feat!:` or a `BREAKING CHANGE:`
   footer selects major; `release: vX.Y.Z` and `release: X.Y.Z` select an exact higher version.
-- Version data is updated in the same commit as the user’s change. The hook never amends, creates, or
-  pushes another commit.
+- Version data is updated in the same logical commit as the user’s change. The hook performs at most
+  one guarded amend and never creates or pushes a second logical commit.
 - The package version is stored without `v`; only deliberate Git tags use the `vX.Y.Z` form.
 - `src/constants/release.ts` remains the UI version/changelog module. Changelog entries remain
   curated and are not generated for ordinary commits.
@@ -63,7 +64,8 @@ without creating a second commit.
 
 - Do not add Husky, Changesets, semantic-release, or another dependency when native repository hooks
   and Node built-ins satisfy the requirement.
-- Do not create a second version-bump commit from inside the hook or invoke `git commit` recursively.
+- Do not create a second version-bump commit from inside the hook; the one guarded `git commit --amend
+  --no-edit --no-verify` is the only allowed internal Git commit operation.
 - Do not update changelog entries on every commit.
 - Do not silently accept malformed `release:` messages, equal versions, or downgrades.
 - Do not stage files outside the known generated set (`package.json`, `package-lock.json`,
@@ -79,16 +81,17 @@ without creating a second commit.
 
 ### What to implement
 
-Add the pure, testable versioning logic and the repository-managed `commit-msg` hook. The Node
-script should read the commit-message file, ignore comment lines, parse the subject/body according to
-the approved rules, validate the current synchronized version, calculate the target version, update
-only known files, and stage those generated files. Use atomic temporary-file replacement for writes
-so a failed serialization or write cannot leave a partially written file.
+Add the pure, testable versioning logic and the repository-managed `post-commit` hook. The Node
+script should read the just-created `HEAD` commit message, ignore comment lines, parse the subject/body
+according to the approved rules, validate the current synchronized version, calculate the target
+version, update only known files, stage those generated files, and amend the same commit once. Use
+atomic temporary-file replacement for writes so a failed serialization or write cannot leave a
+partially written file.
 
 Add `scripts/setup-git-hooks.mjs` and a `prepare` npm script. Setup should detect a Git checkout,
 set the repository-local `core.hooksPath` to `.githooks`, and no-op with a concise warning outside a
-checkout. Add the executable `.githooks/commit-msg` shim that passes Git’s message-file argument to
-`scripts/auto-version.mjs`.
+checkout. Add the executable `.githooks/post-commit` shim that invokes `scripts/auto-version.mjs`
+against the newly-created `HEAD` commit.
 
 ### Task checklist
 
@@ -99,12 +102,13 @@ checkout. Add the executable `.githooks/commit-msg` shim that passes Git’s mes
 - [ ] Add synchronized-version reading for `package.json`, both lockfile root locations,
       `APP_VERSION`, and the README release line.
 - [ ] Add atomic updates for the four generated files and stage only those paths.
-- [ ] Add the repository-local `.githooks/commit-msg` shim and the Node hook entrypoint.
+- [ ] Add the repository-local `.githooks/post-commit` shim and the Node hook entrypoint.
 - [ ] Add `scripts/setup-git-hooks.mjs` and `prepare` so `npm install` installs the hook when a Git
       checkout is available.
-- [ ] Handle missing message files, invalid versions, inconsistent surfaces, failed writes, and
+- [ ] Handle missing `HEAD` messages, invalid versions, inconsistent surfaces, failed writes, and
       failed staging with non-zero exits and actionable messages.
-- [ ] Keep the user’s original commit message unchanged and never invoke a nested commit.
+- [ ] Keep the user’s original commit message unchanged and guard the single internal amend from
+      recursively invoking the hook.
 
 ### Documentation references
 
@@ -121,8 +125,8 @@ checkout. Add the executable `.githooks/commit-msg` shim that passes Git’s mes
       equal, downgrade, and inconsistent-surface inputs.
 - [ ] A temporary fixture test proves only the four generated files are updated and staged.
 - [ ] Hook setup tests succeed inside a Git checkout and safely no-op outside one.
-- [ ] A real local commit in a disposable repository proves the bump is included in the same commit
-      and no extra commit is created.
+- [ ] A real local commit in a disposable repository proves the bump is included in the same amended
+      commit and no extra logical commit is created.
 - [ ] Windows-compatible hook invocation is exercised through the project’s supported shell/runtime.
 - [ ] `git diff --check` reports no generated whitespace errors.
 
@@ -141,9 +145,10 @@ value differs. Add a GitHub Actions workflow at
 pull requests and pushes without mutating the checkout.
 
 Document the local setup and commit conventions in `README.md` and `AGENTS.md`, including the
-`prepare` behavior, `--no-verify` caveat, examples for patch/minor/major/exact release commits, and
-the explicit tag/push step. Keep release notes guidance clear: ordinary commits bump the version,
-but changelog entries are curated for intentional releases.
+`prepare` behavior, post-commit/`--no-verify` caveat, the emergency `TEXT_MARKDOWN_FORMATTER_SKIP=1`
+bypass, examples for patch/minor/major/exact release commits, and the explicit tag/push step. Keep
+release notes guidance clear: ordinary commits bump the version, but changelog entries are curated
+for intentional releases.
 
 ### Task checklist
 
@@ -154,7 +159,8 @@ but changelog entries are curated for intentional releases.
       exact `release: v1.0.0` overrides, and deliberate tag/push commands.
 - [ ] Update AGENTS architecture, commands, gotchas, and verification notes for the managed hook and
       consistency check.
-- [ ] Explain that `git commit --no-verify` bypasses the local hook and that CI is the safety net.
+- [ ] Explain that `git commit --no-verify` does not bypass post-commit, document the emergency skip
+      environment variable, and describe CI as the safety net.
 - [ ] Keep changelog guidance aligned with the approved curated-entry boundary.
 
 ### Documentation references

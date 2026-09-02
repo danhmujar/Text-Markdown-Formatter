@@ -1,5 +1,5 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.2.0';
+export const APP_VERSION = '0.2.1';
 export const CHANGELOG_ENTRIES = [
   {
     date: '2026-09-02',

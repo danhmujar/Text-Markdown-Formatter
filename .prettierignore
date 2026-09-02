@@ -1,6 +1,7 @@
 dist
 node_modules
 .playwright-mcp
+.githooks
 docs
 test.js
 test.cjs
