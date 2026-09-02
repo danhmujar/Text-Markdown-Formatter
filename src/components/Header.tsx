@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         color: 'var(--text-primary)',
       }}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <div className="w-full flex items-center justify-between gap-3">
         {/* Title */}
         <div className="flex items-center gap-3 min-w-0">
           <img
