@@ -139,6 +139,24 @@ These findings provide additional context and supporting details.`;
       const report = smartCleanupMarkdown(list);
       expect(report.cleaned).toContain('\n');
     });
+
+    it('unwraps indented visual wraps within a list item', () => {
+      const list = `- Award Type: Changed from LTC to PS. The award is delivered
+  55% in shares and 45% in cash, and is tracked as an equity
+  instrument.
+- Vesting Period: Retained at 3 years.`;
+
+      expect(smartCleanupMarkdown(list).cleaned).toBe(
+        '- Award Type: Changed from LTC to PS. The award is delivered 55% in shares and 45% in cash, and is tracked as an equity instrument.\n- Vesting Period: Retained at 3 years.',
+      );
+    });
+
+    it('preserves intentional completed-sentence breaks inside a list item', () => {
+      const list = `- Summary of results.
+  This sentence intentionally starts a new paragraph.`;
+
+      expect(smartCleanupMarkdown(list).cleaned).toBe(list);
+    });
   });
 
   describe('tsvToMarkdownTable edge inputs', () => {

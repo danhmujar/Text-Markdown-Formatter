@@ -183,6 +183,64 @@ function unwrapIfWrapped(text: string): string {
   return rawLines.map((l) => l.trim()).join(' ');
 }
 
+/**
+ * Joins visual line wraps within a single list item copied from sources such as
+ * PDFs and email. Continuation lines must be indented beyond the list marker,
+ * which keeps actual list items, nested lists, and paragraph breaks intact.
+ */
+function unwrapIndentedListContinuations(text: string): string {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  const unwrapped: string[] = [];
+  let inCodeBlock = false;
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (/^\s*```/.test(line)) {
+      inCodeBlock = !inCodeBlock;
+      unwrapped.push(line);
+      continue;
+    }
+
+    if (inCodeBlock) {
+      unwrapped.push(line);
+      continue;
+    }
+
+    const listItem = line.match(/^(\s*)(?:[*+-]|\d+[.)])\s+(.+)$/);
+    if (!listItem) {
+      unwrapped.push(line);
+      continue;
+    }
+
+    const requiredIndent = listItem[1].length + 2;
+    let combined = line.trimEnd();
+
+    while (index + 1 < lines.length) {
+      const next = lines[index + 1];
+      const nextIndent = next.match(/^\s*/)?.[0].length ?? 0;
+      const nextTrimmed = next.trim();
+
+      // A completed sentence is an intentional break; a colon is retained so
+      // labels such as "During the cycle:" can still wrap naturally.
+      if (
+        !nextTrimmed ||
+        nextIndent < requiredIndent ||
+        /^([*+-]\s+|(?:\d+|[a-zA-Z])[.)]\s+|#{1,6}\s|>|```|\|)/.test(nextTrimmed) ||
+        /[.!?;]$/.test(combined)
+      ) {
+        break;
+      }
+
+      combined = `${combined} ${nextTrimmed}`;
+      index++;
+    }
+
+    unwrapped.push(combined);
+  }
+
+  return unwrapped.join('\n');
+}
+
 export interface SmartCleanupReport {
   cleaned: string;
   hasChanges: boolean;
@@ -227,8 +285,9 @@ export function smartCleanupMarkdown(
   let markdownFixed = false;
   let entitiesCleaned = false;
 
-  // 0. Unwrap hard-wrapped single paragraph (PDF/Word copy with 60-char breaks)
-  const unwrapped = unwrapIfWrapped(text);
+  // 0. Unwrap hard-wrapped paragraphs and indented list-item continuations
+  // copied from PDFs, Word, and email.
+  const unwrapped = unwrapIndentedListContinuations(unwrapIfWrapped(text));
   if (unwrapped !== text) {
     text = unwrapped;
     spacesCleaned = true;

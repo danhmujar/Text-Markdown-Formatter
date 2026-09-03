@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.3.0';
+export const APP_VERSION = '0.4.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-04',
+    title: 'Wrapped list paste cleanup',
+    description:
+      'Pasted Markdown list items now join indented visual line wraps while preserving separate items, nested lists, code blocks, and intentional paragraph breaks.',
+  },
   {
     date: '2026-09-02',
     title: 'Automatic commit versioning',
