@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.5.0';
+export const APP_VERSION = '0.5.1';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-05',
+    title: 'Markdown table paste handling',
+    description:
+      'Standalone pipe-delimited Markdown tables now stay together in the current editor cell instead of being split into separate grid rows; TSV and HTML table imports remain supported.',
+  },
   {
     date: '2026-09-04',
     title: 'Wrapped list paste cleanup',
