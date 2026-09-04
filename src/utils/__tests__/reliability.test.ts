@@ -28,6 +28,12 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       expect(result).toBeNull();
     });
 
+    it('keeps standalone Markdown tables in the current cell', () => {
+      const markdownTable = `| Metric | Threshold | Target | Maximum |\n| :--- | :---: | :---: | :---: |\n| Return on Tangible Equity | 8 | 10 | 14 |`;
+
+      expect(parsePasteToGrid(markdownTable)).toBeNull();
+    });
+
     it('still parses short column data as grid (avg <40)', () => {
       const result = parsePasteToGrid('apple\nbanana\ncherry');
       expect(result).toEqual([['apple'], ['banana'], ['cherry']]);

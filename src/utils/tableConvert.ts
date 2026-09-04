@@ -263,6 +263,10 @@ function isLikelyMarkdownDocument(text: string, rawLines: string[]): boolean {
   const hasNonPipeText = rawLines.some(
     (l) => !/^\s*\|.*\|\s*$/.test(l) && l.trim().length > 0 && !/^\s*[-:]+[-| :]*$/.test(l),
   );
+  // A standalone Markdown table is a document, not a tabular grid paste. Keep
+  // the complete source in the current editor cell so Markdown formatting and
+  // all table columns remain intact.
+  if (hasPipeTable && !hasNonPipeText && isMarkdownTable(text)) return true;
   if (hasPipeTable && hasNonPipeText) return true;
 
   // 6. Markdown bullet lists (* item, - item, + item)
