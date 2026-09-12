@@ -104,9 +104,6 @@ export const Editor: React.FC<EditorProps> = React.memo(function Editor({
           {/* Aggregate Stats Badges */}
           <span
             id="total-input-char-badge"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
             className={`hidden md:inline-flex text-[11px] font-mono px-2 py-0.5 rounded border ${
               isDark
                 ? 'bg-slate-800/80 text-slate-300 border-slate-700'

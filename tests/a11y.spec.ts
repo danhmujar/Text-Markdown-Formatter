@@ -237,15 +237,30 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     ).toBe('15pt');
   });
 
-  test('mobile navigation opens Comparison mode and closes after activation', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 800 });
+  test('responsive navigation manages focus and keyboard dismissal', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 800 });
     await page.goto('/');
-    await page.locator('#mobile-menu-toggle-btn').click();
-    const mobileComparison = page.locator('#mobile-comparison-mode-btn');
-    await expect(mobileComparison).toBeVisible();
-    await mobileComparison.click();
+
+    const mobileTrigger = page.locator('#mobile-menu-toggle-btn');
+    await expect(mobileTrigger).toBeVisible();
+    await expect(page.locator('#comparison-mode-btn')).toBeHidden();
+
+    await mobileTrigger.click();
+    await expect(page.locator('#mobile-new-btn')).toBeFocused();
+    await expect(page.locator('#main-content')).toHaveAttribute('inert', '');
+
+    await page.keyboard.press('Escape');
     await expect(page.locator('#mobile-header-menu')).toHaveCount(0);
-    await expect(page.locator('#comparison-left-textarea')).toBeVisible();
+    await expect(mobileTrigger).toBeFocused();
+    await expect(page.locator('#main-content')).not.toHaveAttribute('inert', '');
+
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await expect(mobileTrigger).toBeVisible();
+    await expect(page.locator('#comparison-mode-btn')).toBeHidden();
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(mobileTrigger).toBeHidden();
+    await expect(page.locator('#comparison-mode-btn')).toBeVisible();
   });
 
   test('Comparison mode keeps one shared result scroll region on narrow screens', async ({

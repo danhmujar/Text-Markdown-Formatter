@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.5.1';
+export const APP_VERSION = '0.5.2';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-12',
+    title: 'UI and accessibility audit fixes',
+    description:
+      'Responsive navigation now avoids intermediate-width toolbar clipping, theme accents meet contrast requirements, controls have usable touch targets, and keyboard and screen-reader behavior is improved.',
+  },
   {
     date: '2026-09-05',
     title: 'Markdown table paste handling',

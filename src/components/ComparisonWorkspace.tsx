@@ -57,7 +57,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
             id="comparison-clear-btn"
             type="button"
             onClick={clearComparison}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
             style={{
               backgroundColor: 'var(--surface-bg)',
               borderColor: 'var(--border-color)',
@@ -71,7 +71,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
             id="comparison-back-btn"
             type="button"
             onClick={onBackToFormatter}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:text-sm"
             style={{
               backgroundColor: 'var(--surface-bg)',
               borderColor: 'var(--border-color)',
@@ -146,7 +146,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
             <button
               id="comparison-run-btn"
               type="submit"
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               style={{
                 backgroundColor: 'var(--primary-blue)',
                 borderColor: 'var(--primary-blue)',

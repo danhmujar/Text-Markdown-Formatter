@@ -136,7 +136,7 @@ export const ToastContainer: React.FC = () => {
               type="button"
               onClick={() => removeToast(toast.id)}
               aria-label="Close notification"
-              className="shrink-0 text-slate-400 hover:text-slate-200 p-0.5 rounded transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded text-slate-400 transition hover:text-slate-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
               title="Close notification"
             >
               <X aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />

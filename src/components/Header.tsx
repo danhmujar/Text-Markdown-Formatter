@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Undo2,
   Redo2,
@@ -17,6 +17,9 @@ import { FONT_OPTIONS } from '../constants/fonts';
 import { ColorTheme, THEME_SWATCHES } from '@/constants/themes';
 import { ThemeSlider } from './ThemeSlider';
 import { ThemePicker } from './ThemePicker';
+
+const mobileMenuFocusableSelector =
+  'button:not([disabled]), select:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
 interface HeaderProps {
   options: StyleOptions;
@@ -56,18 +59,65 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   onSelectColorTheme,
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLElement>(null);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const isFocused = focusMode !== 'split';
 
-  // Automatically close mobile menu if screen width expands >= 640px
+  // Automatically close mobile menu when the full toolbar becomes available.
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 640) {
+      if (window.innerWidth >= 1280) {
         setIsMobileMenuOpen(false);
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const main = document.getElementById('main-content');
+    const wasInert = main?.inert ?? false;
+    if (main) main.inert = true;
+
+    const menu = mobileMenuRef.current;
+    menu?.querySelector<HTMLElement>(mobileMenuFocusableSelector)?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsMobileMenuOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab' || !menu) return;
+
+      const focusable = [
+        mobileMenuTriggerRef.current,
+        ...menu.querySelectorAll<HTMLElement>(mobileMenuFocusableSelector),
+      ].filter(Boolean) as HTMLElement[];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (main) main.inert = wasInert;
+      if (mobileMenuTriggerRef.current?.offsetParent) {
+        mobileMenuTriggerRef.current.focus();
+      }
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <header
@@ -95,15 +145,15 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           </h1>
         </div>
 
-        {/* Mobile Hamburger Toggle Button (Screen width < 640px) */}
-        <div className="flex sm:hidden items-center gap-2">
+        {/* Compact navigation (Screen width < 1280px) */}
+        <div className="flex xl:hidden items-center gap-2">
           {/* Quick theme toggle on mobile top bar for instant access */}
           <button
             id="mobile-quick-theme-btn"
             type="button"
             onClick={onToggleDarkMode}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            className={`p-2 rounded-md border text-xs transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+            className={`min-h-11 min-w-11 p-2 rounded-md border text-xs transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isDark
                 ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
                 : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -120,12 +170,13 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {/* Hamburger Menu Toggle Button */}
           <button
             id="mobile-menu-toggle-btn"
+            ref={mobileMenuTriggerRef}
             type="button"
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-header-menu"
-            className={`p-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+            className={`min-h-11 min-w-11 p-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isMobileMenuOpen
                 ? isDark
                   ? 'bg-blue-950 border-blue-600 text-blue-300'
@@ -144,8 +195,8 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           </button>
         </div>
 
-        {/* Desktop Controls (Screen width >= 640px) */}
-        <div className="hidden sm:flex items-center gap-2.5">
+        {/* Desktop Controls (Screen width >= 1280px) */}
+        <div className="hidden xl:flex items-center gap-2.5">
           {/* New / Clear All Button */}
           {onClearAll && (
             <button
@@ -389,20 +440,21 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         </div>
       </div>
 
-      {/* Collapsed Mobile Menu (< 640px) — overlaying, does not push Input/Output */}
+      {/* Collapsed navigation (< 1280px) — overlaying, does not push Input/Output */}
       {isMobileMenuOpen && (
         <>
           <button
             type="button"
             aria-label="Close navigation menu"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 top-[56px] bg-black/20 backdrop-blur-[1px] sm:hidden z-30 cursor-default"
+            className="fixed inset-0 top-[56px] bg-black/20 backdrop-blur-[1px] xl:hidden z-30 cursor-default"
             tabIndex={-1}
           />
           <nav
+            ref={mobileMenuRef}
             id="mobile-header-menu"
             aria-label="Mobile application navigation and settings"
-            className="sm:hidden absolute top-full left-0 right-0 p-4 bg-[var(--panel-bg)] border-t border-b shadow-xl max-h-[calc(100vh-56px)] overflow-y-auto space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-150 z-40"
+            className="xl:hidden absolute top-full left-0 right-0 p-4 bg-[var(--panel-bg)] border-t border-b shadow-xl max-h-[calc(100vh-56px)] overflow-y-auto space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-150 z-40"
             style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--panel-bg)' }}
           >
             {/* Group 1: Session & History Actions */}

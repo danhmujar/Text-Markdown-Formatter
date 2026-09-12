@@ -15,6 +15,7 @@ export const ThemePicker: React.FC<ThemePickerProps> = React.memo(function Theme
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -24,7 +25,10 @@ export const ThemePicker: React.FC<ThemePickerProps> = React.memo(function Theme
       }
     };
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
     };
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEsc);
@@ -37,6 +41,7 @@ export const ThemePicker: React.FC<ThemePickerProps> = React.memo(function Theme
   return (
     <div ref={containerRef} className="theme-dropdown" id="theme-dropdown-container">
       <button
+        ref={triggerRef}
         id="palette-toggle-btn"
         type="button"
         aria-label="Choose color theme"
@@ -44,7 +49,7 @@ export const ThemePicker: React.FC<ThemePickerProps> = React.memo(function Theme
         aria-haspopup="true"
         title="Choose color theme"
         onClick={() => setOpen((v) => !v)}
-        className={`palette-btn-inner flex items-center justify-center w-[34px] h-[34px] rounded-full border transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+        className={`palette-btn-inner flex h-11 w-11 items-center justify-center rounded-full border transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
           isDark
             ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
             : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
@@ -53,33 +58,36 @@ export const ThemePicker: React.FC<ThemePickerProps> = React.memo(function Theme
         <Palette aria-hidden="true" focusable="false" className="w-[18px] h-[18px]" />
       </button>
 
-      <div
-        className={`theme-picker ${open ? 'active' : ''}`}
-        role="radiogroup"
-        aria-label="Color theme"
-        id="theme-picker-panel"
-      >
-        {THEME_SWATCHES.map((s) => {
-          const active = s.id === colorTheme;
-          return (
-            <button
-              key={s.id || 'default'}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              aria-label={s.title}
-              title={s.title}
-              data-theme={s.id}
-              onClick={() => {
-                onSelect(s.id);
-                setOpen(false);
-              }}
-              className={`theme-swatch ${active ? 'active' : ''}`}
-              style={{ backgroundColor: s.color }}
-            />
-          );
-        })}
-      </div>
+      {open && (
+        <div
+          className="theme-picker"
+          role="radiogroup"
+          aria-label="Color theme"
+          id="theme-picker-panel"
+        >
+          {THEME_SWATCHES.map((s) => {
+            const active = s.id === colorTheme;
+            return (
+              <button
+                key={s.id || 'default'}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                aria-label={s.title}
+                title={s.title}
+                data-theme={s.id}
+                onClick={() => {
+                  onSelect(s.id);
+                  setOpen(false);
+                  triggerRef.current?.focus();
+                }}
+                className={`theme-swatch ${active ? 'active' : ''}`}
+                style={{ backgroundColor: s.color }}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 });

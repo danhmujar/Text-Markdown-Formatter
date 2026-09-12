@@ -389,9 +389,6 @@ export const EditorCell: React.FC<EditorCellProps> = React.memo(function EditorC
       {/* Dynamic Character, Word & Line Counter Footer */}
       <div
         id={`cell-counter-footer-${rowIndex}-${colIndex}`}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
         style={{
           backgroundColor: 'var(--surface-bg)',
           borderColor: 'var(--border-color)',
