@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.6.1';
+export const APP_VERSION = '0.6.3';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-14',
+    title: 'Comparison mode reliability and readability',
+    description:
+      'Comparison now isolates Formatter actions, preserves keyboard focus across editing and results, rejects oversized diffs before quadratic processing, treats LF and CRLF content equally, and uses neutral aligned rows with yellow word-level highlights instead of line colors, markers, and line numbers.',
+  },
   {
     date: '2026-09-14',
     title: 'Premium workspace refinement',

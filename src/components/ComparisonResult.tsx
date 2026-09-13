@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- scrollable comparison region must be focusable */
 import React from 'react';
-import { diffLines, type DiffLine, type DiffSegment } from '../utils/lineDiff';
+import { diffLines, isDiffSupported, type DiffLine } from '../utils/lineDiff';
 
 interface ComparisonResultProps {
   leftText: string;
@@ -8,27 +8,10 @@ interface ComparisonResultProps {
   fontSize: number;
 }
 
-type DiffSide = 'left' | 'right';
-
 function lineKindLabel(kind: DiffLine['kind']): string {
   if (kind === 'added') return 'added';
   if (kind === 'removed') return 'removed';
   return 'unchanged';
-}
-
-function linePrefix(kind: DiffLine['kind']): string {
-  if (kind === 'added') return '+';
-  if (kind === 'removed') return '−';
-  return ' ';
-}
-
-function segmentClass(segment: DiffSegment, kind: DiffLine['kind']): string {
-  if (!segment.changed) return '';
-  return kind === 'added' ? 'bg-emerald-500/40 rounded-sm' : 'bg-rose-500/40 rounded-sm';
-}
-
-function sideLabel(side: DiffSide): string {
-  return side === 'left' ? 'Left' : 'Right';
 }
 
 export const ComparisonResult: React.FC<ComparisonResultProps> = ({
@@ -36,11 +19,23 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
   rightText,
   fontSize,
 }) => {
+  if (!isDiffSupported(leftText, rightText)) {
+    return (
+      <section aria-labelledby="comparison-result-title" className="flex min-h-0 flex-col">
+        <h2 id="comparison-result-title" className="sr-only">
+          Comparison result
+        </h2>
+        <p role="alert" className="text-sm text-[var(--text-secondary)]">
+          Comparison is limited to 1,000 lines and 10,000 tokens per side.
+        </p>
+      </section>
+    );
+  }
+
   const diff = diffLines(leftText, rightText);
 
-  const renderLine = (side: DiffSide, line: DiffLine | null, rowIndex: number) => {
-    const label = sideLabel(side);
-
+  const renderLine = (side: 'left' | 'right', line: DiffLine | null, rowIndex: number) => {
+    const label = side === 'left' ? 'Left' : 'Right';
     if (!line) {
       return (
         <div
@@ -56,9 +51,6 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
     }
 
     const kindLabel = lineKindLabel(line.kind);
-    const prefix = linePrefix(line.kind);
-    const lineBackground =
-      line.kind === 'added' ? 'bg-emerald-500/15' : line.kind === 'removed' ? 'bg-rose-500/15' : '';
 
     return (
       <div
@@ -67,24 +59,15 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
         data-diff-kind={line.kind}
         data-line-number={line.lineNumber}
         aria-label={`${label} line ${line.lineNumber}, ${kindLabel}`}
-        className={`min-h-8 border-b px-2 py-1.5 font-mono leading-5 ${lineBackground}`}
+        className="min-h-8 border-b px-2 py-1.5 font-mono leading-5"
         style={{ borderColor: 'var(--border-color)', fontSize: `${fontSize}pt` }}
       >
-        <span className="mr-2 inline-block w-7 select-none text-right text-[10px] opacity-50">
-          {line.lineNumber}
-        </span>
-        <span
-          aria-hidden="true"
-          className="mr-2 inline-block w-3 select-none text-center opacity-70"
-        >
-          {prefix}
-        </span>
         <span className="whitespace-pre-wrap break-words">
           {line.segments.map((segment, segmentIndex) => (
             <span
               key={`${segmentIndex}-${segment.text}`}
               data-diff-segment={segment.changed ? 'changed' : 'same'}
-              className={segmentClass(segment, line.kind)}
+              className={segment.changed ? 'rounded-sm bg-amber-300/60' : ''}
             >
               {segment.text}
             </span>
@@ -103,6 +86,7 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
         <p className="mb-3 text-sm text-emerald-600 dark:text-emerald-400">No differences found.</p>
       )}
       <div
+        id="comparison-result"
         tabIndex={0}
         className="min-h-0 overflow-auto rounded border focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
         style={{ borderColor: 'var(--border-color)' }}

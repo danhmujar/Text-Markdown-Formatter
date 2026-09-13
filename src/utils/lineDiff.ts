@@ -41,12 +41,30 @@ type TokenOperation =
 
 const WORD_TOKEN_PATTERN = /\s+|[\p{L}\p{N}_]+|[^\p{L}\p{N}_\s]+/gu;
 
+const MAX_COMPARISON_LINES = 1_000;
+const MAX_COMPARISON_TOKENS = 10_000;
+const MAX_REPLACEMENT_TOKENS = 1_000;
+
 function splitLines(text: string): string[] {
   return text ? text.split(/\r?\n/) : [];
 }
 
 function tokenize(text: string): string[] {
   return text.match(WORD_TOKEN_PATTERN) ?? [];
+}
+
+export function isDiffSupported(input: string, output: string): boolean {
+  const left = splitLines(input);
+  const right = splitLines(output);
+
+  return (
+    left.length <= MAX_COMPARISON_LINES &&
+    right.length <= MAX_COMPARISON_LINES &&
+    tokenize(input).length <= MAX_COMPARISON_TOKENS &&
+    tokenize(output).length <= MAX_COMPARISON_TOKENS &&
+    left.every((line) => tokenize(line).length <= MAX_REPLACEMENT_TOKENS) &&
+    right.every((line) => tokenize(line).length <= MAX_REPLACEMENT_TOKENS)
+  );
 }
 
 function buildLcsTable(left: string[], right: string[]): number[][] {
@@ -245,7 +263,8 @@ export function diffLines(input: string, output: string): LineDiff {
   flushChanges();
 
   return {
-    identical: input === output,
+    identical:
+      left.length === right.length && left.every((line, index) => line.text === right[index].text),
     inputEmpty: input.length === 0,
     outputEmpty: output.length === 0,
     rows,

@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         {/* Desktop Controls (Screen width >= 1280px) */}
         <div className="hidden xl:flex items-center gap-2.5">
           {/* New / Clear All Button */}
-          {onClearAll && (
+          {!isComparisonMode && onClearAll && (
             <button
               id="header-clear-all-btn"
               type="button"
@@ -220,57 +220,59 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           </button>
 
           {/* Undo / Redo Control Group */}
-          <div
-            className={`flex items-center rounded-md border p-0.5 ${
-              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
-            }`}
-          >
-            <button
-              id="header-undo-btn"
-              type="button"
-              onClick={onUndo}
-              disabled={!canUndo}
-              aria-disabled={!canUndo}
-              aria-label="Undo last change (Ctrl+Z / ⌘Z)"
-              className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                canUndo
-                  ? isDark
-                    ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
-                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
-                  : isDark
-                    ? 'text-slate-500 opacity-60 cursor-not-allowed'
-                    : 'text-slate-500 opacity-60 cursor-not-allowed'
+          {!isComparisonMode && (
+            <div
+              className={`flex items-center rounded-md border p-0.5 ${
+                isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
               }`}
-              title="Undo last change (Ctrl+Z / ⌘Z)"
             >
-              <Undo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Undo</span>
-            </button>
+              <button
+                id="header-undo-btn"
+                type="button"
+                onClick={onUndo}
+                disabled={!canUndo}
+                aria-disabled={!canUndo}
+                aria-label="Undo last change (Ctrl+Z / ⌘Z)"
+                className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                  canUndo
+                    ? isDark
+                      ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
+                      : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
+                    : isDark
+                      ? 'text-slate-500 opacity-60 cursor-not-allowed'
+                      : 'text-slate-500 opacity-60 cursor-not-allowed'
+                }`}
+                title="Undo last change (Ctrl+Z / ⌘Z)"
+              >
+                <Undo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px]">Undo</span>
+              </button>
 
-            <div className={`w-px h-3.5 mx-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+              <div className={`w-px h-3.5 mx-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
 
-            <button
-              id="header-redo-btn"
-              type="button"
-              onClick={onRedo}
-              disabled={!canRedo}
-              aria-disabled={!canRedo}
-              aria-label="Redo next change (Ctrl+Y / ⌘⇧Z)"
-              className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                canRedo
-                  ? isDark
-                    ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
-                    : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
-                  : isDark
-                    ? 'text-slate-500 opacity-60 cursor-not-allowed'
-                    : 'text-slate-500 opacity-60 cursor-not-allowed'
-              }`}
-              title="Redo next change (Ctrl+Y / ⌘⇧Z)"
-            >
-              <Redo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Redo</span>
-            </button>
-          </div>
+              <button
+                id="header-redo-btn"
+                type="button"
+                onClick={onRedo}
+                disabled={!canRedo}
+                aria-disabled={!canRedo}
+                aria-label="Redo next change (Ctrl+Y / ⌘⇧Z)"
+                className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                  canRedo
+                    ? isDark
+                      ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
+                      : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
+                    : isDark
+                      ? 'text-slate-500 opacity-60 cursor-not-allowed'
+                      : 'text-slate-500 opacity-60 cursor-not-allowed'
+                }`}
+                title="Redo next change (Ctrl+Y / ⌘⇧Z)"
+              >
+                <Redo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px]">Redo</span>
+              </button>
+            </div>
+          )}
 
           {/* Font Selector */}
           <div
@@ -398,7 +400,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                 Actions &amp; History
               </span>
               <div className="grid grid-cols-2 gap-2">
-                {onClearAll && (
+                {!isComparisonMode && onClearAll && (
                   <button
                     id="mobile-new-btn"
                     type="button"
@@ -444,45 +446,49 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                   <span>Comparison</span>
                 </button>
 
-                <button
-                  id="mobile-undo-btn"
-                  type="button"
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                  aria-disabled={!canUndo}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                    canUndo
-                      ? isDark
-                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
-                      : isDark
-                        ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
-                        : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
-                  }`}
-                >
-                  <Undo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
-                  <span>Undo</span>
-                </button>
+                {!isComparisonMode && (
+                  <button
+                    id="mobile-undo-btn"
+                    type="button"
+                    onClick={onUndo}
+                    disabled={!canUndo}
+                    aria-disabled={!canUndo}
+                    className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                      canUndo
+                        ? isDark
+                          ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
+                        : isDark
+                          ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
+                          : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    <Undo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                    <span>Undo</span>
+                  </button>
+                )}
 
-                <button
-                  id="mobile-redo-btn"
-                  type="button"
-                  onClick={onRedo}
-                  disabled={!canRedo}
-                  aria-disabled={!canRedo}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                    canRedo
-                      ? isDark
-                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
-                      : isDark
-                        ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
-                        : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
-                  }`}
-                >
-                  <Redo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
-                  <span>Redo</span>
-                </button>
+                {!isComparisonMode && (
+                  <button
+                    id="mobile-redo-btn"
+                    type="button"
+                    onClick={onRedo}
+                    disabled={!canRedo}
+                    aria-disabled={!canRedo}
+                    className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
+                      canRedo
+                        ? isDark
+                          ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
+                        : isDark
+                          ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
+                          : 'bg-slate-50/50 border-slate-200/50 text-slate-400 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    <Redo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
+                    <span>Redo</span>
+                  </button>
+                )}
               </div>
             </div>
 

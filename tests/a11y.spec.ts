@@ -159,18 +159,34 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(page.locator('[role="dialog"]')).toHaveCount(0);
     await expect(page.locator('#app-background')).not.toHaveAttribute('inert', '');
     await expect(comparisonModeButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#header-clear-all-btn')).toHaveCount(0);
+    await expect(page.locator('#header-undo-btn')).toHaveCount(0);
+    await expect(page.locator('#header-redo-btn')).toHaveCount(0);
 
     await left.fill('Keep old value.\nAfter');
     await right.fill('Keep new value.\nInserted\nAfter');
-    await page.locator('#comparison-run-btn').click();
-
     const result = page.getByLabel('Side-by-side comparison');
+    await page.locator('#comparison-run-btn').click();
+    await expect(result).toBeFocused();
     await expect(result).toBeVisible();
     const rows = result.locator('[data-diff-row]:not([data-diff-row="empty"])');
     await expect(rows).toHaveCount(3);
     await expect(rows.nth(0).locator('[data-diff-kind="removed"]')).toHaveCount(1);
     await expect(rows.nth(0).locator('[data-diff-kind="added"]')).toHaveCount(1);
     await expect(rows.nth(0).locator('[data-diff-segment="changed"]')).toHaveCount(2);
+    await expect(
+      rows.nth(0).locator('[data-diff-side="left"] [data-diff-segment="changed"]'),
+    ).toHaveClass(/bg-amber-300\/60/);
+    await expect(
+      rows.nth(0).locator('[data-diff-side="right"] [data-diff-segment="changed"]'),
+    ).toHaveClass(/bg-amber-300\/60/);
+    await expect(rows.nth(0).locator('[aria-hidden="true"]')).toHaveCount(0);
+    await expect(rows.nth(0).locator('[data-diff-side="left"]')).not.toHaveClass(
+      /bg-(emerald|rose)-500/,
+    );
+    await expect(rows.nth(0).locator('[data-diff-side="right"]')).not.toHaveClass(
+      /bg-(emerald|rose)-500/,
+    );
     await expect(rows.nth(1).locator('[data-diff-kind="spacer"]')).toHaveCount(1);
     await expect(rows.nth(1).locator('[data-diff-kind="added"]')).toContainText('Inserted');
     await expect(result.getByRole('heading', { name: 'Left' })).toBeVisible();
@@ -178,6 +194,7 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(page.locator('[role="dialog"]')).toHaveCount(0);
 
     await page.locator('#comparison-edit-btn').click();
+    await expect(left).toBeFocused();
     await expect(left).toBeVisible();
     await expect(left).toHaveValue('Keep old value.\nAfter');
     await expect(right).toHaveValue('Keep new value.\nInserted\nAfter');
@@ -211,6 +228,13 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(
       rightOnlyRow.locator('[data-diff-side="right"][data-diff-kind="added"]'),
     ).toContainText('Only on the right');
+
+    await page.locator('#comparison-edit-btn').click();
+    await page.locator('#comparison-left-textarea').fill('word '.repeat(1_001));
+    await runButton.click();
+    await expect(page.getByRole('alert')).toContainText(
+      'Comparison is limited to 1,000 lines and 10,000 tokens per side.',
+    );
   });
 
   test('Comparison Clear empties both sides and returns to blank editing', async ({ page }) => {
@@ -303,6 +327,9 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await page.goto('/');
     await page.locator('#mobile-menu-toggle-btn').click();
     await page.locator('#mobile-comparison-mode-btn').click();
+    await expect(page.locator('#mobile-new-btn')).toHaveCount(0);
+    await expect(page.locator('#mobile-undo-btn')).toHaveCount(0);
+    await expect(page.locator('#mobile-redo-btn')).toHaveCount(0);
     await page.locator('#comparison-left-textarea').fill('left line\nsecond line');
     await page.locator('#comparison-right-textarea').fill('right line\nsecond line');
     await page.locator('#comparison-run-btn').click();

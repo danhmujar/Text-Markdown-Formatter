@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Eraser, GitCompare, Pencil } from 'lucide-react';
 import { ComparisonResult } from './ComparisonResult';
 
@@ -19,6 +19,16 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
   const [leftText, setLeftText] = useState('');
   const [rightText, setRightText] = useState('');
   const [view, setView] = useState<ComparisonView>('editing');
+
+  const leftEditorRef = useRef<HTMLTextAreaElement>(null);
+  const previousViewRef = useRef(view);
+
+  useEffect(() => {
+    if (previousViewRef.current === view) return;
+    previousViewRef.current = view;
+    if (view === 'result') document.getElementById('comparison-result')?.focus();
+    else leftEditorRef.current?.focus();
+  }, [view]);
 
   const isEditing = view === 'editing';
 
@@ -108,6 +118,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
                 Left
               </label>
               <textarea
+                ref={leftEditorRef}
                 id="comparison-left-textarea"
                 value={leftText}
                 onChange={(event) => setLeftText(event.target.value)}

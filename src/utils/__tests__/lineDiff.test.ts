@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diffLines } from '../lineDiff';
+import { diffLines, isDiffSupported } from '../lineDiff';
 
 describe('diffLines', () => {
   it('reports identical content with aligned, numbered lines', () => {
@@ -162,9 +162,9 @@ describe('diffLines', () => {
     });
   });
 
-  it('accepts LF and CRLF separators without retaining carriage returns', () => {
+  it('treats LF and CRLF separators as identical content', () => {
     const result = diffLines('first\r\nsecond', 'first\nsecond');
-    expect(result.identical).toBe(false);
+    expect(result.identical).toBe(true);
     expect(result.rows.map(({ left, right }) => [left?.text ?? null, right?.text ?? null])).toEqual(
       [
         ['first', 'first'],
@@ -190,5 +190,10 @@ describe('diffLines', () => {
     expect(first.outputEmpty).toBe(false);
     expect(first.rows[0].left?.segments.map((segment) => segment.text).join('')).toBe('   ');
     expect(first.rows[0].right?.segments.map((segment) => segment.text).join('')).toBe('  changed');
+  });
+
+  it('rejects inputs that would require oversized LCS tables', () => {
+    expect(isDiffSupported(Array(1_001).fill('line').join('\n'), 'line')).toBe(false);
+    expect(isDiffSupported('word '.repeat(1_001), 'changed')).toBe(false);
   });
 });
