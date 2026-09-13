@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 export interface GridHistoryState {
   grid: string[][];
-  outputOverrides: Record<string, string>;
 }
 
 export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) {
@@ -10,235 +9,162 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
     throw new Error('useGridHistory: initialState.grid must be string[][]');
   }
 
-  // Current live state
-  const [grid, setGridState] = useState<string[][]>(() => initialState.grid.map((row) => [...row]));
-  const [outputOverrides, setOutputOverridesState] = useState<Record<string, string>>(() => ({
-    ...initialState.outputOverrides,
-  }));
+  const cloneGrid = (grid: string[][]) => grid.map((row) => [...row]);
+  const [grid, setGridState] = useState<string[][]>(() => cloneGrid(initialState.grid));
+  const [history, setHistory] = useState<string[][][]>([cloneGrid(initialState.grid)]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
-  // History stack of committed states
-  const [history, setHistory] = useState<GridHistoryState[]>([
-    {
-      grid: initialState.grid.map((row) => [...row]),
-      outputOverrides: { ...initialState.outputOverrides },
-    },
-  ]);
-  const [historyIndex, setHistoryIndex] = useState<number>(0);
-
-  // References for reliable closures inside timers and event callbacks
   const historyRef = useRef(history);
   historyRef.current = history;
   const indexRef = useRef(historyIndex);
   indexRef.current = historyIndex;
   const gridRef = useRef(grid);
   gridRef.current = grid;
-  const overridesRef = useRef(outputOverrides);
-  overridesRef.current = outputOverrides;
-
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Deep cloning helper
-  const cloneState = (s: GridHistoryState): GridHistoryState => ({
-    grid: s.grid.map((r) => [...r]),
-    outputOverrides: { ...s.outputOverrides },
-  });
-
-  const areStatesEqual = (a: GridHistoryState, b: GridHistoryState): boolean => {
+  const areGridsEqual = (a: string[][], b: string[][]): boolean => {
     if (a === b) return true;
-    if (!a || !b) return false;
-    if (a.grid.length !== b.grid.length) return false;
+    if (a.length !== b.length) return false;
 
-    const aOverridesKeys = Object.keys(a.outputOverrides);
-    const bOverridesKeys = Object.keys(b.outputOverrides);
-    if (aOverridesKeys.length !== bOverridesKeys.length) return false;
-
-    for (let r = 0; r < a.grid.length; r++) {
-      if (a.grid[r]?.length !== b.grid[r]?.length) return false;
-    }
-
-    // Fast path: skip heavy serialization on massive payloads > 500,000 chars
     let totalChars = 0;
-    for (let r = 0; r < a.grid.length; r++) {
-      const row = a.grid[r];
-      if (row) {
-        for (let c = 0; c < row.length; c++) {
-          totalChars += (row[c] || '').length;
-        }
-      }
+    for (let rowIndex = 0; rowIndex < a.length; rowIndex++) {
+      if (a[rowIndex]?.length !== b[rowIndex]?.length) return false;
+      for (const cell of a[rowIndex] ?? []) totalChars += cell.length;
     }
-    if (totalChars > 500_000) return false;
 
-    return (
-      JSON.stringify(a.grid) === JSON.stringify(b.grid) &&
-      JSON.stringify(a.outputOverrides) === JSON.stringify(b.outputOverrides)
-    );
+    if (totalChars > 500_000) return false;
+    return JSON.stringify(a) === JSON.stringify(b);
   };
 
-  // Commit a snapshot to history
+  const replaceHistory = useCallback((next: string[][][]) => {
+    historyRef.current = next;
+    indexRef.current = next.length - 1;
+    setHistory(next);
+    setHistoryIndex(indexRef.current);
+  }, []);
+
   const commitSnapshot = useCallback(
-    (stateToCommit: GridHistoryState) => {
-      const currentCommitted = historyRef.current[indexRef.current];
-      if (currentCommitted && areStatesEqual(currentCommitted, stateToCommit)) {
+    (gridToCommit: string[][]) => {
+      const current = historyRef.current[indexRef.current];
+      if (current && areGridsEqual(current, gridToCommit)) return;
+
+      const next = [
+        ...historyRef.current.slice(0, indexRef.current + 1),
+        cloneGrid(gridToCommit),
+      ].slice(-maxHistory);
+      replaceHistory(next);
+    },
+    [maxHistory, replaceHistory],
+  );
+
+  const updateGrid = useCallback(
+    (newGrid: string[][], isTyping = false) => {
+      const cloned = cloneGrid(newGrid);
+      gridRef.current = cloned;
+      setGridState(cloned);
+
+      if (isTyping) {
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = setTimeout(() => {
+          commitSnapshot(gridRef.current);
+          debounceTimerRef.current = null;
+        }, 500);
         return;
       }
 
-      const cloned = cloneState(stateToCommit);
-      setHistory((prev) => {
-        const trimmed = prev.slice(0, indexRef.current + 1);
-        const next = [...trimmed, cloned];
-        if (next.length > maxHistory) {
-          next.shift();
-        }
-        return next;
-      });
-
-      setHistoryIndex(() => {
-        const nextIdx = Math.min(indexRef.current + 1, maxHistory - 1);
-        indexRef.current = nextIdx;
-        return nextIdx;
-      });
-    },
-    [maxHistory],
-  );
-
-  // Update live state with optional debounced history push (for typing) or immediate commit
-  const setLiveGridAndOverrides = useCallback(
-    (newGrid: string[][], newOverrides: Record<string, string>, isTyping = false) => {
-      setGridState(newGrid.map((r) => [...r]));
-      setOutputOverridesState({ ...newOverrides });
-
-      const newState: GridHistoryState = {
-        grid: newGrid,
-        outputOverrides: newOverrides,
-      };
-
-      if (isTyping) {
-        if (debounceTimerRef.current) {
-          clearTimeout(debounceTimerRef.current);
-        }
-        debounceTimerRef.current = setTimeout(() => {
-          commitSnapshot({
-            grid: gridRef.current,
-            outputOverrides: overridesRef.current,
-          });
-          debounceTimerRef.current = null;
-        }, 500);
-      } else {
-        if (debounceTimerRef.current) {
-          clearTimeout(debounceTimerRef.current);
-          debounceTimerRef.current = null;
-        }
-        commitSnapshot(newState);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
+      commitSnapshot(cloned);
     },
     [commitSnapshot],
   );
 
-  // Set grid only
-  const updateGrid = useCallback(
-    (newGrid: string[][], isTyping = false) => {
-      setLiveGridAndOverrides(newGrid, overridesRef.current, isTyping);
+  const commitPaste = useCallback(
+    (rawGrid: string[][], cleanedGrid: string[][]) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+
+      const next = historyRef.current.slice(0, indexRef.current + 1);
+      const append = (candidate: string[][]) => {
+        const previous = next[next.length - 1];
+        if (!previous || !areGridsEqual(previous, candidate)) next.push(cloneGrid(candidate));
+      };
+      append(rawGrid);
+      append(cleanedGrid);
+
+      const bounded = next.slice(-maxHistory);
+      const cloned = cloneGrid(cleanedGrid);
+      gridRef.current = cloned;
+      setGridState(cloned);
+      replaceHistory(bounded);
     },
-    [setLiveGridAndOverrides],
+    [maxHistory, replaceHistory],
   );
 
-  // Set output overrides only
-  const updateOutputOverrides = useCallback(
-    (
-      updater: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>),
-      isTyping = false,
-    ) => {
-      const nextOverrides = typeof updater === 'function' ? updater(overridesRef.current) : updater;
-      setLiveGridAndOverrides(gridRef.current, nextOverrides, isTyping);
-    },
-    [setLiveGridAndOverrides],
-  );
-
-  // Set both atomically
-  const updateAll = useCallback(
-    (newGrid: string[][], newOverrides: Record<string, string>) => {
-      setLiveGridAndOverrides(newGrid, newOverrides, false);
-    },
-    [setLiveGridAndOverrides],
-  );
-
-  // Undo
   const undo = useCallback((): boolean => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
 
-    const currentLiveState: GridHistoryState = {
-      grid: gridRef.current,
-      outputOverrides: overridesRef.current,
-    };
     const committedCurrent = historyRef.current[indexRef.current];
-
-    // If there is uncommitted live typing state, restore current committed state first
-    if (committedCurrent && !areStatesEqual(currentLiveState, committedCurrent)) {
-      setGridState(committedCurrent.grid.map((r) => [...r]));
-      setOutputOverridesState({ ...committedCurrent.outputOverrides });
+    if (committedCurrent && !areGridsEqual(gridRef.current, committedCurrent)) {
+      const restored = cloneGrid(committedCurrent);
+      gridRef.current = restored;
+      setGridState(restored);
       return true;
     }
 
-    if (indexRef.current > 0) {
-      const targetIndex = indexRef.current - 1;
-      const targetState = historyRef.current[targetIndex];
-      if (targetState) {
-        setHistoryIndex(targetIndex);
-        setGridState(targetState.grid.map((r) => [...r]));
-        setOutputOverridesState({ ...targetState.outputOverrides });
-        return true;
-      }
-    }
-    return false;
+    if (indexRef.current === 0) return false;
+    const targetIndex = indexRef.current - 1;
+    const restored = cloneGrid(historyRef.current[targetIndex]);
+    indexRef.current = targetIndex;
+    gridRef.current = restored;
+    setHistoryIndex(targetIndex);
+    setGridState(restored);
+    return true;
   }, []);
 
-  // Redo
   const redo = useCallback((): boolean => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
 
-    if (indexRef.current < historyRef.current.length - 1) {
-      const targetIndex = indexRef.current + 1;
-      const targetState = historyRef.current[targetIndex];
-      if (targetState) {
-        setHistoryIndex(targetIndex);
-        setGridState(targetState.grid.map((r) => [...r]));
-        setOutputOverridesState({ ...targetState.outputOverrides });
-        return true;
-      }
-    }
-    return false;
+    if (indexRef.current >= historyRef.current.length - 1) return false;
+    const targetIndex = indexRef.current + 1;
+    const restored = cloneGrid(historyRef.current[targetIndex]);
+    indexRef.current = targetIndex;
+    gridRef.current = restored;
+    setHistoryIndex(targetIndex);
+    setGridState(restored);
+    return true;
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
+  useEffect(
+    () => () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    },
+    [],
+  );
 
   const canUndo = useMemo(
     () =>
       historyIndex > 0 ||
       (Boolean(historyRef.current[historyIndex]) &&
-        !areStatesEqual({ grid, outputOverrides }, historyRef.current[historyIndex])),
-    [historyIndex, grid, outputOverrides],
+        !areGridsEqual(grid, historyRef.current[historyIndex])),
+    [grid, historyIndex],
   );
   const canRedo = useMemo(() => historyIndex < history.length - 1, [historyIndex, history.length]);
 
   return {
     grid,
-    outputOverrides,
     updateGrid,
-    updateOutputOverrides,
-    updateAll,
+    commitPaste,
     undo,
     redo,
     canUndo,

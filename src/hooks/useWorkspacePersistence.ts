@@ -2,40 +2,57 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GridHistoryState } from './useGridHistory';
 
 export const WORKSPACE_STORAGE_KEY = 'text-markdown-formatter:workspace';
-export const WORKSPACE_STORAGE_VERSION = 1;
-const FALLBACK: GridHistoryState = { grid: [['']], outputOverrides: {} };
+export const WORKSPACE_STORAGE_VERSION = 2;
+const FALLBACK: GridHistoryState = { grid: [['']] };
 
-function isValidWorkspace(value: unknown): value is GridHistoryState {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as { version?: unknown; grid?: unknown; outputOverrides?: unknown };
-  if (candidate.version !== WORKSPACE_STORAGE_VERSION || !Array.isArray(candidate.grid))
-    return false;
-  if (
-    !candidate.grid.length ||
-    candidate.grid.some(
-      (row) => !Array.isArray(row) || row.some((cell) => typeof cell !== 'string'),
+function isValidGrid(value: unknown): value is string[][] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every(
+      (row) =>
+        Array.isArray(row) && row.length > 0 && row.every((cell) => typeof cell === 'string'),
     )
-  )
-    return false;
-  if (
-    !candidate.outputOverrides ||
-    typeof candidate.outputOverrides !== 'object' ||
-    Array.isArray(candidate.outputOverrides)
-  )
-    return false;
-  return Object.values(candidate.outputOverrides).every((entry) => typeof entry === 'string');
+  );
+}
+
+function migrateVersionOne(grid: string[][], overrides: unknown): string[][] | null {
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) return null;
+  if (!Object.values(overrides).every((entry) => typeof entry === 'string')) return null;
+
+  const migrated = grid.map((row) => [...row]);
+  for (const [key, value] of Object.entries(overrides)) {
+    const match = /^(\d+)-(\d+)$/.exec(key);
+    if (!match) continue;
+    const rowIndex = Number(match[1]);
+    const colIndex = Number(match[2]);
+    if (migrated[rowIndex]?.[colIndex] !== undefined)
+      migrated[rowIndex][colIndex] = value as string;
+  }
+  return migrated;
 }
 
 export function readWorkspace(): GridHistoryState {
   try {
     const raw = window.localStorage.getItem(WORKSPACE_STORAGE_KEY);
     if (!raw) return FALLBACK;
-    const parsed = JSON.parse(raw);
-    if (!isValidWorkspace(parsed)) return FALLBACK;
-    return {
-      grid: parsed.grid.map((row) => [...row]),
-      outputOverrides: { ...parsed.outputOverrides },
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return FALLBACK;
+
+    const candidate = parsed as {
+      version?: unknown;
+      grid?: unknown;
+      outputOverrides?: unknown;
     };
+    if (!isValidGrid(candidate.grid)) return FALLBACK;
+    if (candidate.version === WORKSPACE_STORAGE_VERSION) {
+      return { grid: candidate.grid.map((row) => [...row]) };
+    }
+    if (candidate.version === 1) {
+      const migrated = migrateVersionOne(candidate.grid, candidate.outputOverrides);
+      return migrated ? { grid: migrated } : FALLBACK;
+    }
+    return FALLBACK;
   } catch {
     return FALLBACK;
   }
@@ -43,12 +60,10 @@ export function readWorkspace(): GridHistoryState {
 
 export function useWorkspacePersistence(
   grid: string[][],
-  outputOverrides: Record<string, string>,
   initialState: GridHistoryState = readWorkspace(),
 ) {
   const [restoredState] = useState<GridHistoryState>(() => ({
     grid: initialState.grid.map((row) => [...row]),
-    outputOverrides: { ...initialState.outputOverrides },
   }));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextPersistRef = useRef(false);
@@ -73,7 +88,7 @@ export function useWorkspacePersistence(
       try {
         window.localStorage.setItem(
           WORKSPACE_STORAGE_KEY,
-          JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid, outputOverrides }),
+          JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid }),
         );
       } catch {
         // Storage is optional.
@@ -84,7 +99,7 @@ export function useWorkspacePersistence(
       clearTimeout(timerRef.current ?? undefined);
       timerRef.current = null;
     };
-  }, [grid, outputOverrides]);
+  }, [grid]);
 
   return { initialState: restoredState, clearStorage };
 }

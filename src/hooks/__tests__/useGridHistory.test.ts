@@ -52,10 +52,7 @@ describe('useGridHistory', () => {
   });
 
   it('caps history stack at maxHistory (60) after 70 commits without desynchronization', () => {
-    const hook = renderGridHistoryHook({
-      grid: [['initial']],
-      outputOverrides: {},
-    });
+    const hook = renderGridHistoryHook({ grid: [['initial']] });
 
     // Commit 70 distinct states
     for (let i = 1; i <= 70; i++) {
@@ -97,10 +94,7 @@ describe('useGridHistory', () => {
   });
 
   it('debounces rapid typing updates into a single history snapshot after 500ms', () => {
-    const hook = renderGridHistoryHook({
-      grid: [['initial']],
-      outputOverrides: {},
-    });
+    const hook = renderGridHistoryHook({ grid: [['initial']] });
 
     // Simulate fast typing 5 characters
     for (let i = 1; i <= 5; i++) {
@@ -124,6 +118,26 @@ describe('useGridHistory', () => {
     });
 
     expect(hook.getResult().grid).toEqual([['initial']]);
+    hook.unmount();
+  });
+
+  it('keeps the raw paste as the first undo target', () => {
+    const hook = renderGridHistoryHook({ grid: [['before']] });
+
+    act(() => {
+      hook.getResult().commitPaste([['wrapped\ntext']], [['wrapped text']]);
+    });
+    expect(hook.getResult().grid).toEqual([['wrapped text']]);
+
+    act(() => {
+      hook.getResult().undo();
+    });
+    expect(hook.getResult().grid).toEqual([['wrapped\ntext']]);
+
+    act(() => {
+      hook.getResult().undo();
+    });
+    expect(hook.getResult().grid).toEqual([['before']]);
     hook.unmount();
   });
 });

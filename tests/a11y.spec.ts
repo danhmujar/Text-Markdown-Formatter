@@ -49,6 +49,38 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(settingsBtn).toBeFocused();
   });
 
+  test('pasted hard wraps clean automatically and remain reversible', async ({ page }) => {
+    await page.goto('/');
+    const textarea = page.locator('#formatter-textarea-0-0');
+    await expect(textarea).toBeVisible();
+
+    const wrapped =
+      'Since 2008, the Company has adhered to the French corporate\ngovernance code for listed companies published by Afep and\nMedef Code, available on the following websites and reports.';
+    await textarea.evaluate((element, text) => {
+      const clipboardData = new DataTransfer();
+      clipboardData.setData('text/plain', text);
+      element.dispatchEvent(
+        new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }),
+      );
+    }, wrapped);
+
+    await expect(page.locator('#formatter-preview-0-0')).toContainText(
+      'Since 2008, the Company has adhered to the French corporate governance code for listed companies published by Afep and Medef Code, available on the following websites and reports.',
+    );
+    await expect(page.getByRole('status')).toContainText('Removed 2 accidental line breaks');
+
+    await page.locator('#toggle-edit-mode-0-0').click();
+    await expect(page.locator('#formatter-textarea-0-0')).toHaveValue(wrapped.replace(/\n/g, ' '));
+
+    await page.locator('#header-undo-btn').click();
+    await expect(page.locator('#formatter-textarea-0-0')).toHaveValue(wrapped);
+
+    await page.locator('#header-undo-btn').click();
+    await expect(page.locator('#formatter-textarea-0-0')).toHaveValue('');
+    await page.locator('#header-clear-all-btn').click();
+    await expect(page.locator('#formatter-textarea-0-0')).toBeFocused();
+  });
+
   test('About and changelog dialogs have accessible focus management', async ({ page }) => {
     await page.goto('/');
     const fab = page.getByRole('button', { name: 'About this app' });
@@ -109,7 +141,7 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     page,
   }) => {
     await page.goto('/');
-    const formatterInput = page.locator('#cell-textarea-0-0');
+    const formatterInput = page.locator('#formatter-textarea-0-0');
     const formatterValue = 'Formatter workspace stays unchanged.';
     await formatterInput.fill(formatterValue);
 
@@ -210,13 +242,14 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     page,
   }) => {
     await page.goto('/');
-    await page.locator('#cell-textarea-0-0').fill('Shared font size sample');
+    await page.locator('#formatter-textarea-0-0').fill('Shared font size sample');
     await page.locator('#font-size-increase-btn').click();
     await expect(page.getByText('15pt', { exact: true })).toBeVisible();
-    await expect(page.locator('#output-formatted-0-0 p')).toHaveCount(1);
+    await page.locator('#toggle-edit-mode-0-0').click();
+    await expect(page.locator('#formatter-preview-0-0 p')).toHaveCount(1);
     expect(
       await page
-        .locator('#output-formatted-0-0 p')
+        .locator('#formatter-preview-0-0 p')
         .evaluate((element) => (element as HTMLElement).style.fontSize),
     ).toBe('15pt');
 

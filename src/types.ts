@@ -1,7 +1,5 @@
 export type ThemeMode = 'dark' | 'light' | 'word-classic' | 'modern-clean' | 'report-navy';
 
-export type FocusMode = 'split' | 'input' | 'output';
-
 export interface StyleOptions {
   fontFamily: string;
   fontSize: number; // e.g. 15
@@ -27,4 +25,3 @@ export interface SyntaxWarning {
   snippet?: string;
   fixSuggestion?: string;
 }
-

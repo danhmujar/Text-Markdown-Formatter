@@ -30,15 +30,14 @@ const sections = [
   [
     'Features',
     [
+      'Combined editor and formatted preview',
+      'Automatic cleanup for pasted line wraps',
       'Multi-cell text and Markdown workspace',
-      'Live formatted preview',
       'Copy all or individual cells to Catalyst',
       'Word/Outlook-compatible formatted copy',
       'Excel-compatible copy',
       'Themes and dark mode',
-      'Smart Cleanup',
-      'Syntax warnings with automatic fixes',
-      'Focus mode',
+      'Smart Cleanup and syntax warnings',
       'Undo and redo',
       'Responsive mobile layout',
     ],
@@ -164,8 +163,9 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                   About Text &amp; Markdown Formatter
                 </h2>
                 <p id="about-dialog-intro" className="mt-2 text-sm leading-6 opacity-80">
-                  A client-side workspace for formatting text and Markdown into clean, structured
-                  output for Catalyst, Word, Outlook, Google Docs, and Excel.
+                  A client-side workspace that removes accidental line wraps from pasted text,
+                  previews the cleaned result, and copies formatted content to Catalyst, Word,
+                  Outlook, Google Docs, and Excel.
                 </p>
                 <div className="mt-3 flex items-center gap-3 text-sm">
                   <span className="opacity-70">Version {APP_VERSION}</span>

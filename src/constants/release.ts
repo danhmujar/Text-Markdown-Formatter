@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.5.2';
+export const APP_VERSION = '0.6.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-13',
+    title: 'Combined auto-preview workspace',
+    description:
+      'The Formatter now uses one preview-first workspace instead of separate Input and Output panels. Pasting removes detected accidental line wraps, reports the exact count, opens the formatted preview automatically, and keeps the raw paste as the first Undo target. Edit and Copy stay in the same cell; multi-cell HTML/TSV layouts, Catalyst and Excel copy, formatting tools, and existing saved output edits remain supported through the grid-only workspace migration.',
+  },
   {
     date: '2026-09-12',
     title: 'UI and accessibility audit fixes',
@@ -34,7 +40,7 @@ export const CHANGELOG_ENTRIES = [
   {
     date: '2026-08-28',
     title: 'Workspace persistence',
-    description: 'Your grid and output edits are saved locally in this browser.',
+    description: 'Your cleaned workspace is saved locally in this browser.',
   },
   {
     date: '2026-08-28',

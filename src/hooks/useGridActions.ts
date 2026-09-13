@@ -12,48 +12,52 @@ import { logger } from '../utils/logger';
 interface UseGridActionsArgs {
   grid: string[][];
   onChangeGrid: (newGrid: string[][], isTyping?: boolean) => void;
+  onCommitPaste: (rawGrid: string[][], cleanedGrid: string[][]) => void;
   numRows: number;
   numCols: number;
 }
 
-export function useGridActions({ grid, onChangeGrid, numRows, numCols }: UseGridActionsArgs) {
+export function useGridActions({
+  grid,
+  onChangeGrid,
+  onCommitPaste,
+  numRows,
+  numCols,
+}: UseGridActionsArgs) {
   const [cleanupNotification, setCleanupNotification] = useState<string | null>(null);
 
-  // Calculate total characters, words, and warnings across entire grid
   const totalStats = useMemo(() => {
     let totalChars = 0;
     let totalWords = 0;
     let totalWarnings = 0;
-
     grid.forEach((row) => {
       row.forEach((cell) => {
         totalChars += cell.length;
         const trimmed = cell.trim();
-        if (trimmed) {
-          totalWords += trimmed.split(/\s+/).length;
-          const warnings = analyzeSyntaxWarnings(cell);
-          totalWarnings += warnings.length;
-        }
+        if (!trimmed) return;
+        totalWords += trimmed.split(/\s+/).length;
+        totalWarnings += analyzeSyntaxWarnings(cell).length;
       });
     });
-
     return { totalChars, totalWords, totalWarnings };
   }, [grid]);
 
-  // Update a single cell
-  const handleCellChange = (rowIndex: number, colIndex: number, val: string, isTyping = true) => {
-    const nextGrid = grid.map((row, r) =>
-      row.map((cell, c) => (r === rowIndex && c === colIndex ? val : cell)),
-    );
-    onChangeGrid(nextGrid, isTyping);
+  const showCleanupNotification = (message: string) => {
+    setCleanupNotification(message);
+    setTimeout(() => setCleanupNotification(null), 3000);
   };
 
-  // Clear single cell
+  const handleCellChange = (rowIndex: number, colIndex: number, value: string, isTyping = true) => {
+    onChangeGrid(
+      grid.map((row, r) => row.map((cell, c) => (r === rowIndex && c === colIndex ? value : cell))),
+      isTyping,
+    );
+  };
+
   const handleClearCell = (rowIndex: number, colIndex: number) => {
     handleCellChange(rowIndex, colIndex, '', false);
   };
 
-  // Smart Cleanup on a specific cell
   const handleSmartCleanupCell = (rowIndex: number, colIndex: number) => {
     const current = grid[rowIndex]?.[colIndex] || '';
     if (!current.trim()) return;
@@ -63,142 +67,105 @@ export function useGridActions({ grid, onChangeGrid, numRows, numCols }: UseGrid
       showCleanupNotification(
         `Cleaned ${getCellLabel(rowIndex, colIndex)}: Fixed ${report.fixesCount} syntax item(s)`,
       );
-    } else {
-      showCleanupNotification(
-        `${getCellLabel(rowIndex, colIndex)} is already clean and standardized`,
-      );
+      return;
     }
+    showCleanupNotification(
+      `${getCellLabel(rowIndex, colIndex)} is already clean and standardized`,
+    );
   };
 
-  // Smart Cleanup on the entire grid
   const handleSmartCleanupAll = () => {
     let totalFixes = 0;
-    let anyChanges = false;
     const nextGrid = grid.map((row) =>
       row.map((cell) => {
         if (!cell.trim()) return cell;
         const report = smartCleanupMarkdown(cell);
-        if (report.hasChanges) {
-          anyChanges = true;
-          totalFixes += report.fixesCount;
-          return report.cleaned;
-        }
-        return cell;
+        totalFixes += report.fixesCount;
+        return report.cleaned;
       }),
     );
-
-    if (anyChanges) {
+    if (totalFixes > 0) {
       onChangeGrid(nextGrid, false);
       showCleanupNotification(
         `Smart Cleanup: Standardized quotes, spaces & syntax (${totalFixes} fixes)`,
       );
-    } else {
-      showCleanupNotification('All markdown text is already clean and standardized');
+      return;
     }
+    showCleanupNotification('All markdown text is already clean and standardized');
   };
 
-  const showCleanupNotification = (msg: string) => {
-    setCleanupNotification(msg);
-    setTimeout(() => {
-      setCleanupNotification(null);
-    }, 3000);
-  };
-
-  // Global paste handler: detects if multiple cells (tabs or rows) were pasted or cleans single cell paste
   const handlePasteOnCell = (
-    e: ReactClipboardEvent<HTMLTextAreaElement>,
+    event: ReactClipboardEvent<HTMLTextAreaElement>,
     rowIndex: number,
     colIndex: number,
-  ) => {
-    const text = e.clipboardData.getData('text/plain');
-    const html = e.clipboardData.getData('text/html');
-
+  ): boolean => {
+    const text = event.clipboardData.getData('text/plain');
+    if (!text) return false;
+    const html = event.clipboardData.getData('text/html');
     const parsedMatrix = parsePasteToGrid(text, html);
 
+    event.preventDefault();
     if (parsedMatrix && (parsedMatrix.length > 1 || parsedMatrix[0].length > 1)) {
-      e.preventDefault();
-      // Sanitize each cell inside the matrix
-      const sanitizedMatrix = parsedMatrix.map((row) => row.map((cell) => sanitizeInputText(cell)));
-      onChangeGrid(sanitizedMatrix, false);
+      const cleanedMatrix = parsedMatrix.map((row) => row.map((cell) => sanitizeInputText(cell)));
+      onCommitPaste(parsedMatrix, cleanedMatrix);
       showCleanupNotification('Pasted and cleaned table matrix');
-    } else {
-      if (parsedMatrix === null && html && html.includes('<table')) {
-        logger.warn('Table parse failed, using text fallback');
-        showToast('Table parse failed, using text fallback', 'error');
-      }
-      if (text) {
-        // Check if text contains metadata, encoded entities, or excessive spaces
-        const sanitized = sanitizeInputText(text);
-        if (sanitized !== text) {
-          e.preventDefault();
-          const textarea = e.currentTarget;
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          const currentVal = grid[rowIndex]?.[colIndex] || '';
-          const newVal = currentVal.substring(0, start) + sanitized + currentVal.substring(end);
-          handleCellChange(rowIndex, colIndex, newVal, false);
-          setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + sanitized.length, start + sanitized.length);
-          }, 0);
-        }
-      }
+      return true;
     }
+
+    if (parsedMatrix === null && html && html.includes('<table')) {
+      logger.warn('Table parse failed, using text fallback');
+      showToast('Table parse failed, using text fallback', 'error');
+    }
+
+    const textarea = event.currentTarget;
+    const current = grid[rowIndex]?.[colIndex] || '';
+    const before = current.substring(0, textarea.selectionStart);
+    const after = current.substring(textarea.selectionEnd);
+    const cleanedPaste = sanitizeInputText(text);
+    const rawGrid = grid.map((row) => [...row]);
+    const cleanedGrid = grid.map((row) => [...row]);
+    rawGrid[rowIndex][colIndex] = before + text + after;
+    cleanedGrid[rowIndex][colIndex] = before + cleanedPaste + after;
+    onCommitPaste(rawGrid, cleanedGrid);
+
+    const rawLineBreaks = text.replace(/\r\n?/g, '\n').split('\n').length - 1;
+    const cleanedLineBreaks = cleanedPaste.replace(/\r\n?/g, '\n').split('\n').length - 1;
+    const removedLineBreaks = rawLineBreaks - cleanedLineBreaks;
+    if (removedLineBreaks > 0) {
+      showCleanupNotification(
+        `Removed ${removedLineBreaks} accidental line ${removedLineBreaks === 1 ? 'break' : 'breaks'}`,
+      );
+    } else if (cleanedPaste !== text) {
+      showCleanupNotification('Pasted and cleaned text');
+    }
+    return true;
   };
 
-  // Layout presets
-  const setSingleLayout = () => {
-    const firstCell = grid[0]?.[0] || '';
-    onChangeGrid([[firstCell]], false);
-  };
-
-  const setLeftRightLayout = () => {
-    const cell1 = grid[0]?.[0] || '';
-    const cell2 = grid[0]?.[1] || grid[1]?.[0] || '';
-    onChangeGrid([[cell1, cell2]], false);
-  };
-
-  const setUpDownLayout = () => {
-    const cell1 = grid[0]?.[0] || '';
-    const cell2 = grid[1]?.[0] || grid[0]?.[1] || '';
-    onChangeGrid([[cell1], [cell2]], false);
-  };
-
-  const set2x2Layout = () => {
-    const c00 = grid[0]?.[0] || '';
-    const c01 = grid[0]?.[1] || '';
-    const c10 = grid[1]?.[0] || '';
-    const c11 = grid[1]?.[1] || '';
+  const setSingleLayout = () => onChangeGrid([[grid[0]?.[0] || '']], false);
+  const setLeftRightLayout = () =>
+    onChangeGrid([[grid[0]?.[0] || '', grid[0]?.[1] || grid[1]?.[0] || '']], false);
+  const setUpDownLayout = () =>
+    onChangeGrid([[grid[0]?.[0] || ''], [grid[1]?.[0] || grid[0]?.[1] || '']], false);
+  const set2x2Layout = () =>
     onChangeGrid(
       [
-        [c00, c01],
-        [c10, c11],
+        [grid[0]?.[0] || '', grid[0]?.[1] || ''],
+        [grid[1]?.[0] || '', grid[1]?.[1] || ''],
       ],
       false,
     );
-  };
+  const addColumnRight = () =>
+    onChangeGrid(
+      grid.map((row) => [...row, '']),
+      false,
+    );
+  const addRowDown = () => onChangeGrid([...grid, new Array(numCols).fill('')], false);
 
-  const addColumnRight = () => {
-    const nextGrid = grid.map((row) => [...row, '']);
-    onChangeGrid(nextGrid, false);
-  };
-
-  const addRowDown = () => {
-    const emptyRow = new Array(numCols).fill('');
-    onChangeGrid([...grid, emptyRow], false);
-  };
-
-  const getCellLabel = (r: number, c: number) => {
-    if (numRows === 1 && numCols === 2) {
-      return c === 0 ? 'Left' : 'Right';
-    }
-    if (numRows === 2 && numCols === 1) {
-      return r === 0 ? 'Top' : 'Bottom';
-    }
-    if (numRows === 1 && numCols === 1) {
-      return 'Input';
-    }
-    return `R${r + 1} : C${c + 1}`;
+  const getCellLabel = (rowIndex: number, colIndex: number) => {
+    if (numRows === 1 && numCols === 2) return colIndex === 0 ? 'Left' : 'Right';
+    if (numRows === 2 && numCols === 1) return rowIndex === 0 ? 'Top' : 'Bottom';
+    if (numRows === 1 && numCols === 1) return 'Cleaned Text';
+    return `R${rowIndex + 1} : C${colIndex + 1}`;
   };
 
   return {

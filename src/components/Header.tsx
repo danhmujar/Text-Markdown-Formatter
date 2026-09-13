@@ -1,18 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Undo2,
-  Redo2,
-  Maximize2,
-  Minimize2,
-  FilePlus2,
-  Menu,
-  X,
-  Type,
-  Sun,
-  Moon,
-  GitCompare,
-} from 'lucide-react';
-import { StyleOptions, FocusMode } from '../types';
+import { Undo2, Redo2, FilePlus2, Menu, X, Type, Sun, Moon, GitCompare } from 'lucide-react';
+import type { StyleOptions } from '../types';
 import { FONT_OPTIONS } from '../constants/fonts';
 import { ColorTheme, THEME_SWATCHES } from '@/constants/themes';
 import { ThemeSlider } from './ThemeSlider';
@@ -29,9 +17,6 @@ interface HeaderProps {
   onUndo?: () => void;
   onRedo?: () => void;
   onClearAll?: () => void;
-  focusMode?: FocusMode;
-  activePanel?: 'input' | 'output';
-  onToggleFocusMode?: () => void;
   onToggleComparisonMode: () => void;
   isComparisonMode: boolean;
   colorTheme: ColorTheme;
@@ -48,9 +33,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   onUndo,
   onRedo,
   onClearAll,
-  focusMode = 'split',
-  activePanel = 'input',
-  onToggleFocusMode,
   onToggleComparisonMode,
   isComparisonMode,
   colorTheme,
@@ -61,7 +43,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
-  const isFocused = focusMode !== 'split';
 
   // Automatically close mobile menu when the full toolbar becomes available.
   useEffect(() => {
@@ -295,51 +276,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             </button>
           </div>
 
-          {/* Focus Mode Button */}
-          <button
-            id="focus-mode-toggle-btn"
-            type="button"
-            onClick={onToggleFocusMode}
-            aria-label={
-              isFocused
-                ? `Exit Focus Mode (currently maximizing ${focusMode === 'input' ? 'Input' : 'Output'}) [Esc]`
-                : `Focus Mode: Maximize active container (${activePanel === 'input' ? 'Input' : 'Output'}) and collapse inactive view`
-            }
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isFocused
-                ? isDark
-                  ? 'bg-blue-950/70 border-blue-600/70 text-blue-300 hover:bg-blue-900/70 shadow-2xs'
-                  : 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100 shadow-2xs'
-                : isDark
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-            }`}
-            title={
-              isFocused
-                ? `Exit Focus Mode (currently maximizing ${focusMode === 'input' ? 'Input' : 'Output'}) [Esc]`
-                : `Focus Mode: Maximize active container (${activePanel === 'input' ? 'Input' : 'Output'}) and collapse inactive view`
-            }
-          >
-            {isFocused ? (
-              <>
-                <Minimize2
-                  aria-hidden="true"
-                  focusable="false"
-                  className="w-3.5 h-3.5 text-blue-400"
-                />
-                <span>
-                  Focus: <strong className="capitalize font-semibold">{focusMode}</strong>
-                </span>
-              </>
-            ) : (
-              <>
-                <Maximize2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Focus Mode</span>
-                <span className="sm:hidden">Focus</span>
-              </>
-            )}
-          </button>
-
           {/* Font Selector */}
           <div
             className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border ${
@@ -550,51 +486,6 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                 >
                   <Redo2 aria-hidden="true" focusable="false" className="w-4 h-4" />
                   <span>Redo</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Group 2: View & Formatting Options */}
-            <div>
-              <span
-                className="text-[11px] font-semibold uppercase tracking-wider block mb-2"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                View &amp; Formatting
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  id="mobile-focus-mode-btn"
-                  type="button"
-                  onClick={() => {
-                    onToggleFocusMode?.();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
-                    isFocused
-                      ? isDark
-                        ? 'bg-blue-950/70 border-blue-600/70 text-blue-300'
-                        : 'bg-blue-50 border-blue-300 text-blue-700'
-                      : isDark
-                        ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  {isFocused ? (
-                    <>
-                      <Minimize2
-                        aria-hidden="true"
-                        focusable="false"
-                        className="w-4 h-4 text-blue-400"
-                      />
-                      <span>Exit Focus ({focusMode})</span>
-                    </>
-                  ) : (
-                    <>
-                      <Maximize2 aria-hidden="true" focusable="false" className="w-4 h-4" />
-                      <span>Focus Mode</span>
-                    </>
-                  )}
                 </button>
               </div>
             </div>
