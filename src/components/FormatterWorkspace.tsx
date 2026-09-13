@@ -102,15 +102,15 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
         >
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 id="formatter-heading" className="text-sm font-semibold">
-                Cleaned Text
+              <h2 id="formatter-heading" className="text-sm font-semibold tracking-tight">
+                Cleaned text
               </h2>
               <span
-                className="rounded border px-2 py-0.5 font-mono text-[11px]"
+                className="rounded-md border px-1.5 py-0.5 font-mono text-[11px]"
                 style={{
-                  backgroundColor: 'var(--accent-bg)',
-                  borderColor: 'var(--accent-border)',
-                  color: 'var(--primary-blue)',
+                  backgroundColor: 'var(--surface-bg)',
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-secondary)',
                 }}
               >
                 {numRows} × {numCols}
@@ -131,7 +131,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                 </span>
               )}
             </div>
-            <p className="mt-0.5 text-[11px] leading-4 text-[var(--text-secondary)] sm:truncate">
+            <p className="mt-0.5 max-w-prose text-xs leading-5 text-[var(--text-secondary)]">
               Paste wrapped text. Accidental line breaks are removed; intentional structure stays.
             </p>
           </div>
@@ -140,7 +140,8 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
             <button
               type="button"
               onClick={handleSmartCleanupAll}
-              className="flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-9"
+              disabled={totalStats.totalChars === 0}
+              className="flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-9"
               style={{
                 backgroundColor: 'var(--accent-bg)',
                 borderColor: 'var(--accent-border)',
@@ -248,6 +249,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     rowIndex={rowIndex}
                     colIndex={colIndex}
                     label={getCellLabel(rowIndex, colIndex)}
+                    showLabel={numRows > 1 || numCols > 1}
                     content={content}
                     inputHadBr={hasBrTags(content) && !isTable}
                     options={options}

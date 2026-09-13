@@ -25,12 +25,12 @@ body.dark-theme {
 
 /* 1. Transformative Teal — 50% lighter (5% darken) */
 body.theme-teal {
-  --bg-color: #d4e9e9;
-  --panel-bg: #e3f0f0;
-  --surface-bg: #dbeeee;
-  --border-color: #9fd1d1;
+  --bg-color: #e8f3f3;
+  --panel-bg: #fcfefe;
+  --surface-bg: #f4f9f9;
+  --border-color: #b9d8d8;
   --primary-blue: #086969;
-  --accent-bg: #c2e7e7;
+  --accent-bg: #d9eeee;
   --accent-border: #9fd1d1;
 }
 
@@ -46,12 +46,12 @@ body.theme-teal.dark-theme {
 
 /* 2. Deep Terracotta — 50% lighter (5% darken) */
 body.theme-terracotta {
-  --bg-color: #f3d9d2;
-  --panel-bg: #f8e7e3;
-  --surface-bg: #fbddd8;
-  --border-color: #ddab9d;
+  --bg-color: #f8ebe7;
+  --panel-bg: #fffdfc;
+  --surface-bg: #fcf5f2;
+  --border-color: #e3beb3;
   --primary-blue: #91422c;
-  --accent-bg: #f1cbbf;
+  --accent-bg: #f7ded6;
   --accent-border: #ddab9d;
 }
 
@@ -67,12 +67,12 @@ body.theme-terracotta.dark-theme {
 
 /* 3. Forest Green — 50% lighter (5% darken) */
 body.theme-forest {
-  --bg-color: #dbe6df;
-  --panel-bg: #e5ede8;
-  --surface-bg: #deeae2;
-  --border-color: #a4c3b0;
+  --bg-color: #edf3ee;
+  --panel-bg: #fdfefd;
+  --surface-bg: #f5f9f5;
+  --border-color: #bfd2c4;
   --primary-blue: #376548;
-  --accent-bg: #c8dfce;
+  --accent-bg: #deebe1;
   --accent-border: #a4c3b0;
 }
 
@@ -88,12 +88,12 @@ body.theme-forest.dark-theme {
 
 /* 4. Slate Graphite — 50% lighter (5% darken) */
 body.theme-slate {
-  --bg-color: #dde1e7;
-  --panel-bg: #e4eaef;
-  --surface-bg: #dee4ea;
-  --border-color: #bac4d4;
+  --bg-color: #edf0f4;
+  --panel-bg: #fdfdfe;
+  --surface-bg: #f5f7f9;
+  --border-color: #cbd3de;
   --primary-blue: #475569;
-  --accent-bg: #d0dae8;
+  --accent-bg: #e1e7ee;
   --accent-border: #bac4d4;
 }
 
@@ -109,12 +109,12 @@ body.theme-slate.dark-theme {
 
 /* 5. Dusty Rosewood — 50% lighter (5% darken) */
 body.theme-rosewood {
-  --bg-color: #f1d8dc;
-  --panel-bg: #f7e5e9;
-  --surface-bg: #fadae0;
-  --border-color: #d6b1b8;
+  --bg-color: #f9edef;
+  --panel-bg: #fffdfd;
+  --surface-bg: #fcf5f6;
+  --border-color: #e1c4ca;
   --primary-blue: #83404d;
-  --accent-bg: #f1bfc7;
+  --accent-bg: #f6dce1;
   --accent-border: #d6b1b8;
 }
 
@@ -130,12 +130,12 @@ body.theme-rosewood.dark-theme {
 
 /* 6. Pale Pistachio — 50% lighter (5% darken) */
 body.theme-pistachio {
-  --bg-color: #e1ece3;
-  --panel-bg: #e7f2e7;
-  --surface-bg: #ddecdf;
-  --border-color: #afcfb4;
+  --bg-color: #eff5f0;
+  --panel-bg: #fdfffd;
+  --surface-bg: #f5faf5;
+  --border-color: #c5d9c8;
   --primary-blue: #3b6842;
-  --accent-bg: #c8dfcb;
+  --accent-bg: #dfebe0;
   --accent-border: #afcfb4;
 }
 
@@ -151,12 +151,12 @@ body.theme-pistachio.dark-theme {
 
 /* 7. Royal Purple — 50% lighter (5% darken) */
 body.theme-purple {
-  --bg-color: #dfd5f9;
-  --panel-bg: #e7e0f9;
-  --surface-bg: #e3d7f9;
-  --border-color: #bba3f3;
+  --bg-color: #f0edfa;
+  --panel-bg: #fefeff;
+  --surface-bg: #f7f5fc;
+  --border-color: #cec2eb;
   --primary-blue: #6425c4;
-  --accent-bg: #dbcafe;
+  --accent-bg: #e7dff8;
   --accent-border: #bba3f3;
 }
 
@@ -180,7 +180,7 @@ body {
     color 0.3s ease;
 }
 
-/* Slider variables — reuse Calculator's slider palette */
+/* Slider variables */
 :root {
   --slider-day-bg: #38bdf8;
   --slider-knob-sun: #fcd34d;
@@ -195,7 +195,7 @@ body.dark-theme {
   --slider-night-bg: #1e1b4b;
 }
 
-/* --- Theme Slider (Calculator-inspired 68×34) --- */
+/* --- Theme Slider (68×34) --- */
 .theme-switch {
   display: inline-block;
   height: 34px;

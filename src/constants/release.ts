@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.6.1';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-14',
+    title: 'Premium workspace refinement',
+    description:
+      'Light theme surfaces now separate the page canvas, panels, and editor more clearly across every palette. The desktop header reduces inactive control chrome while preserving grouped history and typography actions. Empty single-cell workspaces no longer show an unused cell header, Smart Cleanup is unavailable until text exists, and the accessible Cleaned Text editor label remains intact. The illustrated day-and-night appearance switch is retained.',
+  },
   {
     date: '2026-09-13',
     title: 'Combined auto-preview workspace',

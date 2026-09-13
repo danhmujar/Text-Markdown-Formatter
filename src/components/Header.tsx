@@ -134,11 +134,12 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             type="button"
             onClick={onToggleDarkMode}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            className={`min-h-11 min-w-11 p-2 rounded-md border text-xs transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isDark
-                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
-                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-            }`}
+            className="flex h-11 w-11 items-center justify-center rounded-[10px] border transition hover:bg-[var(--surface-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] active:scale-95"
+            style={{
+              backgroundColor: 'var(--panel-bg)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-secondary)',
+            }}
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? (
@@ -157,15 +158,12 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-header-menu"
-            className={`min-h-11 min-w-11 p-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isMobileMenuOpen
-                ? isDark
-                  ? 'bg-blue-950 border-blue-600 text-blue-300'
-                  : 'bg-blue-50 border-blue-300 text-blue-700'
-                : isDark
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-            }`}
+            className="flex h-11 w-11 items-center justify-center rounded-[10px] border transition hover:bg-[var(--surface-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] active:scale-95"
+            style={{
+              backgroundColor: isMobileMenuOpen ? 'var(--accent-bg)' : 'var(--panel-bg)',
+              borderColor: isMobileMenuOpen ? 'var(--accent-border)' : 'var(--border-color)',
+              color: isMobileMenuOpen ? 'var(--primary-blue)' : 'var(--text-secondary)',
+            }}
             title="Menu"
           >
             {isMobileMenuOpen ? (
@@ -185,10 +183,10 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
               type="button"
               onClick={onClearAll}
               aria-label="New Blank Workspace / Clear All"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-transparent text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                 isDark
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
               }`}
               title="Start a new blank session / Clear all cells"
             >
@@ -210,12 +208,10 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             aria-pressed={isComparisonMode}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
               isComparisonMode
-                ? isDark
-                  ? 'bg-blue-950/70 border-blue-600/70 text-blue-300 hover:bg-blue-900/70 shadow-2xs'
-                  : 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100 shadow-2xs'
+                ? 'bg-[var(--accent-bg)] border-[var(--accent-border)] text-[var(--primary-blue)]'
                 : isDark
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  ? 'border-transparent text-slate-300 hover:bg-slate-800 hover:text-white'
+                  : 'border-transparent text-slate-700 hover:bg-slate-100'
             }`}
             title={isComparisonMode ? 'Return to Formatter' : 'Open Comparison Mode'}
           >
@@ -225,7 +221,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
 
           {/* Undo / Redo Control Group */}
           <div
-            className={`flex items-center rounded-md border p-0.5 shadow-2xs ${
+            className={`flex items-center rounded-md border p-0.5 ${
               isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
             }`}
           >
@@ -359,7 +355,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             </button>
           </div>
 
-          {/* Theme Palette + Animated Dark Mode Slider (Calculator-inspired) */}
+          {/* Theme palette and appearance */}
           <div className="flex items-center gap-2">
             <ThemePicker colorTheme={colorTheme} onSelect={onSelectColorTheme} isDark={isDark} />
             <div className="flex items-center gap-2 pl-1">
