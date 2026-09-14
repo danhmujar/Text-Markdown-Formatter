@@ -13,26 +13,6 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test('new-version notification exposes a persistent accessible reload action', async ({
-    page,
-  }) => {
-    const availableVersion = '99.0.0';
-    await page.route('**/version.json*', async (route) => {
-      await route.fulfill({
-        contentType: 'application/json',
-        body: JSON.stringify({ version: availableVersion }),
-      });
-    });
-    await page.goto('/');
-
-    const notification = page.getByRole('status').filter({
-      hasText: `Version ${availableVersion} is available.`,
-    });
-    await expect(notification).toBeVisible();
-    await expect(notification.getByRole('button', { name: 'Reload' })).toBeVisible();
-    await expect(notification.getByRole('button', { name: 'Close notification' })).toBeVisible();
-  });
-
   test('settings popover has an accessible name and restores focus', async ({ page }) => {
     await page.goto('/');
     const settingsBtn = page.locator('#editor-settings-btn');
@@ -72,7 +52,9 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(page.locator('#formatter-preview-0-0')).toContainText(
       'Since 2008, the Company has adhered to the French corporate governance code for listed companies published by Afep and Medef Code, available on the following websites and reports.',
     );
-    await expect(page.getByRole('status')).toContainText('Removed 2 accidental line breaks');
+    await expect(
+      page.getByRole('region', { name: 'Cleaned text' }).getByRole('status'),
+    ).toContainText('Removed 2 accidental line breaks');
 
     await page.locator('#toggle-edit-mode-0-0').click();
     await expect(page.locator('#formatter-textarea-0-0')).toHaveValue(wrapped.replace(/\n/g, ' '));

@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.6.4';
+export const APP_VERSION = '0.7.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-14',
+    title: 'Installable offline support with prompted updates',
+    description:
+      'The app is now installable with regular and maskable icons and keeps working offline after the first online load, with the saved workspace restored locally and system fonts standing in for the network-loaded font. An advisory Offline badge reports the browser’s network hint without claiming cached-app availability. New builds prompt with a persistent Reload toast that never interrupts editing, replacing manifest polling with the service worker as the single update authority.',
+  },
   {
     date: '2026-09-14',
     title: 'Reliability, accessibility, and performance remediation',

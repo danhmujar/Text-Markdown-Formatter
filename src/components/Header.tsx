@@ -3,6 +3,7 @@ import { Undo2, Redo2, FilePlus2, Menu, X, Type, Sun, Moon, GitCompare } from 'l
 import type { StyleOptions } from '../types';
 import { FONT_OPTIONS } from '../constants/fonts';
 import { ColorTheme, THEME_SWATCHES } from '@/constants/themes';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { ThemeSlider } from './ThemeSlider';
 import { ThemePicker } from './ThemePicker';
 
@@ -41,6 +42,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
   onSelectColorTheme,
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isOnline = useOnlineStatus();
   const mobileMenuRef = useRef<HTMLElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -113,7 +115,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         {/* Title */}
         <div className="flex items-center gap-3 min-w-0">
           <img
-            src="/text-markdown-formatter-icon.png"
+            src="/pwa-192x192.png"
             alt="Text & Markdown Formatter icon"
             className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 object-contain"
           />
@@ -124,6 +126,22 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           >
             Text &amp; Markdown Formatter
           </h1>
+          {!isOnline && (
+            <span
+              id="offline-pill"
+              role="status"
+              aria-label="Browser reports no network connection; cached formatter features may still work"
+              title="Browser reports no network connection; cached formatter features may still work"
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                isDark
+                  ? 'border-amber-500/50 bg-amber-500/15 text-amber-300'
+                  : 'border-amber-500/60 bg-amber-100 text-amber-800'
+              }`}
+            >
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />
+              Offline
+            </span>
+          )}
         </div>
 
         {/* Compact navigation (Screen width < 1280px) */}

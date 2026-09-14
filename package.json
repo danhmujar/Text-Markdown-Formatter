@@ -1,12 +1,10 @@
 {
   "name": "text-markdown-formatter",
   "private": true,
-  "version": "0.6.4",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
-    "predev": "npm run version:manifest",
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "prebuild": "npm run version:manifest",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rimraf dist",
@@ -15,8 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run && npm run test:versioning",
-    "test:versioning": "node --test scripts/auto-version.test.mjs scripts/version-manifest.test.mjs",
-    "version:manifest": "node scripts/generate-version-manifest.mjs",
+    "test:versioning": "node --test scripts/auto-version.test.mjs",
     "prepare": "node scripts/setup-git-hooks.mjs",
     "version:check": "node scripts/check-version.mjs",
     "test:a11y": "playwright test --grep a11y",
@@ -50,6 +47,7 @@
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.46.4",
     "vite": "^6.2.3",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.11"
   }
 }

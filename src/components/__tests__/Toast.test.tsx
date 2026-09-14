@@ -29,26 +29,28 @@ describe('ToastContainer', () => {
     const onReload = vi.fn();
 
     act(() => {
-      showToast('Version 0.2.5 is available.', 'info', {
+      showToast('A new version is available.', 'info', {
         action: { label: 'Reload', onClick: onReload },
         duration: null,
       });
     });
 
-    expect(container.textContent).toContain('Version 0.2.5 is available.');
+    expect(container.textContent).toContain('A new version is available.');
     const reloadButton = Array.from(container.querySelectorAll('button')).find(
       (button) => button.textContent === 'Reload',
     );
     expect(reloadButton).toBeDefined();
+    const closeButton = container.querySelector('button[aria-label="Close notification"]');
+    expect(closeButton).not.toBeNull();
 
     act(() => {
       vi.advanceTimersByTime(10_000);
     });
-    expect(container.textContent).toContain('Version 0.2.5 is available.');
+    expect(container.textContent).toContain('A new version is available.');
 
     act(() => reloadButton?.click());
     expect(onReload).toHaveBeenCalledOnce();
-    expect(container.textContent).not.toContain('Version 0.2.5 is available.');
+    expect(container.textContent).not.toContain('A new version is available.');
   });
 
   it('retains the existing four-second default timeout for ordinary toasts', () => {

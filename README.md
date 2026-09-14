@@ -2,7 +2,7 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.6.4**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.7.0**.
 
 ## Features
 
@@ -16,7 +16,7 @@ Convert input text and Markdown — with nested lists, tables, custom line break
 - **Workspace Persistence** — grid content is restored on reload and saved to `localStorage` under `text-markdown-formatter:workspace` (version 2) with debounced writes and resource limits; **New** clears the workspace and removes the saved state.
 - **Standalone Comparison workspace** — open Comparison from the Header, paste independent Left and Right text, then Compare to see aligned line- and word-level discrepancy highlighting with spacer rows. Clear empties both sides and returns to the blank editing view; Comparison uses the Formatter’s shared font-size setting.
 - **About & Release Information** — a fixed About FAB opens app details, version metadata, developer credit for Danh Michael Mujar, and a separate changelog dialog with static release entries.
-- **Version update notifications** — the app checks a generated same-origin manifest on startup, when a hidden tab becomes visible, and every 30 minutes. A newer release appears as a persistent Reload toast, with one notification per version in each browser profile; unavailable or malformed manifests fail silently.
+- **Installable offline support** — the app ships a generated service worker and web manifest, so after one successful online load it installs like a native app and keeps working without a network. The saved workspace stays local, the external font falls back to system fonts offline, and a newly deployed build appears as a persistent Reload toast that never interrupts editing on its own. The `Offline` badge is advisory: it reports the browser’s network hint, not cached-app availability or successful reachability.
 - **Theming** — CSS variables (`styles/themes.css:1`) ported from `Calculator` (default plus seven named themes × light/dark at 5% lighten), native keyboard-operable theme radios, `body.theme-*` + `body.dark-theme` classes, `localStorage` `formatter-theme-v1` persistence, and a 68×34 animated light/dark toggle.
 - **Accessibility** — WCAG 2.1 AA axe checks, skip link, keyboard-labeled controls, a non-modal Comparison workspace, modal About/changelog dialogs with focus trapping and inert background content, Escape-to-close, focus restoration, `aria-live` counters, and `jsx-a11y` linting.
 
@@ -30,7 +30,6 @@ npm run dev        # http://localhost:3000
 ```bash
 npm run build      # production build → dist/
 npm run preview    # serve dist/ (Playwright uses :4173)
-npm run version:manifest # regenerate public/version.json on demand
 ```
 
 No backend required. Optional env vars are documented in `.env.example` (`GEMINI_API_KEY`, `APP_URL`) and only needed when deploying via AI Studio/Cloud Run.
@@ -53,11 +52,9 @@ same read-only check. The post-commit hook still runs with `git commit --no-veri
 bypass should use `TEXT_MARKDOWN_FORMATTER_SKIP=1 git commit ...` and be followed by
 `npm run version:check`.
 
-The generated `public/version.json` is intentionally not part of the synchronized Git surfaces. npm
-runs `version:manifest` automatically before `dev` and `build`, and Vite serves/copies the manifest at
-`/version.json`. The browser requests it with a cache-busting query and `cache: 'no-store'`; update
-checks are silent on network, timeout, validation, or storage errors. The last announced version is
-stored under `text-markdown-formatter:last-notified-version:v1`.
+Runtime updates are owned by the generated service worker, not version metadata: the worker
+precaches the same-origin app shell, and `usePwaUpdate` prompts with a persistent Reload toast
+when a newer build is waiting. Workspace storage is shared across the update and is never cleared.
 
 When you intentionally publish a release, review the generated commit first, then create and push a
 tag explicitly:
@@ -81,7 +78,6 @@ git push origin main --follow-tags
 | `npm run test:versioning`                                      | Node versioning and hook integration tests    |
 | `npm run prepare`                                              | Configure repository-local `.githooks`        |
 | `npm run version:check`                                        | Verify all version surfaces are synchronized  |
-| `npm run version:manifest`                                     | Generate the ignored `public/version.json`    |
 | `npx vitest run src/utils/__tests__/markdownFormatter.test.ts` | Single file                                   |
 | `npx vitest run -t "test name"`                                | Single test by name                           |
 | `npm run a11y:check`                                           | Fresh production build, then Playwright tests |
@@ -114,7 +110,7 @@ src/
     useGridHistory.ts    # history stack (max 60, 500ms debounce when isTyping)
     useGridActions.ts    # cell add/clear/cleanup/paste helpers
     useCopy.ts           # clipboard logic
-    useVersionUpdate.ts  # manifest polling, visibility checks, deduplication, update toast
+    usePwaUpdate.ts    # service-worker lifecycle, offline-ready and prompted update toasts
   styles/
     themes.css           # :root / body.dark-theme / body.theme-* vars + slider/picker styles (Calculator port)
   utils/
@@ -125,7 +121,6 @@ src/
     lineDiff.ts          # aligned line- and word-level comparison
     sanitize.ts          # sanitizeOutputHtml + copyFormattedTextToClipboard
     security/sanitize.ts # DOMPurify wrapper
-    version.ts            # strict browser-safe SemVer comparison
     syntaxValidator.ts   # analyzeSyntaxWarnings
     textWrap.ts          # isWrappedParagraph heuristic
   constants/
@@ -134,10 +129,10 @@ src/
     fonts.ts / theme.ts
   types.ts               # StyleOptions, SyntaxWarning
 scripts/
-  generate-version-manifest.mjs # validates package version and writes public/version.json
-  version-manifest.test.mjs     # manifest generator tests
+  auto-version.mjs + check-version.mjs + setup-git-hooks.mjs # automatic Git versioning
 tests/
   a11y.spec.ts           # Playwright + @axe-core/playwright (WCAG 2.1 AA)
+  pwa.spec.ts            # production manifest, service-worker control, and offline editing
 ```
 
 Key invariants:
@@ -147,7 +142,7 @@ Key invariants:
 - Preview and clipboard both go through `sanitizeHtml` before DOM styling; clipboard additionally wraps with `<!DOCTYPE html>…<!--StartFragment-->`.
 - Workspace persistence stores `{ version: 2, grid }` under `text-markdown-formatter:workspace`; restored state is copied into app state, oversized data falls back safely, writes are debounced, and **New** clears both state and storage.
 - Comparison owns transient Left/Right text and a result view separate from the Formatter grid. `ComparisonResult` uses `diffLines` for aligned line- and word-level highlighting; Comparison state is intentionally not persisted.
-- `public/version.json` is generated before `dev` and `build`, ignored by Git, and contains only the synchronized package version. `useVersionUpdate` checks it on startup, visible-tab return, and a 30-minute interval; it stores the last announced version under `text-markdown-formatter:last-notified-version:v1` and fails silently when the manifest is unavailable.
+- `usePwaUpdate` surfaces service-worker lifecycle through the existing global toast: an offline-ready success note on first precache and a persistent Reload prompt when a newer build waits. It re-checks for updates when a hidden tab becomes visible and every 30 minutes, and never reloads without the user selecting **Reload**.
 
 ## Configuration
 
@@ -156,15 +151,15 @@ Key invariants:
 - **Theme** — CSS variables on `body` (`--bg-color`, `--panel-bg`, `--surface-bg`, `--border-color`, `--text-primary`, `--primary-blue`, `--accent-bg`), `body.theme-*` + `body.dark-theme` (8 swatches, 5% lighten for light), persisted as `formatter-theme-v1` in `localStorage`; outer/UI uses `var(--*)`, `htmlBuilder` link color uses `primaryColor`.
 - **Workspace persistence** — `useWorkspacePersistence` uses `text-markdown-formatter:workspace` with storage version `2`; grid writes are debounced, invalid or oversized storage falls back safely, and **New** removes the saved workspace.
 - **Dialogs and accessibility** — About and changelog are modal dialogs with `aria-modal`, focus trapping, inert background content, Escape-to-close, and focus restoration. Comparison is a non-modal in-app view switched in place with native hidden state, so it does not trap focus or inert the Formatter.
-- **TypeScript** `strict` with `noUnusedLocals/Parameters`, `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`, `noEmit`.
+- **TypeScript** `strict` with `noUnusedLocals/Parameters`, `skipLibCheck` (third-party worker types), `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`, `noEmit`.
 - **ESLint** `typescript-eslint` + `jsx-a11y`; **Prettier** `printWidth:100, singleQuote, trailingComma:all` (ignores `dist`, `node_modules`, `.playwright-mcp`, `docs`).
 - **CSP** in `index.html:8` blocks remote images by default while permitting same-origin and supported data images.
-- **Build** runs `version:manifest` through npm’s `predev`/`prebuild` lifecycle, then chunks `vendor`/`marked`/`ui`/`purify` separately; `esbuild.drop: ['console','debugger']` strips logs in prod only; `DISABLE_HMR=true` disables HMR/watch for AI Studio.
+- **Build** chunks `vendor`/`marked`/`ui`/`purify` separately while `vite-plugin-pwa` precaches the same-origin app shell with a generated worker (`generateSW`, prompted updates); generated `dist` worker files are never committed. `esbuild.drop: ['console','debugger']` strips logs in prod only; `DISABLE_HMR=true` disables HMR/watch for AI Studio.
 
 ## Testing
 
-- **Unit** — `vite.config.ts:15` (`environment:jsdom`, `include: src/**/*.{test,spec}.{ts,tsx}`, `exclude: tests`). Run `npm run test`; it also runs Node manifest/versioning tests.
-- **A11y/E2E** — `playwright.config.ts:4` (`testDir: ./tests`, `baseURL: http://localhost:4173`, `webServer: npm run preview -- --port 4173`, single `chromium` project). `npm run a11y:check` builds first.
+- **Unit** — `vite.config.ts:15` (`environment:jsdom`, `include: src/**/*.{test,spec}.{ts,tsx}`, `exclude: tests`). Run `npm run test`; it also runs Node auto-versioning tests.
+- **A11y/E2E** — `playwright.config.ts:4` (`testDir: ./tests`, `baseURL: http://localhost:4173`, `webServer: npm run preview -- --port 4173`, single `chromium` project). `npm run a11y:check` builds first. `tests/pwa.spec.ts` covers the production service worker and offline editing; validate it through the production build and preview server, never the Vite dev server.
 
 ## Shortcuts
 

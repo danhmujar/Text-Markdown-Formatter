@@ -12,7 +12,7 @@ import { useCopy } from './hooks/useCopy';
 import { convertBrToNewlines, hasBrTags } from './utils/markdownFormatter';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
-import { useVersionUpdate } from './hooks/useVersionUpdate';
+import { usePwaUpdate } from './hooks/usePwaUpdate';
 import { getPrimaryForTheme } from './constants/themes';
 
 type AppMode = 'formatter' | 'comparison';
@@ -26,7 +26,7 @@ export default function App() {
   const [focusRequest, setFocusRequest] = useState(0);
   const restoreFormatterFocusRef = useRef(false);
   const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
-  useVersionUpdate();
+  usePwaUpdate();
 
   const [aboutOpen, setAboutOpen] = useState(false);
   const [changelogOpen, setChangelogOpen] = useState(false);

@@ -1,8 +1,8 @@
 node_modules/
 build/
 dist/
-public/version.json
 coverage/
+test-results/
 .DS_Store
 *.log
 .env*
