@@ -1,7 +1,7 @@
 {
   "name": "text-markdown-formatter",
   "private": true,
-  "version": "0.6.3",
+  "version": "0.6.4",
   "type": "module",
   "scripts": {
     "predev": "npm run version:manifest",
@@ -20,7 +20,7 @@
     "prepare": "node scripts/setup-git-hooks.mjs",
     "version:check": "node scripts/check-version.mjs",
     "test:a11y": "playwright test --grep a11y",
-    "a11y:check": "playwright test"
+    "a11y:check": "npm run build && playwright test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

@@ -69,8 +69,7 @@ const RE_SINGLE_STAR_COLON = new RegExp(
   'gu',
 );
 
-const TABLE_SEPARATOR_PATTERN =
-  /^\|?\s*:?-{3,}:?\s*\|\s*:?-{3,}:?(?:\s*\|\s*:?-{3,}:?)*\s*\|?$/;
+const TABLE_SEPARATOR_PATTERN = /^\|?\s*:?-{3,}:?\s*\|\s*:?-{3,}:?(?:\s*\|\s*:?-{3,}:?)*\s*\|?$/;
 
 function getMarkdownTableLineIndexes(lines: string[]): Set<number> {
   const tableLineIndexes = new Set<number>();

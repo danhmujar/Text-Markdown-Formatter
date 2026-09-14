@@ -195,5 +195,20 @@ describe('diffLines', () => {
   it('rejects inputs that would require oversized LCS tables', () => {
     expect(isDiffSupported(Array(1_001).fill('line').join('\n'), 'line')).toBe(false);
     expect(isDiffSupported('word '.repeat(1_001), 'changed')).toBe(false);
+    expect(
+      isDiffSupported(
+        Array(10).fill('word '.repeat(1_000)).join('\n'),
+        Array(10).fill('changed '.repeat(1_000)).join('\n'),
+      ),
+    ).toBe(false);
+  });
+
+  it('accepts deterministic comparisons below the aggregate work limit', () => {
+    expect(
+      isDiffSupported(
+        Array(10).fill('word '.repeat(100)).join('\n'),
+        Array(10).fill('changed '.repeat(100)).join('\n'),
+      ),
+    ).toBe(true);
   });
 });

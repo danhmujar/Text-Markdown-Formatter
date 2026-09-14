@@ -54,7 +54,7 @@ tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 ```
 
 - Formatter content is a single `string[][]` source. Empty cells open in Edit; populated cells default to formatted Preview. Paste cleanup commits raw then cleaned snapshots so one Undo restores the raw paste.
-- `useGridHistory`: max 60 snapshots, 500ms debounce when `isTyping=true`, skip commit if `JSON.stringify` equal, fast-path skips serialization for payloads >500k chars. `undo()` first restores uncommitted live state before popping history.
+- `useGridHistory`: max 60 snapshots, 500ms debounce when `isTyping=true`, and cellwise equality checks before commits. Structural changes flush pending typing first; `undo()` restores uncommitted live state before popping history.
 - `useWorkspacePersistence` restores validated Formatter state and debounces grid writes by 400ms under `text-markdown-formatter:workspace`, version 2. Version-1 output overrides migrate into the source grid. Formatter New removes the entry and resets the grid; Comparison’s independent sides remain transient.
 - `ComparisonWorkspace` is a standalone non-modal view with independent Left and Right editors. `ComparisonResult` compares the pasted sides using aligned line- and word-level `diffLines` output, with Clear returning to blank editing; Comparison state is intentionally not persisted with Formatter workspace data.
 - About is a fixed FAB with developer credit for Danh Michael Mujar and a LinkedIn link; its separate changelog view uses static `APP_VERSION`/`CHANGELOG_ENTRIES` from `src/constants/release.ts`.
@@ -63,10 +63,10 @@ tests/a11y.spec.ts     # Playwright + @axe-core/playwright (WCAG 2.1 AA)
 
 ## Tests
 
-- Vitest: `vite.config.ts:15` `environment:jsdom`, `include: ['src/**/*.{test,spec}.{ts,tsx}']`, `exclude: ['tests']`. 13 files / 96 tests under `src/**/__tests__/`; `npm run test` also runs the 12 Node manifest/versioning tests.
+- Vitest: `vite.config.ts:15` `environment:jsdom`, `include: ['src/**/*.{test,spec}.{ts,tsx}']`, `exclude: ['tests']`. Unit tests live under `src/**/__tests__/`; `npm run test` also runs the Node manifest/versioning tests.
 - Versioning tests: `scripts/auto-version.test.mjs` uses Node’s built-in runner and disposable Git
   repositories to verify parsing, synchronized writes, hook setup, and same-commit behavior.
-- Playwright: `playwright.config.ts:4` `testDir: ./tests`, `baseURL: http://localhost:4173`, single `chromium` project, `webServer: npm run preview -- --port 4173` with `reuseExistingServer: !CI`. Must `npm run build` before `npm run a11y:check`.
+- Playwright: `playwright.config.ts:4` `testDir: ./tests`, `baseURL: http://localhost:4173`, single `chromium` project, `webServer: npm run preview -- --port 4173` with `reuseExistingServer: !CI`. `npm run a11y:check` builds before running the complete browser suite.
 
 ## Gotchas
 

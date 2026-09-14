@@ -26,7 +26,8 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
           Comparison result
         </h2>
         <p role="alert" className="text-sm text-[var(--text-secondary)]">
-          Comparison is limited to 1,000 lines and 10,000 tokens per side.
+          Comparison is limited to 1,000 lines, 10,000 tokens per side, and a combined work limit.
+          Reduce the number of changed lines or words and try again.
         </p>
       </section>
     );
@@ -67,7 +68,7 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
             <span
               key={`${segmentIndex}-${segment.text}`}
               data-diff-segment={segment.changed ? 'changed' : 'same'}
-              className={segment.changed ? 'rounded-sm bg-amber-300/60' : ''}
+              className={segment.changed ? 'rounded-sm bg-[var(--diff-highlight-bg)]' : ''}
             >
               {segment.text}
             </span>
@@ -83,7 +84,7 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
         Comparison result
       </h2>
       {diff.identical && (
-        <p className="mb-3 text-sm text-emerald-600 dark:text-emerald-400">No differences found.</p>
+        <p className="mb-3 text-sm text-[var(--success-color)]">No differences found.</p>
       )}
       <div
         id="comparison-result"

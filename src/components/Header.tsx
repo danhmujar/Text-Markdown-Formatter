@@ -223,7 +223,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {!isComparisonMode && (
             <div
               className={`flex items-center rounded-md border p-0.5 ${
-                isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                isDark ? 'bg-slate-800 border-slate-500' : 'bg-slate-50 border-slate-200'
               }`}
             >
               <button
@@ -277,7 +277,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {/* Font Selector */}
           <div
             className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border ${
-              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+              isDark ? 'bg-slate-800 border-slate-500' : 'bg-slate-50 border-slate-200'
             }`}
           >
             <label
@@ -310,12 +310,12 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
           {/* Font Size controls */}
           <div
             className={`flex items-center rounded-md border overflow-hidden text-xs ${
-              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+              isDark ? 'bg-slate-800 border-slate-500' : 'bg-slate-50 border-slate-200'
             }`}
           >
             <span
               className={`px-2.5 py-1.5 text-xs font-medium border-r ${
-                isDark ? 'text-slate-300 border-slate-700' : 'text-slate-600 border-slate-200'
+                isDark ? 'text-slate-300 border-slate-500' : 'text-slate-600 border-slate-200'
               }`}
             >
               Size
@@ -336,7 +336,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             </button>
             <span
               className={`px-2 py-1.5 font-mono border-x ${
-                isDark ? 'text-slate-200 border-slate-700' : 'text-slate-800 border-slate-200'
+                isDark ? 'text-slate-200 border-slate-500' : 'text-slate-800 border-slate-200'
               }`}
             >
               {options.fontSize}pt
@@ -410,7 +410,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                     }}
                     className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
                       isDark
-                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                        ? 'bg-slate-800 border-slate-500 text-slate-200 hover:bg-slate-700'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
@@ -438,7 +438,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                         ? 'bg-blue-950/70 border-blue-600/70 text-blue-300'
                         : 'bg-blue-50 border-blue-300 text-blue-700'
                       : isDark
-                        ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                        ? 'bg-slate-800 border-slate-500 text-slate-200 hover:bg-slate-700'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
@@ -456,7 +456,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                     className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
                       canUndo
                         ? isDark
-                          ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                          ? 'bg-slate-800 border-slate-500 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
                           : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
                         : isDark
                           ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
@@ -478,7 +478,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                     className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-h-[44px] ${
                       canRedo
                         ? isDark
-                          ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
+                          ? 'bg-slate-800 border-slate-500 text-slate-200 hover:bg-slate-700 cursor-pointer active:scale-95'
                           : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95'
                         : isDark
                           ? 'bg-slate-800/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-60'
@@ -504,7 +504,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                 {/* Font selector */}
                 <div
                   className={`flex items-center justify-between rounded-md px-3 py-2 border min-h-[44px] ${
-                    isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                    isDark ? 'bg-slate-800 border-slate-500' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <label
@@ -544,7 +544,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                 {/* Font size */}
                 <div
                   className={`flex items-center justify-between rounded-md border min-h-[44px] px-2 ${
-                    isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                    isDark ? 'bg-slate-800 border-slate-500' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <span
@@ -607,7 +607,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
               </span>
               <div
                 className={`p-3 rounded-md border space-y-3 ${
-                  isDark ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-50 border-slate-200'
+                  isDark ? 'bg-slate-800/80 border-slate-500' : 'bg-slate-50 border-slate-200'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -624,31 +624,37 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1.5">
                     Color Accent:
                   </span>
-                  <div
+                  <fieldset
                     className="grid grid-cols-4 gap-2.5 pt-1"
-                    role="radiogroup"
                     aria-label="Mobile color theme selection"
                   >
+                    <legend className="sr-only">Mobile color theme selection</legend>
                     {THEME_SWATCHES.map((s) => {
                       const active = s.id === colorTheme;
+                      const id = `mobile-swatch-${s.id || 'default'}`;
                       return (
-                        <button
-                          key={`mobile-swatch-${s.id || 'default'}`}
-                          id={`mobile-swatch-${s.id || 'default'}`}
-                          type="button"
-                          role="radio"
-                          aria-checked={active}
-                          aria-label={s.title}
-                          title={s.title}
-                          onClick={() => {
-                            onSelectColorTheme(s.id);
-                          }}
-                          className={`theme-swatch ${active ? 'active' : ''}`}
-                          style={{ backgroundColor: s.color }}
-                        />
+                        <React.Fragment key={id}>
+                          <input
+                            className="theme-swatch-input"
+                            id={id}
+                            type="radio"
+                            name="mobile-color-theme"
+                            value={s.id}
+                            checked={active}
+                            onChange={() => onSelectColorTheme(s.id)}
+                          />
+                          <label
+                            htmlFor={id}
+                            className={`theme-swatch ${active ? 'active' : ''}`}
+                            style={{ backgroundColor: s.color }}
+                            title={s.title}
+                          >
+                            <span className="sr-only">{s.title}</span>
+                          </label>
+                        </React.Fragment>
                       );
                     })}
-                  </div>
+                  </fieldset>
                 </div>
               </div>
             </div>

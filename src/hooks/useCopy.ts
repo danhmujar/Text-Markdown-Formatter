@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { StyleOptions } from '../types';
 import {
   buildGridHtml,
@@ -18,84 +18,87 @@ interface UseCopyArgs {
 export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState<boolean>(false);
+  const gridRef = useRef(grid);
+  const optionsRef = useRef(options);
+  const getOutputContentRef = useRef(getOutputContent);
+  gridRef.current = grid;
+  optionsRef.current = options;
+  getOutputContentRef.current = getOutputContent;
 
   // Copy a single cell:
   // Provides rich formatted HTML for Word/Outlook and plain text with <br> reversion if input had <br>.
-  const handleCopyCell = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      try {
-        const outputContent = getOutputContent(rowIndex, colIndex);
-        const inputContent = grid[rowIndex]?.[colIndex] || '';
-        const textToCopy = prepareCopiedText(outputContent, inputContent);
-        const wordExportHtml = buildInlineStyledHtml(
-          outputContent,
-          { ...options, theme: 'light' },
-          true,
-          false,
-        );
+  const handleCopyCell = useCallback(async (rowIndex: number, colIndex: number) => {
+    try {
+      const outputContent = getOutputContentRef.current(rowIndex, colIndex);
+      const inputContent = gridRef.current[rowIndex]?.[colIndex] || '';
+      const textToCopy = prepareCopiedText(outputContent, inputContent);
+      const wordExportHtml = buildInlineStyledHtml(
+        outputContent,
+        { ...optionsRef.current, theme: 'light' },
+        true,
+        false,
+      );
 
-        const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-          sanitize: true,
-        });
+      const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
+        sanitize: true,
+      });
 
-        if (success) {
-          setCopiedCell(`${rowIndex}-${colIndex}`);
-          setTimeout(() => setCopiedCell(null), 2500);
-        } else {
-          showToast('Copy failed — check clipboard permissions (HTTPS required)', 'error');
-        }
-      } catch (err) {
-        logger.error('Copy cell error:', err);
-        showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
+      if (success) {
+        setCopiedCell(`${rowIndex}-${colIndex}`);
+        setTimeout(() => setCopiedCell(null), 2500);
+      } else {
+        showToast('Copy failed — check clipboard permissions (HTTPS required)', 'error');
       }
-    },
-    [getOutputContent, grid, options],
-  );
+    } catch (err) {
+      logger.error('Copy cell error:', err);
+      showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
+    }
+  }, []);
 
-  const handleCopyCellExcel = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      try {
-        const outputContent = getOutputContent(rowIndex, colIndex);
-        const inputContent = grid[rowIndex]?.[colIndex] || '';
-        const textToCopy = prepareCopiedText(outputContent, inputContent);
-        const wordExportHtml = buildInlineStyledHtml(
-          outputContent,
-          { ...options, theme: 'light' },
-          true,
-          true,
-        );
-        const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-          sanitize: true,
-        });
-        if (success) {
-          setCopiedCell(`${rowIndex}-${colIndex}`);
-          setTimeout(() => setCopiedCell(null), 2500);
-        } else {
-          showToast('Copy failed — check clipboard permissions (HTTPS required)', 'error');
-        }
-      } catch (err) {
-        logger.error('Copy cell Excel error:', err);
-        showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
+  const handleCopyCellExcel = useCallback(async (rowIndex: number, colIndex: number) => {
+    try {
+      const outputContent = getOutputContentRef.current(rowIndex, colIndex);
+      const inputContent = gridRef.current[rowIndex]?.[colIndex] || '';
+      const textToCopy = prepareCopiedText(outputContent, inputContent);
+      const wordExportHtml = buildInlineStyledHtml(
+        outputContent,
+        { ...optionsRef.current, theme: 'light' },
+        true,
+        true,
+      );
+      const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
+        sanitize: true,
+      });
+      if (success) {
+        setCopiedCell(`${rowIndex}-${colIndex}`);
+        setTimeout(() => setCopiedCell(null), 2500);
+      } else {
+        showToast('Copy failed — check clipboard permissions (HTTPS required)', 'error');
       }
-    },
-    [getOutputContent, grid, options],
-  );
+    } catch (err) {
+      logger.error('Copy cell Excel error:', err);
+      showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
+    }
+  }, []);
 
   // Copy all containers:
   // Provides rich formatted HTML table/block for Word/Outlook and plain text with <br> reversion if input had <br>.
   const handleCopyAllGrid = useCallback(async () => {
     try {
-      const outputMatrix = grid.map((row, r) => row.map((_, c) => getOutputContent(r, c)));
-      const preparedMatrix = grid.map((row, r) =>
+      const currentGrid = gridRef.current;
+      const outputMatrix = currentGrid.map((row, r) =>
+        row.map((_, c) => getOutputContentRef.current(r, c)),
+      );
+      const preparedMatrix = currentGrid.map((row, r) =>
         row.map((inputCell, c) => {
-          const outputCell = getOutputContent(r, c);
+          const outputCell = getOutputContentRef.current(r, c);
           return prepareCopiedText(outputCell, inputCell);
         }),
       );
 
       const wordExportGridHtml = buildGridHtml(
         outputMatrix,
-        { ...options, theme: 'light' },
+        { ...optionsRef.current, theme: 'light' },
         true,
         false,
       );
@@ -121,20 +124,23 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       logger.error('Copy all grid error:', err);
       showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
     }
-  }, [getOutputContent, grid, options]);
+  }, []);
 
   const handleCopyAllGridExcel = useCallback(async () => {
     try {
-      const outputMatrix = grid.map((row, r) => row.map((_, c) => getOutputContent(r, c)));
-      const preparedMatrix = grid.map((row, r) =>
+      const currentGrid = gridRef.current;
+      const outputMatrix = currentGrid.map((row, r) =>
+        row.map((_, c) => getOutputContentRef.current(r, c)),
+      );
+      const preparedMatrix = currentGrid.map((row, r) =>
         row.map((inputCell, c) => {
-          const outputCell = getOutputContent(r, c);
+          const outputCell = getOutputContentRef.current(r, c);
           return prepareCopiedText(outputCell, inputCell);
         }),
       );
       const wordExportGridHtml = buildGridHtml(
         outputMatrix,
-        { ...options, theme: 'light' },
+        { ...optionsRef.current, theme: 'light' },
         true,
         true,
       );
@@ -157,7 +163,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       logger.error('Copy all grid Excel error:', err);
       showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
     }
-  }, [getOutputContent, grid, options]);
+  }, []);
 
   return {
     copiedCell,

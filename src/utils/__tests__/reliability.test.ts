@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { parsePasteToGrid, tsvToMarkdownTable } from '../tableConvert';
+import {
+  isGridWithinLimits,
+  MAX_GRID_CELL_CHARACTERS,
+  MAX_GRID_COLUMNS,
+  MAX_GRID_ROWS,
+  parsePasteToGrid,
+  tsvToMarkdownTable,
+} from '../tableConvert';
 import { smartCleanupMarkdown } from '../cleanup';
 
 describe('Pillar 3: Reliability & Edge Cases', () => {
@@ -26,6 +33,26 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       const wrappedParagraph = `Since 2008, the Company has adhered to the French corporate\ngovernance code for listed companies published by Afep and\nMedef (the “Afep‑Medef Code”), available on the following\nwebsites: www.lafep.org and www.medef.com.`;
       const result = parsePasteToGrid(wrappedParagraph);
       expect(result).toBeNull();
+    });
+
+    it('rejects pasted grids that exceed resource limits', () => {
+      expect(parsePasteToGrid(Array(101).fill('row').join('\n'))).toBeNull();
+      expect(parsePasteToGrid('x\t'.repeat(50))).toBeNull();
+    });
+
+    it('ignores oversized clipboard HTML when the plain text is within limits', () => {
+      expect(parsePasteToGrid('plain text', `<table>${'x'.repeat(500_001)}</table>`)).toBeNull();
+    });
+
+    it('enforces row, column, cell, and total grid limits', () => {
+      expect(isGridWithinLimits(Array(MAX_GRID_ROWS).fill(['value']))).toBe(true);
+      expect(isGridWithinLimits(Array(MAX_GRID_ROWS + 1).fill(['value']))).toBe(false);
+      expect(isGridWithinLimits([Array(MAX_GRID_COLUMNS).fill('value')])).toBe(true);
+      expect(isGridWithinLimits([Array(MAX_GRID_COLUMNS + 1).fill('value')])).toBe(false);
+      expect(isGridWithinLimits([['x'.repeat(MAX_GRID_CELL_CHARACTERS)]])).toBe(true);
+      expect(isGridWithinLimits([['x'.repeat(MAX_GRID_CELL_CHARACTERS + 1)]])).toBe(false);
+      expect(isGridWithinLimits([Array(5).fill('x'.repeat(MAX_GRID_CELL_CHARACTERS))])).toBe(true);
+      expect(isGridWithinLimits([Array(6).fill('x'.repeat(MAX_GRID_CELL_CHARACTERS))])).toBe(false);
     });
 
     it('keeps standalone Markdown tables in the current cell', () => {
@@ -108,7 +135,7 @@ The generated notes have been systematically verified against **Annual Report 20
       const result = parsePasteToGrid(doc);
       expect(result).toBeNull();
     });
- 
+
     it('returns null for numbered bold sections with multi-paragraph prose', () => {
       const doc = `1. **Executive Summary**
 This section explains the overall outcome in prose.

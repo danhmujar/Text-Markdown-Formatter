@@ -140,4 +140,54 @@ describe('useGridHistory', () => {
     expect(hook.getResult().grid).toEqual([['before']]);
     hook.unmount();
   });
+
+  it('compares large grids directly so undo reaches the preceding snapshot', () => {
+    const largeText = 'x'.repeat(500_001);
+    const hook = renderGridHistoryHook({ grid: [['before']] });
+
+    act(() => {
+      hook.getResult().updateGrid([[largeText]], false);
+      hook.getResult().updateGrid([[largeText]], false);
+      hook.getResult().undo();
+    });
+
+    expect(hook.getResult().grid).toEqual([['before']]);
+    expect(hook.getResult().historyLength).toBe(2);
+    hook.unmount();
+  });
+
+  it('preserves pending typing before a structural grid change', () => {
+    const hook = renderGridHistoryHook({ grid: [['before']] });
+    const expandedGrid = [
+      ['before', ''],
+      ['', 'draft'],
+    ];
+
+    act(() => {
+      hook.getResult().updateGrid(expandedGrid, true);
+      hook.getResult().updateGrid([['before']], false);
+    });
+
+    act(() => {
+      hook.getResult().undo();
+    });
+    expect(hook.getResult().grid).toEqual(expandedGrid);
+    hook.unmount();
+  });
+  it('resets history so previous workspace content cannot be restored', () => {
+    const hook = renderGridHistoryHook({ grid: [['before']] });
+
+    act(() => {
+      hook.getResult().resetHistory([['']]);
+    });
+
+    expect(hook.getResult().canUndo).toBe(false);
+    expect(hook.getResult().canRedo).toBe(false);
+    let didUndo = true;
+    act(() => {
+      didUndo = hook.getResult().undo();
+    });
+    expect(didUndo).toBe(false);
+    hook.unmount();
+  });
 });

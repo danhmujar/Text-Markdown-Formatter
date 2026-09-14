@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { smartCleanupMarkdown, prepareCopiedText } from '../cleanup';
-import { tsvToMarkdownTable, isMarkdownTable } from '../tableConvert';
+import { tsvToMarkdownTable, isMarkdownTable, preprocessMarkdownWithTsv } from '../tableConvert';
 import { getNextListPrefix } from '../listNumbering';
 
 describe('smartCleanupMarkdown', () => {
@@ -46,7 +46,9 @@ describe('smartCleanupMarkdown', () => {
     const report = smartCleanupMarkdown(rawInput);
 
     expect(report.cleaned).toContain('**Dispositive Portion:** The Supreme Court');
-    expect(report.cleaned).toContain('Supreme Court **AFFIRMED with MODIFICATION** the RTC Decision');
+    expect(report.cleaned).toContain(
+      'Supreme Court **AFFIRMED with MODIFICATION** the RTC Decision',
+    );
     expect(report.cleaned).toContain('was found **GUILTY of MURDER**, and');
     expect(report.cleaned).toContain('to **reclusion perpetua**, the');
     expect(report.cleaned).toContain('₱50,000.00');
@@ -74,7 +76,6 @@ describe('smartCleanupMarkdown', () => {
     expect(rightGlued.hasChanges).toBe(true);
   });
 
-
   it('fixes missing spaces around italic and strikethrough delimiters', () => {
     const report = smartCleanupMarkdown('Check*this*out and ~~old~~new text');
     expect(report.cleaned).toBe('Check *this* out and ~~old~~ new text');
@@ -89,8 +90,10 @@ describe('isMarkdownTable and prepareCopiedText', () => {
   });
 
   it('suppresses <br> reversion if the content is a markdown table', () => {
-    const tableWithNewlines = '| Header 1 | Header 2 |\n| :--- | :--- |\n| Line 1\nLine 2 | Cell 2 |';
-    const inputWithBr = '| Header 1 | Header 2 |<br>| :--- | :--- |<br>| Line 1<br>Line 2 | Cell 2 |';
+    const tableWithNewlines =
+      '| Header 1 | Header 2 |\n| :--- | :--- |\n| Line 1\nLine 2 | Cell 2 |';
+    const inputWithBr =
+      '| Header 1 | Header 2 |<br>| :--- | :--- |<br>| Line 1<br>Line 2 | Cell 2 |';
     // When table is detected, prepareCopiedText keeps newlines intact and doesn't convert to <br>
     const result = prepareCopiedText(tableWithNewlines, inputWithBr);
     expect(result).toBe(tableWithNewlines);
@@ -112,6 +115,11 @@ describe('tsvToMarkdownTable', () => {
 
   it('returns input unchanged when no tabs are present', () => {
     expect(tsvToMarkdownTable('plain text')).toBe('plain text');
+  });
+
+  it('only converts TSV during preview preprocessing without cleaning incomplete markdown', () => {
+    expect(preprocessMarkdownWithTsv('**unfinished\n```')).toBe('**unfinished\n```');
+    expect(preprocessMarkdownWithTsv('a\tb\n1\t2')).toBe('| a | b |\n| :--- | :--- |\n| 1 | 2 |');
   });
 });
 

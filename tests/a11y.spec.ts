@@ -33,19 +33,24 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(notification.getByRole('button', { name: 'Close notification' })).toBeVisible();
   });
 
-  test('settings dialog has accessible name and focus trap', async ({ page }) => {
+  test('settings popover has an accessible name and restores focus', async ({ page }) => {
     await page.goto('/');
     const settingsBtn = page.locator('#editor-settings-btn');
     await expect(settingsBtn).toHaveAttribute('aria-label', 'Layout and grid settings');
     await settingsBtn.click();
-    const dialog = page.locator('#editor-settings-panel');
-    await expect(dialog).toHaveAttribute('role', 'dialog');
-    await expect(dialog).toHaveAttribute('aria-modal', 'true');
-    await expect(dialog).toHaveAttribute('aria-labelledby', 'settings-dialog-title');
-    // First button should be focused
-    await expect(page.locator('#layout-single-btn')).toBeFocused();
+    const panel = page.locator('#editor-settings-panel');
+    await expect(panel).toHaveAttribute('role', 'group');
+    await expect(panel).not.toHaveAttribute('aria-modal', 'true');
+    await expect(panel).toHaveAttribute('aria-labelledby', 'settings-panel-title');
+    await page.locator('#add-row-btn').focus();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('#formatter-textarea-0-0')).toBeFocused();
+    await page.locator('#formatter-heading').click();
+    await expect(panel).toBeHidden();
+
+    await settingsBtn.click();
     await page.keyboard.press('Escape');
-    await expect(dialog).toBeHidden();
+    await expect(panel).toBeHidden();
     await expect(settingsBtn).toBeFocused();
   });
 
@@ -120,11 +125,14 @@ test.describe('a11y - WCAG 2.1 AA', () => {
       'About now includes local version and changelog details.',
     );
     const closeChangelog = page.getByRole('button', { name: 'Close changelog dialog' });
+    const changelogEntries = page.getByRole('region', { name: 'Changelog entries' });
     await expect(closeChangelog).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(changelogEntries).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(closeChangelog).toBeFocused();
     await page.keyboard.press('Shift+Tab');
-    await expect(closeChangelog).toBeFocused();
+    await expect(changelogEntries).toBeFocused();
 
     await page.keyboard.press('Escape');
     await expect(changelogDialog).toBeHidden();
@@ -159,6 +167,7 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(page.locator('[role="dialog"]')).toHaveCount(0);
     await expect(page.locator('#app-background')).not.toHaveAttribute('inert', '');
     await expect(comparisonModeButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(left).toBeFocused();
     await expect(page.locator('#header-clear-all-btn')).toHaveCount(0);
     await expect(page.locator('#header-undo-btn')).toHaveCount(0);
     await expect(page.locator('#header-redo-btn')).toHaveCount(0);
@@ -176,10 +185,10 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(rows.nth(0).locator('[data-diff-segment="changed"]')).toHaveCount(2);
     await expect(
       rows.nth(0).locator('[data-diff-side="left"] [data-diff-segment="changed"]'),
-    ).toHaveClass(/bg-amber-300\/60/);
+    ).toHaveClass(/bg-\[var\(--diff-highlight-bg\)\]/);
     await expect(
       rows.nth(0).locator('[data-diff-side="right"] [data-diff-segment="changed"]'),
-    ).toHaveClass(/bg-amber-300\/60/);
+    ).toHaveClass(/bg-\[var\(--diff-highlight-bg\)\]/);
     await expect(rows.nth(0).locator('[aria-hidden="true"]')).toHaveCount(0);
     await expect(rows.nth(0).locator('[data-diff-side="left"]')).not.toHaveClass(
       /bg-(emerald|rose)-500/,
@@ -209,16 +218,14 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(right).toHaveValue('Keep new value.\nInserted\nAfter');
   });
 
-  test('Comparison mode supports empty, identical, and one-sided content', async ({ page }) => {
+  test('Comparison mode requires content and supports one-sided content', async ({ page }) => {
     await page.goto('/');
     await page.locator('#comparison-mode-btn').click();
     const runButton = page.locator('#comparison-run-btn');
-    await expect(runButton).toBeEnabled();
-    await runButton.click();
-    await expect(page.getByText('No differences found.')).toBeVisible();
-    await expect(page.locator('[data-diff-row="empty"]')).toBeVisible();
-
-    await page.locator('#comparison-edit-btn').click();
+    await expect(runButton).toBeDisabled();
+    await expect(page.locator('#comparison-content-prompt')).toContainText(
+      'Enter content on at least one side',
+    );
     await page.locator('#comparison-right-textarea').fill('Only on the right');
     await runButton.click();
     const rightOnlyRow = page.locator('[data-diff-row="0"]');
@@ -233,11 +240,11 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await page.locator('#comparison-left-textarea').fill('word '.repeat(1_001));
     await runButton.click();
     await expect(page.getByRole('alert')).toContainText(
-      'Comparison is limited to 1,000 lines and 10,000 tokens per side.',
+      'Comparison is limited to 1,000 lines, 10,000 tokens per side, and a combined work limit.',
     );
   });
 
-  test('Comparison Clear empties both sides and returns to blank editing', async ({ page }) => {
+  test('Comparison Clear protects drafts and returns to blank editing', async ({ page }) => {
     await page.goto('/');
     await page.locator('#comparison-mode-btn').click();
     const left = page.locator('#comparison-left-textarea');
@@ -247,7 +254,17 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await page.locator('#comparison-run-btn').click();
 
     const clearButton = page.locator('#comparison-clear-btn');
-    await expect(clearButton).toBeVisible();
+    page.once('dialog', (dialog) => dialog.dismiss());
+    await clearButton.click();
+    await expect(page.getByLabel('Side-by-side comparison')).toBeVisible();
+    await expect(clearButton).toBeFocused();
+
+    await page.locator('#comparison-edit-btn').click();
+    await expect(left).toHaveValue('Left content');
+    await expect(right).toHaveValue('Right content');
+    await page.locator('#comparison-run-btn').click();
+
+    page.once('dialog', (dialog) => dialog.accept());
     await clearButton.click();
     await expect(left).toBeVisible();
     await expect(right).toBeVisible();
@@ -256,7 +273,6 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(page.getByLabel('Side-by-side comparison')).toBeHidden();
     await expect(page.locator('#comparison-run-btn')).toBeVisible();
 
-    // Clear remains available and harmless when the workspace is already empty.
     await clearButton.click();
     await expect(left).toHaveValue('');
     await expect(right).toHaveValue('');

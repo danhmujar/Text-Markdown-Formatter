@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Plus, Columns, Rows, Grid2X2, Square } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { BUTTON_VARIANTS } from './buttonVariants';
@@ -13,7 +13,6 @@ interface EditorSettingsPanelProps {
   onSetUpDownLayout: () => void;
   onAddColumnRight: () => void;
   onAddRowDown: () => void;
-  onClose?: () => void;
 }
 
 const PRESET_BUTTON_BASE =
@@ -31,76 +30,16 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
   onSetUpDownLayout,
   onAddColumnRight,
   onAddRowDown,
-  onClose,
 }) => {
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const previousActiveElement = document.activeElement as HTMLElement | null;
-    const panel = panelRef.current;
-    if (!panel) return;
-
-    const focusableSelectors = 'button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    const focusableElements = panel.querySelectorAll<HTMLElement>(focusableSelectors);
-
-    // Focus the first interactive element inside the dialog
-    if (focusableElements.length > 0) {
-      focusableElements[0].focus();
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose?.();
-        return;
-      }
-
-      if (e.key === 'Tab') {
-        const currentElements = panel.querySelectorAll<HTMLElement>(focusableSelectors);
-        if (currentElements.length === 0) return;
-
-        const firstElement = currentElements[0];
-        const lastElement = currentElements[currentElements.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === firstElement) {
-            e.preventDefault();
-            lastElement.focus();
-          }
-        } else {
-          if (document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement.focus();
-          }
-        }
-      }
-    };
-
-    panel.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      panel.removeEventListener('keydown', handleKeyDown);
-      // Restore focus to trigger button if still available
-      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
-        previousActiveElement.focus();
-      } else {
-        document.getElementById('editor-settings-btn')?.focus();
-      }
-    };
-  }, [onClose]);
-
   return (
     <div
-      ref={panelRef}
       id="editor-settings-panel"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settings-dialog-title"
+      role="group"
+      aria-labelledby="settings-panel-title"
       style={{ backgroundColor: 'var(--panel-bg)', borderColor: 'var(--border-color)' }}
       className="absolute right-0 top-full mt-2 w-72 rounded-lg border shadow-xl z-30 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
     >
-      <h2 id="settings-dialog-title" className="sr-only">
+      <h2 id="settings-panel-title" className="sr-only">
         Layout and Grid Settings
       </h2>
       <div className="p-3 space-y-3">
@@ -231,9 +170,10 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
             </button>
           </div>
           <p
-            className={`mt-1.5 text-[10px] leading-snug ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+            className={`mt-1.5 text-[10px] leading-snug ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
           >
-            Presets keep content; + adds an empty row/col.
+            Presets can remove cells outside the new layout; confirmation is required first. + adds
+            an empty row/col.
           </p>
         </div>
       </div>

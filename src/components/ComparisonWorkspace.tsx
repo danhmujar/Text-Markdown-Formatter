@@ -31,8 +31,12 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
   }, [view]);
 
   const isEditing = view === 'editing';
+  const isBlank = !leftText.trim() && !rightText.trim();
 
   const clearComparison = () => {
+    if (!isBlank && !window.confirm('Clear both comparison drafts? This cannot be undone.')) {
+      return;
+    }
     setLeftText('');
     setRightText('');
     setView('editing');
@@ -157,7 +161,9 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
             <button
               id="comparison-run-btn"
               type="submit"
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              disabled={isBlank}
+              aria-describedby={isBlank ? 'comparison-content-prompt' : undefined}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 backgroundColor: 'var(--primary-blue)',
                 borderColor: 'var(--primary-blue)',
@@ -167,6 +173,14 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
               Compare
             </button>
           </div>
+          {isBlank && (
+            <p
+              id="comparison-content-prompt"
+              className="shrink-0 text-right text-xs text-[var(--text-secondary)]"
+            >
+              Enter content on at least one side to compare.
+            </p>
+          )}
         </form>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">

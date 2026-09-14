@@ -7,13 +7,12 @@ describe('analyzeSyntaxWarnings glued bold markers', () => {
 
     expect(warnings.some((warning) => warning.id.startsWith('glued-bold-line'))).toBe(false);
   });
-  it.each([
-    'word**bold**',
-    '**bold**word',
-    '**Title**:Text',
-  ])('warns for actual glued words: %s', (input) => {
-    const warnings = analyzeSyntaxWarnings(input);
+  it.each(['word**bold**', '**bold**word', '**Title**:Text'])(
+    'warns for actual glued words: %s',
+    (input) => {
+      const warnings = analyzeSyntaxWarnings(input);
 
-    expect(warnings.some((warning) => warning.id === 'glued-bold-line-1')).toBe(true);
-  });
+      expect(warnings.some((warning) => warning.id === 'glued-bold-line-1')).toBe(true);
+    },
+  );
 });

@@ -33,17 +33,29 @@ interface FormatterCellProps {
   feedback: string | null;
   label: string;
   showLabel: boolean;
-  registerTextarea: (element: HTMLTextAreaElement | null) => void;
-  onModeChange: (mode: 'preview' | 'edit') => void;
-  onClear: () => void;
-  onCopy: () => void;
-  onCopyExcel?: () => void;
-  onKeyDown: (event: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
-  onPaste: (event: ReactClipboardEvent<HTMLTextAreaElement>) => void;
-  onChange: (value: string) => void;
-  onSmartClean: () => void;
-  onApplyNumbering: (format: NumberingFormat) => void;
-  onApplyInlineFormat: (wrapper: string, label: string) => void;
+  registerTextarea: (
+    rowIndex: number,
+    colIndex: number,
+    element: HTMLTextAreaElement | null,
+  ) => void;
+  onModeChange: (rowIndex: number, colIndex: number, mode: 'preview' | 'edit') => void;
+  onClear: (rowIndex: number, colIndex: number) => void;
+  onCopy: (rowIndex: number, colIndex: number) => void;
+  onCopyExcel?: (rowIndex: number, colIndex: number) => void;
+  onKeyDown: (
+    event: ReactKeyboardEvent<HTMLTextAreaElement>,
+    rowIndex: number,
+    colIndex: number,
+  ) => void;
+  onPaste: (
+    event: ReactClipboardEvent<HTMLTextAreaElement>,
+    rowIndex: number,
+    colIndex: number,
+  ) => void;
+  onChange: (rowIndex: number, colIndex: number, value: string) => void;
+  onSmartClean: (rowIndex: number, colIndex: number) => void;
+  onApplyNumbering: (rowIndex: number, colIndex: number, format: NumberingFormat) => void;
+  onApplyInlineFormat: (rowIndex: number, colIndex: number, wrapper: string, label: string) => void;
 }
 
 export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function FormatterCell({
@@ -74,12 +86,13 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
   const isEditMode = content.length === 0 || mode === 'edit';
   const warnings = useMemo(() => analyzeSyntaxWarnings(content), [content]);
   const htmlFormatted = useMemo(() => {
+    if (isEditMode) return '';
     try {
       return buildInlineStyledHtml(content, options, false);
     } catch {
       return '<p class="text-rose-400 italic text-xs">Preview failed to render</p>';
     }
-  }, [content, options]);
+  }, [content, isEditMode, options]);
   const wordCount = useMemo(
     () => (content.trim() ? content.trim().split(/\s+/).length : 0),
     [content],
@@ -101,7 +114,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
       id={`formatter-cell-${rowIndex}-${colIndex}`}
       style={{
         backgroundColor: 'var(--panel-bg)',
-        borderColor: warnings.length ? 'var(--warning-color, #d97706)' : 'var(--border-color)',
+        borderColor: warnings.length ? 'var(--warning-border)' : 'var(--border-color)',
         color: 'var(--text-primary)',
       }}
       className="flex h-full flex-col overflow-hidden rounded-lg border shadow-sm transition focus-within:ring-1 focus-within:ring-blue-500/40"
@@ -127,8 +140,8 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
                 aria-label={`${warnings.length} syntax ${warnings.length === 1 ? 'warning' : 'warnings'} for ${label}`}
                 className={`flex min-h-11 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-8 ${
                   isDark
-                    ? 'border-amber-800 bg-amber-950/80 text-amber-300'
-                    : 'border-amber-300 bg-amber-50 text-amber-800'
+                    ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
+                    : 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
                 }`}
               >
                 <AlertTriangle aria-hidden="true" className="h-3 w-3" />
@@ -147,13 +160,13 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
               <button
                 id={`toggle-edit-mode-${rowIndex}-${colIndex}`}
                 type="button"
-                onClick={() => onModeChange(isEditMode ? 'preview' : 'edit')}
+                onClick={() => onModeChange(rowIndex, colIndex, isEditMode ? 'preview' : 'edit')}
                 aria-label={isEditMode ? `Preview ${label}` : `Edit ${label}`}
                 aria-pressed={isEditMode}
                 className={cn(
                   'flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-8',
                   isEditMode
-                    ? 'border-[var(--primary-blue)] bg-[var(--primary-blue)] text-white'
+                    ? 'border-[var(--primary-blue)] bg-[var(--primary-blue)] text-[var(--primary-foreground)]'
                     : isDark
                       ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300')
                       : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700'),
@@ -170,10 +183,12 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             {content && (
               <button
                 type="button"
-                onClick={onCopy}
+                onClick={() => onCopy(rowIndex, colIndex)}
                 aria-label={`Copy formatted ${label} to Catalyst`}
-                className={`flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-8 ${
-                  isCopied ? 'border-emerald-600 bg-emerald-600' : 'border-transparent'
+                className={`flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-8 ${
+                  isCopied
+                    ? 'border-emerald-600 bg-emerald-600 text-white'
+                    : 'border-transparent text-[var(--primary-foreground)]'
                 }`}
                 style={isCopied ? undefined : { backgroundColor: 'var(--primary-blue)' }}
               >
@@ -188,7 +203,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             {content && onCopyExcel && (
               <button
                 type="button"
-                onClick={onCopyExcel}
+                onClick={() => onCopyExcel(rowIndex, colIndex)}
                 aria-label={`Copy formatted ${label} for Excel`}
                 className="flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-8"
                 style={{ borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}
@@ -200,7 +215,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             {content && (
               <button
                 type="button"
-                onClick={onClear}
+                onClick={() => onClear(rowIndex, colIndex)}
                 aria-label={`Clear ${label}`}
                 className="flex min-h-11 min-w-11 items-center justify-center rounded text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-red-600 sm:min-h-8 sm:min-w-8"
               >
@@ -242,21 +257,23 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
           colIndex={colIndex}
           isDark={isDark}
           feedback={feedback}
-          onApplyNumbering={onApplyNumbering}
-          onApplyInlineFormat={onApplyInlineFormat}
-          onSmartClean={onSmartClean}
+          onApplyNumbering={(format) => onApplyNumbering(rowIndex, colIndex, format)}
+          onApplyInlineFormat={(wrapper, formatLabel) =>
+            onApplyInlineFormat(rowIndex, colIndex, wrapper, formatLabel)
+          }
+          onSmartClean={() => onSmartClean(rowIndex, colIndex)}
         />
       )}
 
       <div className="relative flex-1 overflow-hidden">
         {isEditMode ? (
           <textarea
-            ref={registerTextarea}
+            ref={(element) => registerTextarea(rowIndex, colIndex, element)}
             id={`formatter-textarea-${rowIndex}-${colIndex}`}
             value={content}
-            onChange={(event) => onChange(event.target.value)}
-            onKeyDown={onKeyDown}
-            onPaste={onPaste}
+            onChange={(event) => onChange(rowIndex, colIndex, event.target.value)}
+            onKeyDown={(event) => onKeyDown(event, rowIndex, colIndex)}
+            onPaste={(event) => onPaste(event, rowIndex, colIndex)}
             aria-labelledby={`formatter-cell-label-${rowIndex}-${colIndex}`}
             aria-describedby={`formatter-footer-${rowIndex}-${colIndex}`}
             placeholder="Paste text from PDF, Word, or email…"

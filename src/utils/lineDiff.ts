@@ -44,6 +44,7 @@ const WORD_TOKEN_PATTERN = /\s+|[\p{L}\p{N}_]+|[^\p{L}\p{N}_\s]+/gu;
 const MAX_COMPARISON_LINES = 1_000;
 const MAX_COMPARISON_TOKENS = 10_000;
 const MAX_REPLACEMENT_TOKENS = 1_000;
+const MAX_LCS_CELLS = 2_000_000;
 
 function splitLines(text: string): string[] {
   return text ? text.split(/\r?\n/) : [];
@@ -56,14 +57,23 @@ function tokenize(text: string): string[] {
 export function isDiffSupported(input: string, output: string): boolean {
   const left = splitLines(input);
   const right = splitLines(output);
+  const leftTokenCounts = left.map((line) => tokenize(line).length);
+  const rightTokenCounts = right.map((line) => tokenize(line).length);
+  const sortedLeftTokenCounts = [...leftTokenCounts].sort((a, b) => b - a);
+  const sortedRightTokenCounts = [...rightTokenCounts].sort((a, b) => b - a);
+  const maxReplacementCells = sortedLeftTokenCounts.reduce(
+    (total, tokenCount, index) => total + tokenCount * (sortedRightTokenCounts[index] ?? 0),
+    0,
+  );
 
   return (
     left.length <= MAX_COMPARISON_LINES &&
     right.length <= MAX_COMPARISON_LINES &&
-    tokenize(input).length <= MAX_COMPARISON_TOKENS &&
-    tokenize(output).length <= MAX_COMPARISON_TOKENS &&
-    left.every((line) => tokenize(line).length <= MAX_REPLACEMENT_TOKENS) &&
-    right.every((line) => tokenize(line).length <= MAX_REPLACEMENT_TOKENS)
+    leftTokenCounts.reduce((total, count) => total + count, 0) <= MAX_COMPARISON_TOKENS &&
+    rightTokenCounts.reduce((total, count) => total + count, 0) <= MAX_COMPARISON_TOKENS &&
+    leftTokenCounts.every((count) => count <= MAX_REPLACEMENT_TOKENS) &&
+    rightTokenCounts.every((count) => count <= MAX_REPLACEMENT_TOKENS) &&
+    left.length * right.length + maxReplacementCells <= MAX_LCS_CELLS
   );
 }
 

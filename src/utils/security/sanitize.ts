@@ -4,6 +4,16 @@ import DOMPurify from 'dompurify';
 // Runs BEFORE buildInlineStyledHtml injects trusted inline styles.
 DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
   if (data.attrName.startsWith('on')) data.keepAttr = false;
+  if (data.attrName === 'src' && _node.nodeName === 'IMG') {
+    try {
+      const url = new URL(data.attrValue, window.location.href);
+      if (!/^data:/i.test(data.attrValue) && url.origin !== window.location.origin) {
+        data.keepAttr = false;
+      }
+    } catch {
+      data.keepAttr = false;
+    }
+  }
   if (
     data.attrName === 'href' ||
     data.attrName === 'src' ||

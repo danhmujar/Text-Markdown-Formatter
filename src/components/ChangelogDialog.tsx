@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex -- the changelog region must be keyboard-scrollable */
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { APP_VERSION, CHANGELOG_ENTRIES } from '../constants/release';
@@ -90,7 +91,12 @@ export const ChangelogDialog: React.FC<ChangelogDialogProps> = ({
             <X aria-hidden="true" />
           </button>
         </header>
-        <div className="min-h-0 overflow-y-auto p-4">
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Changelog entries"
+          className="min-h-0 overflow-y-auto p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)]"
+        >
           {CHANGELOG_ENTRIES.map((entry) => (
             <article
               key={entry.title}

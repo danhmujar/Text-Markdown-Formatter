@@ -59,7 +59,10 @@ describe('buildInlineStyledHtml list spacing', () => {
   });
 
   it('keeps nested list items compact', () => {
-    const html = buildInlineStyledHtml('1. First item\n   - Nested detail\n2. Second item', options);
+    const html = buildInlineStyledHtml(
+      '1. First item\n   - Nested detail\n2. Second item',
+      options,
+    );
     const container = document.createElement('div');
     container.innerHTML = html;
 

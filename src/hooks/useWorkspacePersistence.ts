@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GridHistoryState } from './useGridHistory';
+import { isGridWithinLimits, MAX_GRID_TOTAL_CHARACTERS } from '../utils/tableConvert';
 
 export const WORKSPACE_STORAGE_KEY = 'text-markdown-formatter:workspace';
 export const WORKSPACE_STORAGE_VERSION = 2;
 const FALLBACK: GridHistoryState = { grid: [['']] };
+const MAX_SERIALIZED_WORKSPACE_CHARACTERS = MAX_GRID_TOTAL_CHARACTERS * 6 + 100_000;
 
 function isValidGrid(value: unknown): value is string[][] {
   return (
@@ -12,7 +14,8 @@ function isValidGrid(value: unknown): value is string[][] {
     value.every(
       (row) =>
         Array.isArray(row) && row.length > 0 && row.every((cell) => typeof cell === 'string'),
-    )
+    ) &&
+    isGridWithinLimits(value)
   );
 }
 
@@ -36,6 +39,7 @@ export function readWorkspace(): GridHistoryState {
   try {
     const raw = window.localStorage.getItem(WORKSPACE_STORAGE_KEY);
     if (!raw) return FALLBACK;
+    if (raw.length > MAX_SERIALIZED_WORKSPACE_CHARACTERS) return FALLBACK;
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return FALLBACK;
 
@@ -50,7 +54,7 @@ export function readWorkspace(): GridHistoryState {
     }
     if (candidate.version === 1) {
       const migrated = migrateVersionOne(candidate.grid, candidate.outputOverrides);
-      return migrated ? { grid: migrated } : FALLBACK;
+      return migrated && isGridWithinLimits(migrated) ? { grid: migrated } : FALLBACK;
     }
     return FALLBACK;
   } catch {
@@ -86,10 +90,10 @@ export function useWorkspacePersistence(
     clearTimeout(timerRef.current ?? undefined);
     timerRef.current = setTimeout(() => {
       try {
-        window.localStorage.setItem(
-          WORKSPACE_STORAGE_KEY,
-          JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid }),
-        );
+        if (!isGridWithinLimits(grid)) return;
+        const serialized = JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid });
+        if (serialized.length > MAX_SERIALIZED_WORKSPACE_CHARACTERS) return;
+        window.localStorage.setItem(WORKSPACE_STORAGE_KEY, serialized);
       } catch {
         // Storage is optional.
       }

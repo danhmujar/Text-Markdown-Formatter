@@ -27,6 +27,12 @@ describe('sanitizeHtml (Preview Security Boundary)', () => {
   it('strips script tags', () => {
     expect(sanitizeHtml('<script>alert(1)</script><p>hi</p>')).not.toMatch(/script/);
   });
+
+  it('strips remote image sources while retaining same-origin and data images', () => {
+    expect(sanitizeHtml('<img src="https://example.invalid/tracker.png">')).not.toMatch(/src=/);
+    expect(sanitizeHtml('<img src="/image.png">')).toMatch(/src="\/image.png"/);
+    expect(sanitizeHtml('<img src="data:image/png;base64,AA==">')).toMatch(/src="data:image\/png/);
+  });
 });
 
 describe('sanitizeOutputHtml (Copy-Path Security Boundary)', () => {

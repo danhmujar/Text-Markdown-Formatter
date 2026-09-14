@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface ThemeSliderProps {
   isDark: boolean;
@@ -9,10 +9,12 @@ export const ThemeSlider: React.FC<ThemeSliderProps> = React.memo(function Theme
   isDark,
   onToggle,
 }) {
+  const id = useId();
+
   return (
-    <label className="theme-switch" htmlFor="theme-dark-toggle">
+    <label className="theme-switch" htmlFor={id}>
       <input
-        id="theme-dark-toggle"
+        id={id}
         type="checkbox"
         checked={isDark}
         onChange={onToggle}

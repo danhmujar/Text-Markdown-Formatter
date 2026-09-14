@@ -26,14 +26,14 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
     if (a === b) return true;
     if (a.length !== b.length) return false;
 
-    let totalChars = 0;
     for (let rowIndex = 0; rowIndex < a.length; rowIndex++) {
       if (a[rowIndex]?.length !== b[rowIndex]?.length) return false;
-      for (const cell of a[rowIndex] ?? []) totalChars += cell.length;
+      for (let colIndex = 0; colIndex < (a[rowIndex]?.length ?? 0); colIndex++) {
+        if (a[rowIndex]?.[colIndex] !== b[rowIndex]?.[colIndex]) return false;
+      }
     }
 
-    if (totalChars > 500_000) return false;
-    return JSON.stringify(a) === JSON.stringify(b);
+    return true;
   };
 
   const replaceHistory = useCallback((next: string[][][]) => {
@@ -57,8 +57,17 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
     [maxHistory, replaceHistory],
   );
 
+  const flushPendingSnapshot = useCallback(() => {
+    if (!debounceTimerRef.current) return;
+    clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = null;
+    commitSnapshot(gridRef.current);
+  }, [commitSnapshot]);
+
   const updateGrid = useCallback(
     (newGrid: string[][], isTyping = false) => {
+      if (!isTyping) flushPendingSnapshot();
+
       const cloned = cloneGrid(newGrid);
       gridRef.current = cloned;
       setGridState(cloned);
@@ -72,21 +81,14 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
         return;
       }
 
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
       commitSnapshot(cloned);
     },
-    [commitSnapshot],
+    [commitSnapshot, flushPendingSnapshot],
   );
 
   const commitPaste = useCallback(
     (rawGrid: string[][], cleanedGrid: string[][]) => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
+      flushPendingSnapshot();
 
       const next = historyRef.current.slice(0, indexRef.current + 1);
       const append = (candidate: string[][]) => {
@@ -102,7 +104,21 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
       setGridState(cloned);
       replaceHistory(bounded);
     },
-    [maxHistory, replaceHistory],
+    [flushPendingSnapshot, maxHistory, replaceHistory],
+  );
+
+  const resetHistory = useCallback(
+    (newGrid: string[][]) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      const cloned = cloneGrid(newGrid);
+      gridRef.current = cloned;
+      setGridState(cloned);
+      replaceHistory([cloned]);
+    },
+    [replaceHistory],
   );
 
   const undo = useCallback((): boolean => {
@@ -165,6 +181,7 @@ export function useGridHistory(initialState: GridHistoryState, maxHistory = 60) 
     grid,
     updateGrid,
     commitPaste,
+    resetHistory,
     undo,
     redo,
     canUndo,

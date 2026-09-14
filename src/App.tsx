@@ -19,11 +19,12 @@ type AppMode = 'formatter' | 'comparison';
 
 export default function App() {
   const [persistedInitialState] = useState(() => readWorkspace());
-  const { grid, updateGrid, commitPaste, undo, redo, canUndo, canRedo } =
+  const { grid, updateGrid, commitPaste, resetHistory, undo, redo, canUndo, canRedo } =
     useGridHistory(persistedInitialState);
   const { clearStorage } = useWorkspacePersistence(grid, persistedInitialState);
   const [appMode, setAppMode] = useState<AppMode>('formatter');
   const [focusRequest, setFocusRequest] = useState(0);
+  const restoreFormatterFocusRef = useRef(false);
   const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
   useVersionUpdate();
 
@@ -55,13 +56,35 @@ export default function App() {
     }));
   }, [colorTheme, isDark]);
 
+  useEffect(() => {
+    if (appMode === 'comparison') {
+      document.getElementById('comparison-left-textarea')?.focus();
+    } else if (restoreFormatterFocusRef.current) {
+      restoreFormatterFocusRef.current = false;
+      document.getElementById('main-content')?.focus();
+    }
+  }, [appMode]);
+
+  const returnToFormatter = useCallback(() => {
+    restoreFormatterFocusRef.current = true;
+    setAppMode('formatter');
+  }, []);
+
+  const toggleComparisonMode = useCallback(() => {
+    if (appMode === 'comparison') {
+      returnToFormatter();
+      return;
+    }
+    setAppMode('comparison');
+  }, [appMode, returnToFormatter]);
+
   const handleClearAll = useCallback(() => {
     const hasContent = grid.some((row) => row.some((cell) => cell.trim().length > 0));
-    updateGrid([['']], false);
+    resetHistory([['']]);
     clearStorage();
     setFocusRequest((request) => request + 1);
     showToast(hasContent ? 'Started new blank session' : 'Workspace is already empty', 'info');
-  }, [clearStorage, grid, updateGrid]);
+  }, [clearStorage, grid, resetHistory]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -119,9 +142,7 @@ export default function App() {
           onUndo={undo}
           onRedo={redo}
           onClearAll={handleClearAll}
-          onToggleComparisonMode={() =>
-            setAppMode((previous) => (previous === 'formatter' ? 'comparison' : 'formatter'))
-          }
+          onToggleComparisonMode={toggleComparisonMode}
           isComparisonMode={appMode === 'comparison'}
           colorTheme={colorTheme}
           isDark={isDark}
@@ -147,7 +168,7 @@ export default function App() {
           </div>
           <div className="h-full" hidden={appMode !== 'comparison'}>
             <ComparisonWorkspace
-              onBackToFormatter={() => setAppMode('formatter')}
+              onBackToFormatter={returnToFormatter}
               fontSize={options.fontSize}
             />
           </div>

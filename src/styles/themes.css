@@ -6,8 +6,14 @@
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --primary-blue: #2563eb;
+  --primary-foreground: #ffffff;
   --accent-bg: #eff6ff;
   --accent-border: #bfdbfe;
+  --warning-color: #92400e;
+  --warning-bg: #fffbeb;
+  --warning-border: #fcd34d;
+  --success-color: #047857;
+  --diff-highlight-bg: #fde68a;
   --font-sans: 'Google Sans Flex', system-ui, -apple-system, sans-serif;
 }
 
@@ -15,12 +21,18 @@ body.dark-theme {
   --bg-color: #020617;
   --panel-bg: #0f172a;
   --surface-bg: #020617;
-  --border-color: #1e293b;
+  --border-color: #64748b;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --primary-blue: #3b82f6;
+  --primary-foreground: #0f172a;
   --accent-bg: #1e293b;
   --accent-border: #334155;
+  --warning-color: #fde68a;
+  --warning-bg: #451a03;
+  --warning-border: #b45309;
+  --success-color: #6ee7b7;
+  --diff-highlight-bg: #854d0e;
 }
 
 /* 1. Transformative Teal — 50% lighter (5% darken) */
@@ -38,7 +50,7 @@ body.theme-teal.dark-theme {
   --bg-color: #041616;
   --panel-bg: #072626;
   --surface-bg: #041616;
-  --border-color: #0e3e3e;
+  --border-color: #64748b;
   --primary-blue: #23a9a9;
   --accent-bg: #0a3030;
   --accent-border: #134c4c;
@@ -59,7 +71,7 @@ body.theme-terracotta.dark-theme {
   --bg-color: #1a0d0a;
   --panel-bg: #2b1813;
   --surface-bg: #1a0d0a;
-  --border-color: #4a2b23;
+  --border-color: #64748b;
   --primary-blue: #e27b5a;
   --accent-bg: #351f18;
   --accent-border: #52352b;
@@ -80,7 +92,7 @@ body.theme-forest.dark-theme {
   --bg-color: #09120d;
   --panel-bg: #111f17;
   --surface-bg: #09120d;
-  --border-color: #1d3627;
+  --border-color: #64748b;
   --primary-blue: #61a37b;
   --accent-bg: #15271d;
   --accent-border: #234031;
@@ -101,7 +113,7 @@ body.theme-slate.dark-theme {
   --bg-color: #0a0d11;
   --panel-bg: #121820;
   --surface-bg: #0a0d11;
-  --border-color: #212c3b;
+  --border-color: #64748b;
   --primary-blue: #7e95ad;
   --accent-bg: #171e28;
   --accent-border: #273344;
@@ -122,7 +134,7 @@ body.theme-rosewood.dark-theme {
   --bg-color: #1a0c0e;
   --panel-bg: #291619;
   --surface-bg: #1a0c0e;
-  --border-color: #46292e;
+  --border-color: #64748b;
   --primary-blue: #d58693;
   --accent-bg: #341e22;
   --accent-border: #503137;
@@ -143,7 +155,7 @@ body.theme-pistachio.dark-theme {
   --bg-color: #0a140c;
   --panel-bg: #112014;
   --surface-bg: #0a140c;
-  --border-color: #1f3a24;
+  --border-color: #64748b;
   --primary-blue: #8cba92;
   --accent-bg: #162919;
   --accent-border: #25422a;
@@ -164,7 +176,7 @@ body.theme-purple.dark-theme {
   --bg-color: #120a24;
   --panel-bg: #1b113b;
   --surface-bg: #120a24;
-  --border-color: #332168;
+  --border-color: #64748b;
   --primary-blue: #a276f5;
   --accent-bg: #23164d;
   --accent-border: #3a287b;
@@ -369,9 +381,11 @@ body.dark-theme {
   z-index: 100;
   width: max-content;
   min-width: 148px;
+  margin: 0;
 }
 
 .theme-swatch {
+  display: block;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -401,6 +415,16 @@ body.dark-theme {
 }
 
 .theme-swatch:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+.theme-swatch-input {
+  position: absolute;
+  opacity: 0;
+}
+
+.theme-swatch-input:focus-visible + .theme-swatch {
   outline: 2px solid var(--primary-blue);
   outline-offset: 2px;
 }

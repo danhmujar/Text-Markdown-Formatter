@@ -37,12 +37,15 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
   }) {
     const [showSettings, setShowSettings] = useState(false);
     const settingsRef = useRef<HTMLDivElement>(null);
+    const settingsTriggerRef = useRef<HTMLButtonElement>(null);
     const isDark = options.theme === 'dark';
     const numRows = grid.length;
     const numCols = Math.max(...grid.map((row) => row.length), 1);
+    const gridRef = useRef(grid);
+    gridRef.current = grid;
     const getContent = useCallback(
-      (rowIndex: number, colIndex: number) => grid[rowIndex]?.[colIndex] || '',
-      [grid],
+      (rowIndex: number, colIndex: number) => gridRef.current[rowIndex]?.[colIndex] || '',
+      [],
     );
 
     const {
@@ -81,14 +84,52 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
       const closeOutside = (event: MouseEvent) => {
         if (!settingsRef.current?.contains(event.target as Node)) setShowSettings(false);
       };
+      const closeOnEscape = (event: KeyboardEvent) => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        setShowSettings(false);
+        settingsTriggerRef.current?.focus();
+      };
       document.addEventListener('mousedown', closeOutside);
-      return () => document.removeEventListener('mousedown', closeOutside);
+      document.addEventListener('keydown', closeOnEscape);
+      return () => {
+        document.removeEventListener('mousedown', closeOutside);
+        document.removeEventListener('keydown', closeOnEscape);
+      };
     }, [showSettings]);
 
-    const changeMode = (cellId: string, mode: 'preview' | 'edit') => {
-      setCellMode(cellId, mode);
-      if (mode === 'edit') setTimeout(() => textareaRefs.current[cellId]?.focus(), 0);
-    };
+    const registerTextarea = useCallback(
+      (rowIndex: number, colIndex: number, element: HTMLTextAreaElement | null) => {
+        textareaRefs.current[`${rowIndex}-${colIndex}`] = element;
+      },
+      [textareaRefs],
+    );
+
+    const changeMode = useCallback(
+      (rowIndex: number, colIndex: number, mode: 'preview' | 'edit') => {
+        const cellId = `${rowIndex}-${colIndex}`;
+        setCellMode(cellId, mode);
+        if (mode === 'edit') setTimeout(() => textareaRefs.current[cellId]?.focus(), 0);
+      },
+      [setCellMode, textareaRefs],
+    );
+
+    const handleCellPaste = useCallback(
+      (event: React.ClipboardEvent<HTMLTextAreaElement>, rowIndex: number, colIndex: number) => {
+        if (handlePasteOnCell(event, rowIndex, colIndex)) {
+          setCellMode(`${rowIndex}-${colIndex}`, 'preview');
+        }
+      },
+      [handlePasteOnCell, setCellMode],
+    );
+
+    const handleCellInput = useCallback(
+      (rowIndex: number, colIndex: number, value: string) => {
+        setCellMode(`${rowIndex}-${colIndex}`, 'edit');
+        handleCellChange(rowIndex, colIndex, value, true);
+      },
+      [handleCellChange, setCellMode],
+    );
 
     return (
       <section
@@ -120,10 +161,12 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
               </span>
               {totalStats.totalWarnings > 0 && (
                 <span
+                  role="img"
+                  aria-label={`${totalStats.totalWarnings} syntax ${totalStats.totalWarnings === 1 ? 'warning' : 'warnings'} across the workspace`}
                   className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
                     isDark
-                      ? 'border-amber-800 bg-amber-950/80 text-amber-300'
-                      : 'border-amber-300 bg-amber-50 text-amber-800'
+                      ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
+                      : 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
                   }`}
                 >
                   <AlertTriangle aria-hidden="true" className="h-3 w-3" />
@@ -153,11 +196,11 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
             </button>
             <div ref={settingsRef} className="relative">
               <button
+                ref={settingsTriggerRef}
                 id="editor-settings-btn"
                 type="button"
                 onClick={() => setShowSettings((visible) => !visible)}
                 aria-expanded={showSettings}
-                aria-haspopup="dialog"
                 aria-controls="editor-settings-panel"
                 aria-label="Layout and grid settings"
                 className="flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-9"
@@ -178,7 +221,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                   onSetUpDownLayout={setUpDownLayout}
                   onAddColumnRight={addColumnRight}
                   onAddRowDown={addRowDown}
-                  onClose={() => setShowSettings(false)}
                 />
               )}
             </div>
@@ -189,7 +231,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                   type="button"
                   onClick={onCopyAllGrid}
                   disabled={totalStats.totalChars === 0}
-                  className="flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-9"
+                  className="flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-[var(--primary-foreground)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-9"
                   style={{ backgroundColor: 'var(--primary-blue)' }}
                 >
                   {copiedAll ? (
@@ -231,12 +273,12 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
           </div>
         )}
 
-        <div className="flex-1 overflow-hidden bg-[var(--surface-bg)] p-3">
+        <div className="flex-1 overflow-auto bg-[var(--surface-bg)] p-3">
           <div
-            className="grid h-full w-full gap-3"
+            className="grid h-full min-h-[18rem] min-w-max w-full gap-3"
             style={{
-              gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${numCols}, minmax(16rem, 1fr))`,
+              gridTemplateRows: `repeat(${numRows}, minmax(18rem, 1fr))`,
             }}
           >
             {grid.map((row, rowIndex) =>
@@ -256,30 +298,17 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     mode={cellModes[cellId] ?? 'preview'}
                     isCopied={copiedCell === cellId}
                     feedback={cellFeedback[cellId] ?? null}
-                    registerTextarea={(element) => {
-                      textareaRefs.current[cellId] = element;
-                    }}
-                    onModeChange={(mode) => changeMode(cellId, mode)}
-                    onClear={() => handleClearCell(rowIndex, colIndex)}
-                    onCopy={() => onCopyCell(rowIndex, colIndex)}
-                    onCopyExcel={
-                      onCopyCellExcel ? () => onCopyCellExcel(rowIndex, colIndex) : undefined
-                    }
-                    onKeyDown={(event) => handleTextareaKeyDown(event, rowIndex, colIndex)}
-                    onPaste={(event) => {
-                      if (handlePasteOnCell(event, rowIndex, colIndex)) {
-                        setCellMode(cellId, 'preview');
-                      }
-                    }}
-                    onChange={(value) => {
-                      setCellMode(cellId, 'edit');
-                      handleCellChange(rowIndex, colIndex, value, true);
-                    }}
-                    onApplyNumbering={(format) => handleApplyNumbering(rowIndex, colIndex, format)}
-                    onApplyInlineFormat={(wrapper, label) =>
-                      handleApplyInlineFormat(rowIndex, colIndex, wrapper, label)
-                    }
-                    onSmartClean={() => handleSmartCleanCell(rowIndex, colIndex)}
+                    registerTextarea={registerTextarea}
+                    onModeChange={changeMode}
+                    onClear={handleClearCell}
+                    onCopy={onCopyCell}
+                    onCopyExcel={onCopyCellExcel}
+                    onKeyDown={handleTextareaKeyDown}
+                    onPaste={handleCellPaste}
+                    onChange={handleCellInput}
+                    onApplyNumbering={handleApplyNumbering}
+                    onApplyInlineFormat={handleApplyInlineFormat}
+                    onSmartClean={handleSmartCleanCell}
                   />
                 );
               }),

@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.6.3';
+export const APP_VERSION = '0.6.4';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-14',
+    title: 'Reliability, accessibility, and performance remediation',
+    description:
+      'Pending typing is now committed before layout changes and paste operations, so immediate structural changes and Undo preserve recent text. Workspace and paste boundaries cover the 500,000-character total limit, while New removes saved state and starts a clean history session. Dark themes now use stronger boundaries and readable dialog actions; settings, theme radios, changelog scrolling, comparison clearing, populated previews, remote-image blocking, and 5×5 mobile grids have browser coverage. Formatter cell actions remain stable during typing, aggregate counters are deferred, dependency locks resolve js-yaml 4.3.2, and CI runs an explicit production build plus accessibility coverage.',
+  },
   {
     date: '2026-09-14',
     title: 'Comparison mode reliability and readability',

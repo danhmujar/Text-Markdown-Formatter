@@ -1,11 +1,37 @@
-import { sanitizeInputText } from './cleanup';
 import { logger } from './logger';
 import { sanitizeHtml } from './security/sanitize';
 import { isWrappedParagraph } from './textWrap';
 
+export const MAX_GRID_ROWS = 100;
+export const MAX_GRID_COLUMNS = 50;
+export const MAX_GRID_CELL_CHARACTERS = 100_000;
+export const MAX_GRID_TOTAL_CHARACTERS = 500_000;
+
+export function isGridWithinLimits(grid: string[][]): boolean {
+  if (grid.length === 0 || grid.length > MAX_GRID_ROWS) return false;
+
+  let totalCharacters = 0;
+  for (const row of grid) {
+    if (row.length === 0 || row.length > MAX_GRID_COLUMNS) return false;
+    for (const cell of row) {
+      if (cell.length > MAX_GRID_CELL_CHARACTERS) return false;
+      totalCharacters += cell.length;
+      if (totalCharacters > MAX_GRID_TOTAL_CHARACTERS) return false;
+    }
+  }
+  return true;
+}
+
+export function isPasteWithinLimits(text: string): boolean {
+  return text.length <= MAX_GRID_TOTAL_CHARACTERS;
+}
+
 export function isMarkdownTable(text: string): boolean {
   if (!text || !text.includes('|')) return false;
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
   if (lines.length < 2) return false;
   // Look for a table separator line e.g. | --- | --- | or |:---|:---| or :--- | ---:
   const hasSeparator = lines.some((line) => /^\|?(\s*:?-{3,}:?\s*\|?)+\s*\|?$/.test(line));
@@ -55,7 +81,14 @@ export function tsvToMarkdownTable(tsv: string): string {
 }
 
 export function htmlTableToMarkdown(html: string): string | null {
-  if (!html || (!html.includes('<table') && !html.includes('<tr') && !html.includes('<td') && !html.includes('<th'))) return null;
+  if (
+    !html ||
+    (!html.includes('<table') &&
+      !html.includes('<tr') &&
+      !html.includes('<td') &&
+      !html.includes('<th'))
+  )
+    return null;
   try {
     const dirtyHtml = html.includes('<table') ? html : `<table><tbody>${html}</tbody></table>`;
     const sanitizedHtml = sanitizeHtml(dirtyHtml);
@@ -114,10 +147,9 @@ export function htmlTableToMarkdown(html: string): string | null {
 
 export function preprocessMarkdownWithTsv(raw: string): string {
   if (!raw) return '';
-  const sanitized = sanitizeInputText(raw);
-  if (!sanitized.includes('\t')) return sanitized;
+  if (!raw.includes('\t')) return raw;
 
-  const lines = sanitized.split(/\r?\n/);
+  const lines = raw.split(/\r?\n/);
   const result: string[] = [];
   let tsvBuffer: string[] = [];
 
@@ -148,19 +180,39 @@ function hasBrTags(text: string): boolean {
 }
 
 export function parsePasteToGrid(text: string, html?: string): string[][] | null {
+  if (!isPasteWithinLimits(text)) return null;
+  const safeHtml = html && html.length <= MAX_GRID_TOTAL_CHARACTERS ? html : undefined;
+
   // First check HTML table or row fragments if available
-  if (html && (html.includes('<table') || html.includes('<tr') || html.includes('<td') || html.includes('<th'))) {
+  if (
+    safeHtml &&
+    (safeHtml.includes('<table') ||
+      safeHtml.includes('<tr') ||
+      safeHtml.includes('<td') ||
+      safeHtml.includes('<th'))
+  ) {
     try {
-      const dirtyHtml = html.includes('<table') ? html : `<table><tbody>${html}</tbody></table>`;
+      const dirtyHtml = safeHtml.includes('<table')
+        ? safeHtml
+        : `<table><tbody>${safeHtml}</tbody></table>`;
       const sanitizedHtml = sanitizeHtml(dirtyHtml);
       const parser = new DOMParser();
       const doc = parser.parseFromString(sanitizedHtml, 'text/html');
       const table = doc.querySelector('table');
       if (table) {
         const rows: string[][] = [];
+        let oversized = false;
         table.querySelectorAll('tr').forEach((tr) => {
+          if (oversized || rows.length >= MAX_GRID_ROWS) {
+            oversized = true;
+            return;
+          }
           const cells: string[] = [];
           tr.querySelectorAll('th, td').forEach((cell) => {
+            if (cells.length >= MAX_GRID_COLUMNS) {
+              oversized = true;
+              return;
+            }
             let cellHtml = cell.innerHTML;
             cellHtml = cellHtml.replace(/<\/p>\s*<p[^>]*>/gi, '<br>');
             cellHtml = cellHtml.replace(/<\/?p[^>]*>/gi, '');
@@ -170,14 +222,16 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
             tempDiv.innerHTML = sanitizeHtml(cellHtml);
             let cleanedCell = tempDiv.innerHTML.trim();
             cleanedCell = cleanedCell.replace(/(?:<br>\s*)+/gi, '<br>');
-            cells.push(cleanedCell);
+            if (cleanedCell.length > MAX_GRID_CELL_CHARACTERS) oversized = true;
+            else cells.push(cleanedCell);
           });
           if (cells.length > 0) {
             rows.push(cells);
           }
         });
-        if (rows.length > 0) {
-          const maxCols = Math.max(...rows.map((r) => r.length));
+        if (!oversized && rows.length > 0 && isGridWithinLimits(rows)) {
+          let maxCols = 1;
+          for (const row of rows) maxCols = Math.max(maxCols, row.length);
           if (rows.length > 1 || maxCols > 1) {
             return rows.map((r) => {
               const copy = [...r];
@@ -202,10 +256,19 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
 
     const hasTabs = rawLines.some((line) => line.includes('\t'));
 
+    if (rawLines.length > MAX_GRID_ROWS) return null;
+
     if (hasTabs) {
       // It's a tab-separated grid (e.g. copied left and right cells or multi-column table)
+      for (const line of rawLines) {
+        if (line.length > MAX_GRID_CELL_CHARACTERS || line.split('\t').length > MAX_GRID_COLUMNS) {
+          return null;
+        }
+      }
       const rows = rawLines.map((line) => line.split('\t').map((c) => c.trim()));
-      const maxCols = Math.max(1, ...rows.map((r) => r.length));
+      if (!isGridWithinLimits(rows)) return null;
+      let maxCols = 1;
+      for (const row of rows) maxCols = Math.max(maxCols, row.length);
       return rows.map((r) => {
         const copy = [...r];
         while (copy.length < maxCols) copy.push('');
@@ -224,7 +287,8 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
 
       // If text contains intra-cell <br> tags without document markers, each line represents a row
       if (hasBrTags(text)) {
-        return rawLines.filter((l) => l.trim().length > 0).map((l) => [l.trim()]);
+        const rows = rawLines.filter((l) => l.trim().length > 0).map((l) => [l.trim()]);
+        return isGridWithinLimits(rows) ? rows : null;
       }
 
       // If pure double-spaced empty lines from HTML copy e.g. "Row 1\n\nRow 2\n\nRow 3" without document markers
@@ -234,11 +298,13 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
         nonEmptyLines.length <= 50 &&
         !isWrappedParagraph(nonEmptyLines)
       ) {
-        return nonEmptyLines.map((l) => [l.trim()]);
+        const rows = nonEmptyLines.map((l) => [l.trim()]);
+        return isGridWithinLimits(rows) ? rows : null;
       }
 
       // Multiple lines without tabs -> treat each line as a single-col row
-      return rawLines.map((l) => [l.trim()]);
+      const rows = rawLines.map((l) => [l.trim()]);
+      return isGridWithinLimits(rows) ? rows : null;
     }
   }
 
@@ -275,13 +341,18 @@ function isLikelyMarkdownDocument(text: string, rawLines: string[]): boolean {
 
   // 7. Bold headers / sections like **1. Stefan Müller...**, **Verification:**,
   //    or ordered sections like 1. **Stefan Müller...**
-  const boldSectionCount = rawLines.filter((l) => /^\s*(?:\d+[.)]\s+)?\*\*[^*]+\*\*/.test(l)).length;
+  const boldSectionCount = rawLines.filter((l) =>
+    /^\s*(?:\d+[.)]\s+)?\*\*[^*]+\*\*/.test(l),
+  ).length;
   if (boldSectionCount >= 2) return true;
 
   // 8. Multiple paragraphs separated by blank lines
   if (text.includes('\n\n')) {
     const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
-    if (paragraphs.length >= 2 && paragraphs.some((p) => p.includes('\n') || p.trim().length > 80)) {
+    if (
+      paragraphs.length >= 2 &&
+      paragraphs.some((p) => p.includes('\n') || p.trim().length > 80)
+    ) {
       return true;
     }
   }

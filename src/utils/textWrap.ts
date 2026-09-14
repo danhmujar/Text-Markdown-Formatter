@@ -17,4 +17,3 @@ export function isWrappedParagraph(rawLines: string[]): boolean {
   if (nonTerm / (trimmed.length - 1) < 0.5) return false;
   return true;
 }
-

@@ -172,7 +172,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                   <button
                     type="button"
                     onClick={onOpenChangelog}
-                    className="font-medium text-blue-600 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-400"
+                    className="font-medium underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
                     View changelog
                   </button>
@@ -209,7 +209,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                   href="https://www.linkedin.com/in/danhmujar"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 inline-flex text-sm font-medium text-blue-600 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-400"
+                  className="mt-2 inline-flex text-sm font-medium underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   Connect on LinkedIn
                 </a>
