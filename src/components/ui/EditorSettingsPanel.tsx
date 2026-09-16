@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Columns, Rows, Grid2X2, Square } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { BUTTON_VARIANTS } from './buttonVariants';
+import { Tip } from './tooltip';
 
 interface EditorSettingsPanelProps {
   isDark: boolean;
@@ -51,82 +52,86 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
             Layout
           </span>
           <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-            <button
-              id="layout-single-btn"
-              type="button"
-              onClick={onSetSingleLayout}
-              aria-label="1 Cell (Single Container) layout"
-              aria-pressed={numRows === 1 && numCols === 1}
-              className={cn(
-                PRESET_BUTTON_BASE,
-                numRows === 1 && numCols === 1
-                  ? BUTTON_VARIANTS.presetActive
-                  : isDark
-                    ? BUTTON_VARIANTS.presetDark
-                    : BUTTON_VARIANTS.presetLight,
-              )}
-              title="1 Cell (Single Container)"
-            >
-              <Square aria-hidden="true" focusable="false" className="w-3 h-3" />
-              <span>1×1</span>
-            </button>
-            <button
-              id="layout-2x2-btn"
-              type="button"
-              onClick={onSet2x2Layout}
-              aria-label="2x2 Grid (4 Cells) layout"
-              aria-pressed={numRows === 2 && numCols === 2}
-              className={cn(
-                PRESET_BUTTON_BASE,
-                numRows === 2 && numCols === 2
-                  ? BUTTON_VARIANTS.presetActive
-                  : isDark
-                    ? BUTTON_VARIANTS.presetDark
-                    : BUTTON_VARIANTS.presetLight,
-              )}
-              title="2x2 Grid (4 Cells)"
-            >
-              <Grid2X2 aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-400" />
-              <span>2×2</span>
-            </button>
-            <button
-              id="layout-left-right-btn"
-              type="button"
-              onClick={onSetLeftRightLayout}
-              aria-label="2 Cells Side-by-Side (Left & Right) layout"
-              aria-pressed={numRows === 1 && numCols === 2}
-              className={cn(
-                PRESET_BUTTON_BASE,
-                numRows === 1 && numCols === 2
-                  ? BUTTON_VARIANTS.presetActive
-                  : isDark
-                    ? BUTTON_VARIANTS.presetDark
-                    : BUTTON_VARIANTS.presetLight,
-              )}
-              title="2 Cells Side-by-Side (Left & Right)"
-            >
-              <Columns aria-hidden="true" focusable="false" className="w-3 h-3 text-cyan-400" />
-              <span>Left &amp; Right</span>
-            </button>
-            <button
-              id="layout-up-down-btn"
-              type="button"
-              onClick={onSetUpDownLayout}
-              aria-label="2 Cells Stacked (Up & Down) layout"
-              aria-pressed={numRows === 2 && numCols === 1}
-              className={cn(
-                PRESET_BUTTON_BASE,
-                numRows === 2 && numCols === 1
-                  ? BUTTON_VARIANTS.presetActive
-                  : isDark
-                    ? BUTTON_VARIANTS.presetDark
-                    : BUTTON_VARIANTS.presetLight,
-              )}
-              title="2 Cells Stacked (Up & Down)"
-            >
-              <Rows aria-hidden="true" focusable="false" className="w-3 h-3 text-emerald-400" />
-              <span>Up &amp; Down</span>
-            </button>
+            <Tip tip="1 Cell (Single Container)">
+              <button
+                id="layout-single-btn"
+                type="button"
+                onClick={onSetSingleLayout}
+                aria-label="1 Cell (Single Container) layout"
+                aria-pressed={numRows === 1 && numCols === 1}
+                className={cn(
+                  PRESET_BUTTON_BASE,
+                  numRows === 1 && numCols === 1
+                    ? BUTTON_VARIANTS.presetActive
+                    : isDark
+                      ? BUTTON_VARIANTS.presetDark
+                      : BUTTON_VARIANTS.presetLight,
+                )}
+              >
+                <Square aria-hidden="true" focusable="false" className="w-3 h-3" />
+                <span>1×1</span>
+              </button>
+            </Tip>
+            <Tip tip="2x2 Grid (4 Cells)">
+              <button
+                id="layout-2x2-btn"
+                type="button"
+                onClick={onSet2x2Layout}
+                aria-label="2x2 Grid (4 Cells) layout"
+                aria-pressed={numRows === 2 && numCols === 2}
+                className={cn(
+                  PRESET_BUTTON_BASE,
+                  numRows === 2 && numCols === 2
+                    ? BUTTON_VARIANTS.presetActive
+                    : isDark
+                      ? BUTTON_VARIANTS.presetDark
+                      : BUTTON_VARIANTS.presetLight,
+                )}
+              >
+                <Grid2X2 aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-400" />
+                <span>2×2</span>
+              </button>
+            </Tip>
+            <Tip tip="2 Cells Side-by-Side (Left & Right)">
+              <button
+                id="layout-left-right-btn"
+                type="button"
+                onClick={onSetLeftRightLayout}
+                aria-label="2 Cells Side-by-Side (Left & Right) layout"
+                aria-pressed={numRows === 1 && numCols === 2}
+                className={cn(
+                  PRESET_BUTTON_BASE,
+                  numRows === 1 && numCols === 2
+                    ? BUTTON_VARIANTS.presetActive
+                    : isDark
+                      ? BUTTON_VARIANTS.presetDark
+                      : BUTTON_VARIANTS.presetLight,
+                )}
+              >
+                <Columns aria-hidden="true" focusable="false" className="w-3 h-3 text-cyan-400" />
+                <span>Left &amp; Right</span>
+              </button>
+            </Tip>
+            <Tip tip="2 Cells Stacked (Up & Down)">
+              <button
+                id="layout-up-down-btn"
+                type="button"
+                onClick={onSetUpDownLayout}
+                aria-label="2 Cells Stacked (Up & Down) layout"
+                aria-pressed={numRows === 2 && numCols === 1}
+                className={cn(
+                  PRESET_BUTTON_BASE,
+                  numRows === 2 && numCols === 1
+                    ? BUTTON_VARIANTS.presetActive
+                    : isDark
+                      ? BUTTON_VARIANTS.presetDark
+                      : BUTTON_VARIANTS.presetLight,
+                )}
+              >
+                <Rows aria-hidden="true" focusable="false" className="w-3 h-3 text-emerald-400" />
+                <span>Up &amp; Down</span>
+              </button>
+            </Tip>
           </div>
         </div>
 
@@ -140,34 +145,36 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
             Grid
           </span>
           <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-            <button
-              id="add-column-btn"
-              type="button"
-              onClick={onAddColumnRight}
-              aria-label="Add column to the right"
-              className={cn(
-                GROW_BUTTON_BASE,
-                isDark ? BUTTON_VARIANTS.growDark : BUTTON_VARIANTS.growLight,
-              )}
-              title="Add Column to the Right"
-            >
-              <Plus aria-hidden="true" focusable="false" className="w-3 h-3 text-cyan-500" />
-              <span>+ Col</span>
-            </button>
-            <button
-              id="add-row-btn"
-              type="button"
-              onClick={onAddRowDown}
-              aria-label="Add row down"
-              className={cn(
-                GROW_BUTTON_BASE,
-                isDark ? BUTTON_VARIANTS.growDark : BUTTON_VARIANTS.growLight,
-              )}
-              title="Add Row Down"
-            >
-              <Plus aria-hidden="true" focusable="false" className="w-3 h-3 text-emerald-500" />
-              <span>+ Row</span>
-            </button>
+            <Tip tip="Add Column to the Right">
+              <button
+                id="add-column-btn"
+                type="button"
+                onClick={onAddColumnRight}
+                aria-label="Add column to the right"
+                className={cn(
+                  GROW_BUTTON_BASE,
+                  isDark ? BUTTON_VARIANTS.growDark : BUTTON_VARIANTS.growLight,
+                )}
+              >
+                <Plus aria-hidden="true" focusable="false" className="w-3 h-3 text-cyan-500" />
+                <span>+ Col</span>
+              </button>
+            </Tip>
+            <Tip tip="Add Row Down">
+              <button
+                id="add-row-btn"
+                type="button"
+                onClick={onAddRowDown}
+                aria-label="Add row down"
+                className={cn(
+                  GROW_BUTTON_BASE,
+                  isDark ? BUTTON_VARIANTS.growDark : BUTTON_VARIANTS.growLight,
+                )}
+              >
+                <Plus aria-hidden="true" focusable="false" className="w-3 h-3 text-emerald-500" />
+                <span>+ Row</span>
+              </button>
+            </Tip>
           </div>
           <p
             className={`mt-1.5 text-[10px] leading-snug ${isDark ? 'text-slate-400' : 'text-slate-600'}`}

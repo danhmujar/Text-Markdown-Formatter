@@ -6,6 +6,7 @@ import { ColorTheme, THEME_SWATCHES } from '@/constants/themes';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { ThemeSlider } from './ThemeSlider';
 import { ThemePicker } from './ThemePicker';
+import { Tip } from './ui';
 
 const mobileMenuFocusableSelector =
   'button:not([disabled]), select:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
@@ -147,95 +148,99 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         {/* Compact navigation (Screen width < 1280px) */}
         <div className="flex xl:hidden items-center gap-2">
           {/* Quick theme toggle on mobile top bar for instant access */}
-          <button
-            id="mobile-quick-theme-btn"
-            type="button"
-            onClick={onToggleDarkMode}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="flex h-11 w-11 items-center justify-center rounded-[10px] border transition hover:bg-[var(--surface-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] active:scale-95"
-            style={{
-              backgroundColor: 'var(--panel-bg)',
-              borderColor: 'var(--border-color)',
-              color: 'var(--text-secondary)',
-            }}
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDark ? (
-              <Sun aria-hidden="true" focusable="false" className="w-4 h-4" />
-            ) : (
-              <Moon aria-hidden="true" focusable="false" className="w-4 h-4" />
-            )}
-          </button>
+          <Tip tip={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <button
+              id="mobile-quick-theme-btn"
+              type="button"
+              onClick={onToggleDarkMode}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="flex h-11 w-11 items-center justify-center rounded-[10px] border transition hover:bg-[var(--surface-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] active:scale-95"
+              style={{
+                backgroundColor: 'var(--panel-bg)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              {isDark ? (
+                <Sun aria-hidden="true" focusable="false" className="w-4 h-4" />
+              ) : (
+                <Moon aria-hidden="true" focusable="false" className="w-4 h-4" />
+              )}
+            </button>
+          </Tip>
 
           {/* Hamburger Menu Toggle Button */}
-          <button
-            id="mobile-menu-toggle-btn"
-            ref={mobileMenuTriggerRef}
-            type="button"
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-header-menu"
-            className="flex h-11 w-11 items-center justify-center rounded-[10px] border transition hover:bg-[var(--surface-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] active:scale-95"
-            style={{
-              backgroundColor: isMobileMenuOpen ? 'var(--accent-bg)' : 'var(--panel-bg)',
-              borderColor: isMobileMenuOpen ? 'var(--accent-border)' : 'var(--border-color)',
-              color: isMobileMenuOpen ? 'var(--primary-blue)' : 'var(--text-secondary)',
-            }}
-            title="Menu"
-          >
-            {isMobileMenuOpen ? (
-              <X aria-hidden="true" focusable="false" className="w-5 h-5" />
-            ) : (
-              <Menu aria-hidden="true" focusable="false" className="w-5 h-5" />
-            )}
-          </button>
+          <Tip tip="Menu">
+            <button
+              id="mobile-menu-toggle-btn"
+              ref={mobileMenuTriggerRef}
+              type="button"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-header-menu"
+              className="flex h-11 w-11 items-center justify-center rounded-[10px] border transition hover:bg-[var(--surface-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] active:scale-95"
+              style={{
+                backgroundColor: isMobileMenuOpen ? 'var(--accent-bg)' : 'var(--panel-bg)',
+                borderColor: isMobileMenuOpen ? 'var(--accent-border)' : 'var(--border-color)',
+                color: isMobileMenuOpen ? 'var(--primary-blue)' : 'var(--text-secondary)',
+              }}
+            >
+              {isMobileMenuOpen ? (
+                <X aria-hidden="true" focusable="false" className="w-5 h-5" />
+              ) : (
+                <Menu aria-hidden="true" focusable="false" className="w-5 h-5" />
+              )}
+            </button>
+          </Tip>
         </div>
 
         {/* Desktop Controls (Screen width >= 1280px) */}
         <div className="hidden xl:flex items-center gap-2.5">
           {/* New / Clear All Button */}
           {!isComparisonMode && onClearAll && (
-            <button
-              id="header-clear-all-btn"
-              type="button"
-              onClick={onClearAll}
-              aria-label="New Blank Workspace / Clear All"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-transparent text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                isDark
-                  ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-              title="Start a new blank session / Clear all cells"
-            >
-              <FilePlus2
-                aria-hidden="true"
-                focusable="false"
-                className="w-3.5 h-3.5 text-blue-500"
-              />
-              <span>New</span>
-            </button>
+            <Tip tip="Start a new blank session / Clear all cells">
+              <button
+                id="header-clear-all-btn"
+                type="button"
+                onClick={onClearAll}
+                aria-label="New Blank Workspace / Clear All"
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-transparent text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                  isDark
+                    ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <FilePlus2
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-3.5 h-3.5 text-blue-500"
+                />
+                <span>New</span>
+              </button>
+            </Tip>
           )}
 
           {/* Standalone Comparison Mode */}
-          <button
-            id="comparison-mode-btn"
-            type="button"
-            onClick={onToggleComparisonMode}
-            aria-label={isComparisonMode ? 'Exit Comparison Mode' : 'Open Comparison Mode'}
-            aria-pressed={isComparisonMode}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-              isComparisonMode
-                ? 'bg-[var(--accent-bg)] border-[var(--accent-border)] text-[var(--primary-blue)]'
-                : isDark
-                  ? 'border-transparent text-slate-300 hover:bg-slate-800 hover:text-white'
-                  : 'border-transparent text-slate-700 hover:bg-slate-100'
-            }`}
-            title={isComparisonMode ? 'Return to Formatter' : 'Open Comparison Mode'}
-          >
-            <GitCompare aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-            <span>Comparison</span>
-          </button>
+          <Tip tip={isComparisonMode ? 'Return to Formatter' : 'Open Comparison Mode'}>
+            <button
+              id="comparison-mode-btn"
+              type="button"
+              onClick={onToggleComparisonMode}
+              aria-label={isComparisonMode ? 'Exit Comparison Mode' : 'Open Comparison Mode'}
+              aria-pressed={isComparisonMode}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                isComparisonMode
+                  ? 'bg-[var(--accent-bg)] border-[var(--accent-border)] text-[var(--primary-blue)]'
+                  : isDark
+                    ? 'border-transparent text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'border-transparent text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <GitCompare aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+              <span>Comparison</span>
+            </button>
+          </Tip>
 
           {/* Undo / Redo Control Group */}
           {!isComparisonMode && (
@@ -244,51 +249,53 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                 isDark ? 'bg-slate-800 border-slate-500' : 'bg-slate-50 border-slate-200'
               }`}
             >
-              <button
-                id="header-undo-btn"
-                type="button"
-                onClick={onUndo}
-                disabled={!canUndo}
-                aria-disabled={!canUndo}
-                aria-label="Undo last change (Ctrl+Z / ⌘Z)"
-                className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                  canUndo
-                    ? isDark
-                      ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
-                      : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
-                    : isDark
-                      ? 'text-slate-500 opacity-60 cursor-not-allowed'
-                      : 'text-slate-500 opacity-60 cursor-not-allowed'
-                }`}
-                title="Undo last change (Ctrl+Z / ⌘Z)"
-              >
-                <Undo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-[11px]">Undo</span>
-              </button>
+              <Tip tip="Undo last change (Ctrl+Z / ⌘Z)">
+                <button
+                  id="header-undo-btn"
+                  type="button"
+                  onClick={onUndo}
+                  disabled={!canUndo}
+                  aria-disabled={!canUndo}
+                  aria-label="Undo last change (Ctrl+Z / ⌘Z)"
+                  className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                    canUndo
+                      ? isDark
+                        ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
+                        : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
+                      : isDark
+                        ? 'text-slate-500 opacity-60 cursor-not-allowed'
+                        : 'text-slate-500 opacity-60 cursor-not-allowed'
+                  }`}
+                >
+                  <Undo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Undo</span>
+                </button>
+              </Tip>
 
               <div className={`w-px h-3.5 mx-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
 
-              <button
-                id="header-redo-btn"
-                type="button"
-                onClick={onRedo}
-                disabled={!canRedo}
-                aria-disabled={!canRedo}
-                aria-label="Redo next change (Ctrl+Y / ⌘⇧Z)"
-                className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                  canRedo
-                    ? isDark
-                      ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
-                      : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
-                    : isDark
-                      ? 'text-slate-500 opacity-60 cursor-not-allowed'
-                      : 'text-slate-500 opacity-60 cursor-not-allowed'
-                }`}
-                title="Redo next change (Ctrl+Y / ⌘⇧Z)"
-              >
-                <Redo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-[11px]">Redo</span>
-              </button>
+              <Tip tip="Redo next change (Ctrl+Y / ⌘⇧Z)">
+                <button
+                  id="header-redo-btn"
+                  type="button"
+                  onClick={onRedo}
+                  disabled={!canRedo}
+                  aria-disabled={!canRedo}
+                  aria-label="Redo next change (Ctrl+Y / ⌘⇧Z)"
+                  className={`px-2 py-1.5 rounded transition flex items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                    canRedo
+                      ? isDark
+                        ? 'text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer active:scale-95'
+                        : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 cursor-pointer active:scale-95'
+                      : isDark
+                        ? 'text-slate-500 opacity-60 cursor-not-allowed'
+                        : 'text-slate-500 opacity-60 cursor-not-allowed'
+                  }`}
+                >
+                  <Redo2 aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Redo</span>
+                </button>
+              </Tip>
             </div>
           )}
 
@@ -338,20 +345,21 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             >
               Size
             </span>
-            <button
-              id="font-size-decrease-btn"
-              type="button"
-              onClick={() => setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
-              aria-label="Decrease font size"
-              className={`px-2.5 py-1.5 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                isDark
-                  ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                  : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-              }`}
-              title="Decrease font size"
-            >
-              -
-            </button>
+            <Tip tip="Decrease font size">
+              <button
+                id="font-size-decrease-btn"
+                type="button"
+                onClick={() => setOptions((p) => ({ ...p, fontSize: Math.max(9, p.fontSize - 1) }))}
+                aria-label="Decrease font size"
+                className={`px-2.5 py-1.5 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                  isDark
+                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                }`}
+              >
+                -
+              </button>
+            </Tip>
             <span
               className={`px-2 py-1.5 font-mono border-x ${
                 isDark ? 'text-slate-200 border-slate-500' : 'text-slate-800 border-slate-200'
@@ -359,20 +367,23 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             >
               {options.fontSize}pt
             </span>
-            <button
-              id="font-size-increase-btn"
-              type="button"
-              onClick={() => setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))}
-              aria-label="Increase font size"
-              className={`px-2.5 py-1.5 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-                isDark
-                  ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                  : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-              }`}
-              title="Increase font size"
-            >
-              +
-            </button>
+            <Tip tip="Increase font size">
+              <button
+                id="font-size-increase-btn"
+                type="button"
+                onClick={() =>
+                  setOptions((p) => ({ ...p, fontSize: Math.min(24, p.fontSize + 1) }))
+                }
+                aria-label="Increase font size"
+                className={`px-2.5 py-1.5 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
+                  isDark
+                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                }`}
+              >
+                +
+              </button>
+            </Tip>
           </div>
 
           {/* Theme palette and appearance */}
@@ -661,14 +672,15 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
                             checked={active}
                             onChange={() => onSelectColorTheme(s.id)}
                           />
-                          <label
-                            htmlFor={id}
-                            className={`theme-swatch ${active ? 'active' : ''}`}
-                            style={{ backgroundColor: s.color }}
-                            title={s.title}
-                          >
-                            <span className="sr-only">{s.title}</span>
-                          </label>
+                          <Tip tip={s.title}>
+                            <label
+                              htmlFor={id}
+                              className={`theme-swatch ${active ? 'active' : ''}`}
+                              style={{ backgroundColor: s.color }}
+                            >
+                              <span className="sr-only">{s.title}</span>
+                            </label>
+                          </Tip>
                         </React.Fragment>
                       );
                     })}

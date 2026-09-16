@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.8.0';
+export const APP_VERSION = '0.9.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Instant hints across header, themes, and layouts',
+    description:
+      'Following the editor buttons, every remaining control hint — header actions, theme swatches, and layout settings — now appears instantly as a styled tooltip on hover or keyboard focus instead of the slow native popup.',
+  },
   {
     date: '2026-09-16',
     title: 'Instant formatting button hints',

@@ -102,3 +102,9 @@ existing pill via Animotion (item 1) instead.
   `Tip` wrapper), mounted the provider in `App.tsx`, and converted all 7
   EditToolbar `title=` hints. Header/ThemePicker/settings-panel conversions
   remain open.
+- 2026-09-16: item 2 finished. Converted the remaining 17 native hints:
+  Header (New, Comparison, Undo, Redo, font −/+, mobile theme + menu buttons,
+  mobile theme swatches), ThemePicker (palette trigger + swatches), Layout
+  settings panel (4 presets + 2 grow buttons). Only intentional keeps: the
+  Offline status pill (text already visible) and the toast close button
+  (self-evident X). Verified Hover on Comparison in Chromium; full suite green.
