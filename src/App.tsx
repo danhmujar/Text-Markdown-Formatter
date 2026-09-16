@@ -96,6 +96,15 @@ export default function App() {
         return;
       }
       if (!event.ctrlKey && !event.metaKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.tagName === 'TEXTAREA' ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        (document.activeElement instanceof HTMLElement && document.activeElement.isContentEditable)
+      ) {
+        return;
+      }
       const key = event.key.toLowerCase();
       if (key === 'z') {
         event.preventDefault();

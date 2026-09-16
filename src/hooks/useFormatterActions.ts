@@ -3,7 +3,9 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   applyInlineFormatToText,
   applyListDedent,
+  applyListDedentSelection,
   applyListIndent,
+  applyListIndentSelection,
   applyNumberingToText,
   applySmartListEnter,
   getNextListPrefix,
@@ -113,14 +115,26 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
 
       if (event.key === 'Tab' && !event.ctrlKey && !event.altKey && !event.metaKey) {
         const value = textarea.value;
-        const cursor = textarea.selectionStart;
-        const result = event.shiftKey
-          ? applyListDedent(value, cursor)
-          : applyListIndent(value, cursor);
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const result =
+          start === end
+            ? event.shiftKey
+              ? applyListDedent(value, start)
+              : applyListIndent(value, start)
+            : event.shiftKey
+              ? applyListDedentSelection(value, start, end)
+              : applyListIndentSelection(value, start, end);
         if (!result) return;
         event.preventDefault();
         onContentChange(rowIndex, colIndex, result.text, false);
-        setTimeout(() => textarea.setSelectionRange(result.newCursor, result.newCursor), 0);
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(
+            result.newSelectionStart ?? result.newCursor,
+            result.newSelectionEnd ?? result.newCursor,
+          );
+        }, 0);
         return;
       }
 
@@ -136,23 +150,22 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
 
       const value = textarea.value;
       const cursor = textarea.selectionStart;
-      const smartResult = applySmartListEnter(value, cursor, listTerminator);
+      const smartResult = applySmartListEnter(value, cursor, listTerminator, textarea.selectionEnd);
       if (smartResult) {
         event.preventDefault();
         onContentChange(rowIndex, colIndex, smartResult.text, false);
-        setTimeout(
-          () => textarea.setSelectionRange(smartResult.newCursor, smartResult.newCursor),
-          0,
-        );
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(smartResult.newCursor, smartResult.newCursor);
+        }, 0);
         return;
       }
 
       const lineStart = value.lastIndexOf('\n', Math.max(0, cursor - 1)) + 1;
-      const lineToCursor = value.substring(lineStart, cursor);
       const nextNewline = value.indexOf('\n', cursor);
       const lineEnd = nextNewline === -1 ? value.length : nextNewline;
       const fullLine = value.substring(lineStart, lineEnd);
-      const nextPrefixInfo = getNextListPrefix(lineToCursor);
+      const nextPrefixInfo = getNextListPrefix(fullLine);
       if (!nextPrefixInfo) return;
 
       event.preventDefault();
@@ -160,15 +173,22 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
       if (isOnlyPrefix && fullLine.trim() === currentPrefix.trim()) {
         const nextValue = value.substring(0, lineStart) + value.substring(lineEnd);
         onContentChange(rowIndex, colIndex, nextValue, false);
-        setTimeout(() => textarea.setSelectionRange(lineStart, lineStart), 0);
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(lineStart, lineStart);
+        }, 0);
         return;
       }
 
+      const selectedEnd = Math.max(cursor, textarea.selectionEnd);
       const insertion = '\n' + indent + nextPrefix;
-      const nextValue = value.substring(0, cursor) + insertion + value.substring(cursor);
+      const nextValue = value.substring(0, cursor) + insertion + value.substring(selectedEnd);
       const nextPosition = cursor + insertion.length;
       onContentChange(rowIndex, colIndex, nextValue, false);
-      setTimeout(() => textarea.setSelectionRange(nextPosition, nextPosition), 0);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(nextPosition, nextPosition);
+      }, 0);
     },
     [listTerminator, onContentChange],
   );

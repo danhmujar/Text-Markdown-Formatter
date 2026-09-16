@@ -177,7 +177,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
   lines.forEach((line, lineIdx) => {
     if (line.trim().startsWith('```')) return;
     const hasGluedBold =
-      /(?:[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]\*\*(?!\*)[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]|[^\s*]\*\*[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]|\*\*:[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF])/u.test(
+      /[\p{L}\p{N}]\*\*(?=[\p{L}\p{N}])|(?<=[\p{L}\p{N}])\*\*[\p{L}\p{N}]|\*\*:[\p{L}\p{N}]/u.test(
         line,
       );
     if (hasGluedBold) {
@@ -261,7 +261,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
       }
 
       // Odd indentation (e.g. 1 space or 3 spaces or jumping 5+ spaces)
-      if (indent > 0 && indent % 2 !== 0 && indent !== 4) {
+      if (indent > 0 && indent % 2 !== 0 && indent !== 3) {
         warnings.push({
           id: `irregular-indent-${lineIdx + 1}`,
           severity: 'info',
@@ -297,7 +297,7 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
     const trimmed = line.trim();
     if (trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.length > 2) {
       // Count columns
-      const cells = trimmed.slice(1, -1).split('|');
+      const cells = trimmed.slice(1, -1).split(/(?<!\\)\|/);
       tableLines.push({ line: trimmed, idx: lineIdx + 1, colCount: cells.length });
     } else {
       if (tableLines.length > 0) {

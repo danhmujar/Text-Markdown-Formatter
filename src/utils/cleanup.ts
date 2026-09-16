@@ -149,9 +149,35 @@ export function convertNewlinesToBr(text: string): string {
   if (!text) return '';
   // Normalize Windows \r\n to \n
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  // Convert newlines directly into <br>
-  // e.g. "Hello\nworld" -> "Hello<br>world"
-  return normalized.replace(/\n/g, '<br>');
+  const lines = normalized.split('\n');
+  let inCodeBlock = false;
+
+  return lines.reduce((result, line, index) => {
+    if (index === 0) result = line;
+
+    if (index < lines.length - 1) {
+      const nextLine = lines[index + 1];
+      const isBlockBreak =
+        inCodeBlock || isMarkdownBlockLine(line) || isMarkdownBlockLine(nextLine);
+      result += isBlockBreak ? `\n${nextLine}` : `<br>${nextLine}`;
+    }
+
+    if (isMarkdownFenceLine(line)) inCodeBlock = !inCodeBlock;
+    return result;
+  }, '');
+}
+
+function isMarkdownFenceLine(line: string): boolean {
+  return /^\s{0,3}(?:`{3,}|~{3,})/.test(line);
+}
+
+function isMarkdownBlockLine(line: string): boolean {
+  return (
+    line.trim() === '' ||
+    isMarkdownFenceLine(line) ||
+    /^\s{0,3}#{1,6}(?:\s|$)/.test(line) ||
+    /^\s{0,3}(?:[*+-]\s+|\d+[.)]\s+|>\s?)/.test(line)
+  );
 }
 
 /**
@@ -482,25 +508,6 @@ export function smartCleanupMarkdown(
       fixesCount++;
     }
 
-    // Auto-close unbalanced bold (**) on self-contained lines (e.g., list items or bullet lines)
-    if (!isTyping) {
-      const lineStars = line.match(/\*\*/g) || [];
-      if (lineStars.length % 2 !== 0 && !line.endsWith('\\')) {
-        // If the line opens a bold tag without closing it, close it at the end of the line
-        line = `${line}**`;
-        markdownFixed = true;
-        fixesCount++;
-      }
-
-      // Auto-close unbalanced strikethrough (~~)
-      const lineTildes = line.match(/~~/g) || [];
-      if (lineTildes.length % 2 !== 0) {
-        line = `${line}~~`;
-        markdownFixed = true;
-        fixesCount++;
-      }
-    }
-
     // I. Normalize redundant internal spaces (preserve leading indentation and table row spacing)
     if (!line.includes('|')) {
       const indentMatch = line.match(/^(\s*)/);
@@ -557,6 +564,13 @@ export function smartCleanupMarkdown(
     const remainingDoubleStars = joined.match(/\*\*/g) || [];
     if (remainingDoubleStars.length % 2 !== 0) {
       joined = `${joined}**`;
+      markdownFixed = true;
+      fixesCount++;
+    }
+
+    const remainingDoubleTildes = joined.match(/~~/g) || [];
+    if (remainingDoubleTildes.length % 2 !== 0) {
+      joined = `${joined}~~`;
       markdownFixed = true;
       fixesCount++;
     }

@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { smartCleanupMarkdown, prepareCopiedText } from '../cleanup';
 import { tsvToMarkdownTable, isMarkdownTable, preprocessMarkdownWithTsv } from '../tableConvert';
-import { getNextListPrefix, applySmartListEnter, applyListIndent, applyListDedent } from '../listNumbering';
+import {
+  getNextListPrefix,
+  applySmartListEnter,
+  applyListIndent,
+  applyListDedent,
+  applyListIndentSelection,
+  applyInlineFormatToText,
+  applyNumberingToText,
+} from '../listNumbering';
 
 describe('smartCleanupMarkdown', () => {
   it('keeps inline pipes in nested-list prose intact', () => {
@@ -80,6 +88,17 @@ describe('smartCleanupMarkdown', () => {
     const report = smartCleanupMarkdown('Check*this*out and ~~old~~new text');
     expect(report.cleaned).toBe('Check *this* out and ~~old~~ new text');
   });
+
+  it('preserves valid multiline bold and strikethrough', () => {
+    const input = '**bold across\nlines** and ~~strike across\nlines~~';
+
+    expect(smartCleanupMarkdown(input).cleaned).toBe(input);
+  });
+
+  it('auto-closes genuinely unbalanced bold and strikethrough', () => {
+    expect(smartCleanupMarkdown('**unfinished').cleaned).toBe('**unfinished**');
+    expect(smartCleanupMarkdown('~~unfinished').cleaned).toBe('~~unfinished~~');
+  });
 });
 
 describe('isMarkdownTable and prepareCopiedText', () => {
@@ -105,6 +124,13 @@ describe('isMarkdownTable and prepareCopiedText', () => {
     const result = prepareCopiedText(output, inputWithBr);
     expect(result).toBe('Line 1<br>Line 2');
   });
+
+  it.each(['- first\n- second', '# Heading\nParagraph', '```\ncode\n```'])(
+    'preserves Markdown block newlines when input contains <br>',
+    (output) => {
+      expect(prepareCopiedText(output, 'source<br>')).toBe(output);
+    },
+  );
 });
 
 describe('tsvToMarkdownTable', () => {
@@ -170,9 +196,33 @@ describe('applySmartListEnter', () => {
     expect(applySmartListEnter(value, value.length)?.text).toBe('(i) Test;\n(ii) ');
   });
 
-  it('ignores unrelated styles like numeric-parentheses and bullets', () => {
-    expect(applySmartListEnter('(1) item', 8)).toBeNull();
-    expect(applySmartListEnter('* item', 6)).toBeNull();
+  it('supports numeric-parentheses and bullet lists without terminators', () => {
+    expect(applySmartListEnter('(1) item', 8)?.text).toBe('(1) item;\n(2) ');
+    expect(applySmartListEnter('* item', 6)?.text).toBe('* item\n* ');
+  });
+
+  it('correctly continues Roman lists through (v) to (vi)', () => {
+    const text = '(iv) Fourth\n(v) Fifth';
+    expect(applySmartListEnter(text, text.length)?.text).toBe('(iv) Fourth\n(v) Fifth;\n(vi) ');
+  });
+
+  it('correctly continues Alphabetical lists through (c) to (d) and (i) to (j)', () => {
+    const textCd = '(b) B\n(c) C';
+    expect(applySmartListEnter(textCd, textCd.length)?.text).toBe('(b) B\n(c) C;\n(d) ');
+
+    const textIj = '(h) H\n(i) I';
+    expect(applySmartListEnter(textIj, textIj.length)?.text).toBe('(h) H\n(i) I;\n(j) ');
+  });
+
+  it('replaces a selection and does not duplicate an existing terminator', () => {
+    expect(applySmartListEnter('1. old text', 3, ';', 7)?.text).toBe('1. ;\n2. text');
+    expect(applySmartListEnter('1. Done;', 8, ';')?.text).toBe('1. Done;\n2. ');
+  });
+
+  it('renumbers following items after an inserted numeric item', () => {
+    expect(applySmartListEnter('1. one\n2. two\n3. three', 6, ';')?.text).toBe(
+      '1. one;\n2. \n3. two\n4. three',
+    );
   });
 });
 
@@ -202,5 +252,23 @@ describe('applyListIndent / applyListDedent', () => {
   it('ignores non-list lines', () => {
     expect(applyListIndent('plain', 5)).toBeNull();
     expect(applyListDedent('(i) x', 5)).toBeNull();
+  });
+
+  it('indents a multi-line selection while preserving its selection', () => {
+    const value = '1. one\n2. two';
+    const result = applyListIndentSelection(value, 0, value.length);
+    expect(result?.text).toBe('   1. one\n   2. two');
+    expect(result?.newSelectionStart).toBe(3);
+    expect(result?.newSelectionEnd).toBe(value.length + 6);
+  });
+
+  it('unwraps inline markers around the selected content', () => {
+    expect(applyInlineFormatToText('**bold**', 2, 6, '**').text).toBe('bold');
+  });
+
+  it('preserves Markdown headings, tables, and parenthesized words when numbering', () => {
+    const input = '# Heading\n(Note) Important point\n| A | B |\nSecond point';
+    const result = applyNumberingToText(input, 0, input.length, 'numeric-dot');
+    expect(result.text).toBe('# Heading\n1. (Note) Important point\n| A | B |\n2. Second point');
   });
 });

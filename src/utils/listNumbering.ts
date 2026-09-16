@@ -157,12 +157,21 @@ export function setListTerminator(terminator: ListTerminator): void {
 
 export function subscribeListTerminator(listener: () => void): () => void {
   window.addEventListener(TERMINATOR_EVENT, listener);
-  return () => window.removeEventListener(TERMINATOR_EVENT, listener);
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === TERMINATOR_KEY) listener();
+  };
+  window.addEventListener('storage', handleStorage);
+  return () => {
+    window.removeEventListener(TERMINATOR_EVENT, listener);
+    window.removeEventListener('storage', handleStorage);
+  };
 }
 
 export interface ListEditResult {
   text: string;
   newCursor: number;
+  newSelectionStart?: number;
+  newSelectionEnd?: number;
 }
 
 export interface NextListPrefixResult {
@@ -183,6 +192,186 @@ function splitLineAt(
   return { lineStart, lineEnd, fullLine: value.substring(lineStart, lineEnd) };
 }
 
+type ParsedListLine = {
+  indent: string;
+  prefix: string;
+  nextPrefix: string;
+  content: string;
+  isOnlyPrefix: boolean;
+  kind: 'roman' | 'numeric-dot' | 'numeric-paren' | 'alpha-dot' | 'alpha-paren' | 'bullet';
+};
+
+function isPrecedingRoman(contextText: string, indent: string): boolean {
+  const trimmed = contextText.trimEnd();
+  if (!trimmed) return false;
+  const lines = trimmed.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i];
+    const indentMatch = line.match(/^(\s*)/)?.[1] ?? '';
+    if (indentMatch !== indent) continue;
+    const body = line.trim();
+    if (!body) break;
+    if (/^\((?:[ivxlcdm]{2,})\)/i.test(body)) return true;
+    if (/^\([abefghjknopqrstuyz]\)/i.test(body)) return false;
+    if (/^\(i\)/i.test(body)) return true;
+    if (/^\(a\)/i.test(body)) return false;
+  }
+  return false;
+}
+
+function parseListLine(line: string, contextPrecedingText = ''): ParsedListLine | null {
+  const match = line.match(/^(\s*)(.*)$/);
+  if (!match) return null;
+  const indent = match[1];
+  const body = match[2];
+
+  // 1. Parenthesized numbers: (1), (2)
+  const numericParenEnclosed = body.match(/^\((\d+)\)(\s+|$)(.*)$/);
+  if (numericParenEnclosed) {
+    const value = numericParenEnclosed[1];
+    const spacing = numericParenEnclosed[2] || ' ';
+    return {
+      indent,
+      prefix: `(${value})${spacing}`,
+      nextPrefix: `(${Number(value) + 1})${spacing}`,
+      kind: 'numeric-paren',
+      content: numericParenEnclosed[3],
+      isOnlyPrefix: numericParenEnclosed[3].trim().length === 0,
+    };
+  }
+
+  // 2. Parenthesized single-letter or Roman numeral
+  const parenMatch = body.match(/^\(([a-zA-Z0-9]+)\)(\s+|$)(.*)$/);
+  if (parenMatch) {
+    const rawVal = parenMatch[1];
+    const spacing = parenMatch[2] || ' ';
+    const rest = parenMatch[3];
+    const isOnlyPrefix = rest.trim().length === 0;
+
+    // Multi-letter Roman numerals like (ii), (iv), (ix)
+    if (/^[ivxlcdm]{2,}$/i.test(rawVal)) {
+      return {
+        indent,
+        prefix: `(${rawVal})${spacing}`,
+        nextPrefix: `(${intToRoman(romanToInt(rawVal) + 1)})${spacing}`,
+        kind: 'roman',
+        content: rest,
+        isOnlyPrefix,
+      };
+    }
+
+    // Single letter
+    if (/^[a-zA-Z]$/.test(rawVal)) {
+      const lower = rawVal.toLowerCase();
+      const isRomanChar = /^[ivxlcdm]$/.test(lower);
+      let isRoman = false;
+
+      if (isRomanChar) {
+        if (contextPrecedingText) {
+          isRoman = isPrecedingRoman(contextPrecedingText, indent);
+        } else {
+          // Default disambiguation when isolated
+          isRoman = lower === 'i' || lower === 'v' || lower === 'x';
+        }
+      }
+
+      if (isRoman) {
+        return {
+          indent,
+          prefix: `(${rawVal})${spacing}`,
+          nextPrefix: `(${intToRoman(romanToInt(rawVal) + 1)})${spacing}`,
+          kind: 'roman',
+          content: rest,
+          isOnlyPrefix,
+        };
+      }
+
+      return {
+        indent,
+        prefix: `(${rawVal})${spacing}`,
+        nextPrefix: `(${alphaCase(intToAlpha(alphaToInt(rawVal) + 1), rawVal)})${spacing}`,
+        kind: 'alpha-paren',
+        content: rest,
+        isOnlyPrefix,
+      };
+    }
+  }
+
+  const patterns: Array<
+    [
+      RegExp,
+      (
+        value: string,
+        spacing: string,
+      ) => { prefix: string; nextPrefix: string; kind: ParsedListLine['kind'] },
+    ]
+  > = [
+    [
+      /^(\d+)[.)](\s+|$)(.*)$/,
+      (value, spacing) => ({
+        prefix: `${value}${body[value.length] === '.' ? '.' : ')'}` + spacing,
+        nextPrefix: `${Number(value) + 1}${body[value.length] === '.' ? '.' : ')'}` + spacing,
+        kind: body[value.length] === '.' ? 'numeric-dot' : 'numeric-paren',
+      }),
+    ],
+    [
+      /^([a-zA-Z])[.)](\s+|$)(.*)$/,
+      (value, spacing) => ({
+        prefix: `${value}${body[value.length] === '.' ? '.' : ')'}` + spacing,
+        nextPrefix:
+          `${alphaCase(intToAlpha(alphaToInt(value) + 1), value)}${body[value.length] === '.' ? '.' : ')'}` +
+          spacing,
+        kind: body[value.length] === '.' ? 'alpha-dot' : 'alpha-paren',
+      }),
+    ],
+    [
+      /^([-*+•◦▪])(\s+|$)(.*)$/,
+      (value, spacing) => ({
+        prefix: value + spacing,
+        nextPrefix: value + spacing,
+        kind: 'bullet',
+      }),
+    ],
+  ];
+
+  for (const [pattern, makePrefix] of patterns) {
+    const item = body.match(pattern);
+    if (!item) continue;
+    const prefixInfo = makePrefix(item[1], item[2] || ' ');
+    return {
+      indent,
+      ...prefixInfo,
+      content: item[3],
+      isOnlyPrefix: item[3].trim().length === 0,
+    };
+  }
+  return null;
+}
+
+function alphaCase(value: string, source: string): string {
+  return source === source.toUpperCase() ? value.toUpperCase() : value;
+}
+
+function renumberFollowingList(text: string, lineStart: number, parsed: ParsedListLine): string {
+  const lines = text.split('\n');
+  let offset = 0;
+  let found = false;
+  for (let index = 0; index < lines.length; index++) {
+    const lineEnd = offset + lines[index].length;
+    if (offset === lineStart) found = true;
+    if (found && offset > lineStart) {
+      const current = parseListLine(lines[index]);
+      if (!current || current.indent !== parsed.indent || current.kind !== parsed.kind) break;
+      const next = parseListLine(`${parsed.indent}${parsed.nextPrefix}${current.content}`);
+      if (!next) break;
+      lines[index] = `${current.indent}${next.nextPrefix}${current.content}`;
+      parsed = { ...next, content: current.content };
+    }
+    offset = lineEnd + 1;
+  }
+  return lines.join('\n');
+}
+
 /**
  * Smart Enter for roman- and numeric-led lists: appends the terminator
  * (";" or ":", '' disables) at the cursor and continues with the next
@@ -195,48 +384,27 @@ export function applySmartListEnter(
   value: string,
   cursor: number,
   terminator: ListTerminator = ';',
+  selectionEnd = cursor,
 ): ListEditResult | null {
-  const { fullLine } = splitLineAt(value, cursor);
-
-  const romanMatch = fullLine.match(/^(\s*)\(([ivxlcdm]+)\)(\s*)(.*)$/i);
-  if (romanMatch) {
-    if (romanMatch[4].trim().length === 0) return null;
-    const indent = romanMatch[1];
-    const spacing = romanMatch[3] || ' ';
-    const insertion = `${terminator}\n${indent}(${intToRoman(romanToInt(romanMatch[2]) + 1)})${spacing}`;
-    return {
-      text: value.substring(0, cursor) + insertion + value.substring(cursor),
-      newCursor: cursor + insertion.length,
-    };
+  const { lineStart, fullLine } = splitLineAt(value, cursor);
+  const precedingText = value.substring(0, lineStart);
+  const parsed = parseListLine(fullLine, precedingText);
+  if (!parsed || parsed.isOnlyPrefix) {
+    if (parsed?.isOnlyPrefix && parsed.kind === 'alpha-dot' && parsed.indent) {
+      return applyListDedentSelection(value, cursor, selectionEnd);
+    }
+    return null;
   }
-
-  const numericMatch = fullLine.match(/^(\s*)(\d+)\.(\s*)(.*)$/);
-  if (numericMatch) {
-    if (numericMatch[4].trim().length === 0) return null;
-    const indent = numericMatch[1];
-    const spacing = numericMatch[3] || ' ';
-    const insertion = `${terminator}\n${indent}${parseInt(numericMatch[2], 10) + 1}.${spacing}`;
-    return {
-      text: value.substring(0, cursor) + insertion + value.substring(cursor),
-      newCursor: cursor + insertion.length,
-    };
-  }
-
-  const subMatch = fullLine.match(/^(\s+)([a-zA-Z])\.(\s*)(.*)$/);
-  if (subMatch) {
-    if (subMatch[4].trim().length === 0) return applyListDedent(value, cursor);
-    const indent = subMatch[1];
-    const spacing = subMatch[3] || ' ';
-    const isUpper = subMatch[2] === subMatch[2].toUpperCase();
-    const nextAlphaRaw = intToAlpha(alphaToInt(subMatch[2]) + 1);
-    const insertion = `${terminator}\n${indent}${isUpper ? nextAlphaRaw.toUpperCase() : nextAlphaRaw}.${spacing}`;
-    return {
-      text: value.substring(0, cursor) + insertion + value.substring(cursor),
-      newCursor: cursor + insertion.length,
-    };
-  }
-
-  return null;
+  const beforeCursor = value.substring(lineStart, cursor).replace(/\s+$/, '');
+  const lineTerminator =
+    parsed.kind === 'bullet' ? '' : terminator && /[;:]$/.test(beforeCursor) ? '' : terminator;
+  const insertion = `${lineTerminator}\n${parsed.indent}${parsed.nextPrefix}`;
+  const selectedEnd = Math.max(cursor, selectionEnd);
+  const textBefore = value.substring(0, cursor) + insertion + value.substring(selectedEnd);
+  const insertedLineStart = cursor + lineTerminator.length + 1;
+  const text = renumberFollowingList(textBefore, insertedLineStart, parsed);
+  const newCursor = cursor + insertion.length;
+  return { text, newCursor };
 }
 
 /** Finds the nearest column-0 roman or numeric marker above the given offset. */
@@ -265,13 +433,36 @@ function formatNextTopMarker(marker: { kind: 'roman' | 'numeric'; num: number })
  * Returns null for unrelated lines (caller leaves default behavior).
  */
 export function applyListIndent(value: string, cursor: number): ListEditResult | null {
+  return applyListIndentLine(value, cursor);
+}
+
+export function applyListIndentSelection(
+  value: string,
+  selectionStart: number,
+  selectionEnd: number,
+): ListEditResult | null {
+  const { lineStart } = splitLineAt(value, selectionStart);
+  const endLine = splitLineAt(value, selectionEnd);
+  const target = value.substring(lineStart, endLine.lineEnd);
+  const lines = target.split('\n');
+  if (!lines.some((line) => parseListLine(line))) return null;
+  const newText = lines.map((line) => `   ${line}`).join('\n');
+  const text = value.substring(0, lineStart) + newText + value.substring(endLine.lineEnd);
+  return {
+    text,
+    newCursor: selectionEnd + 3 * lines.length,
+    newSelectionStart: selectionStart + 3,
+    newSelectionEnd: selectionEnd + 3 * lines.length,
+  };
+}
+
+function applyListIndentLine(value: string, cursor: number): ListEditResult | null {
   const { lineStart, lineEnd, fullLine } = splitLineAt(value, cursor);
 
-  const romanMatch = fullLine.match(/^\(([ivxlcdm]+)\)(\s*)(.*)$/i);
-  const numericMatch = romanMatch ? null : fullLine.match(/^(\d+)\.(\s*)(.*)$/);
-  if (romanMatch || numericMatch) {
-    const spacing = romanMatch ? romanMatch[2] || ' ' : numericMatch![2] || ' ';
-    const rest = romanMatch ? romanMatch[3] : numericMatch![3];
+  const parsed = parseListLine(fullLine);
+  if (parsed && (parsed.kind === 'roman' || parsed.kind === 'numeric-dot')) {
+    const rest = parsed.content;
+    const spacing = parsed.prefix.replace(/^(?:\([^)]+\)|\d+[.)]|[a-zA-Z][.)])/, '') || ' ';
     const newLine = `   a.${spacing}${rest}`;
     return {
       text: value.substring(0, lineStart) + newLine + value.substring(lineEnd),
@@ -279,8 +470,7 @@ export function applyListIndent(value: string, cursor: number): ListEditResult |
     };
   }
 
-  const subMatch = fullLine.match(/^(\s+)([a-zA-Z]\..*)$/);
-  if (subMatch) {
+  if (parsed && parsed.kind === 'alpha-dot' && parsed.indent) {
     const newLine = `   ${fullLine}`;
     return {
       text: value.substring(0, lineStart) + newLine + value.substring(lineEnd),
@@ -297,11 +487,39 @@ export function applyListIndent(value: string, cursor: number): ListEditResult |
  * lose one 3-space indent. Returns null when there is nothing to dedent.
  */
 export function applyListDedent(value: string, cursor: number): ListEditResult | null {
+  return applyListDedentSelection(value, cursor, cursor);
+}
+
+export function applyListDedentSelection(
+  value: string,
+  selectionStart: number,
+  selectionEnd: number,
+): ListEditResult | null {
+  if (selectionStart !== selectionEnd) {
+    const { lineStart } = splitLineAt(value, selectionStart);
+    const endLine = splitLineAt(value, selectionEnd);
+    const lines = value.substring(lineStart, endLine.lineEnd).split('\n');
+    if (!lines.some((line) => /^\s{3}/.test(line))) return null;
+    const newText = lines.map((line) => (line.startsWith('   ') ? line.slice(3) : line)).join('\n');
+    const selectionStartDelta = lines[0].startsWith('   ') ? -3 : 0;
+    const selectionEndDelta = newText.length - (endLine.lineEnd - lineStart);
+    const text = value.substring(0, lineStart) + newText + value.substring(endLine.lineEnd);
+    return {
+      text,
+      newCursor: Math.max(lineStart, selectionEnd + selectionEndDelta),
+      newSelectionStart: Math.max(lineStart, selectionStart + selectionStartDelta),
+      newSelectionEnd: Math.max(lineStart, selectionEnd + selectionEndDelta),
+    };
+  }
+  return applyListDedentLine(value, selectionStart);
+}
+
+function applyListDedentLine(value: string, cursor: number): ListEditResult | null {
   const { lineStart, lineEnd, fullLine } = splitLineAt(value, cursor);
 
-  const subMatch = fullLine.match(/^(\s+)([a-zA-Z])\.(\s*)(.*)$/);
-  if (!subMatch) return null;
-  const [, indent, , , rest] = subMatch;
+  const parsed = parseListLine(fullLine);
+  if (!parsed || parsed.kind !== 'alpha-dot' || !parsed.indent) return null;
+  const { indent, content: rest } = parsed;
 
   let newLine: string;
   if (indent.length <= 3) {
@@ -321,136 +539,14 @@ export function applyListDedent(value: string, cursor: number): ListEditResult |
  * and calculates the subsequent numbering prefix for auto-continuation on Enter.
  */
 export function getNextListPrefix(line: string): NextListPrefixResult | null {
-  if (!line) return null;
-
-  // 1. Roman numerals in parentheses, e.g. (i) or (ii)
-  const romanMatch = line.match(/^(\s*)\(([ivxlcdm]+)\)(\s*)(.*)$/i);
-  if (romanMatch) {
-    const indent = romanMatch[1];
-    const romanStr = romanMatch[2];
-    const spacing = romanMatch[3] || ' ';
-    const rest = romanMatch[4];
-    const currentNum = romanToInt(romanStr);
-    const nextRoman = intToRoman(currentNum + 1);
-    const currentPrefix = `(${romanStr})${spacing}`;
-    const nextPrefix = `(${nextRoman})${spacing}`;
-    return {
-      indent,
-      nextPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  // 2. Standard numbers with dot, e.g. 1. or 2.
-  const numericDotMatch = line.match(/^(\s*)(\d+)\.(\s*)(.*)$/);
-  if (numericDotMatch) {
-    const indent = numericDotMatch[1];
-    const num = parseInt(numericDotMatch[2], 10);
-    const spacing = numericDotMatch[3] || ' ';
-    const rest = numericDotMatch[4];
-    const currentPrefix = `${num}.${spacing}`;
-    const nextPrefix = `${num + 1}.${spacing}`;
-    return {
-      indent,
-      nextPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  // 3. Numbers in parentheses, e.g. (1) or (2)
-  const numericParenMatch = line.match(/^(\s*)\((\d+)\)(\s*)(.*)$/);
-  if (numericParenMatch) {
-    const indent = numericParenMatch[1];
-    const num = parseInt(numericParenMatch[2], 10);
-    const spacing = numericParenMatch[3] || ' ';
-    const rest = numericParenMatch[4];
-    const currentPrefix = `(${num})${spacing}`;
-    const nextPrefix = `(${num + 1})${spacing}`;
-    return {
-      indent,
-      nextPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  const numericClosingParenMatch = line.match(/^(\s*)(\d+)\)(\s*)(.*)$/);
-  if (numericClosingParenMatch) {
-    const indent = numericClosingParenMatch[1];
-    const num = parseInt(numericClosingParenMatch[2], 10);
-    const spacing = numericClosingParenMatch[3] || ' ';
-    const rest = numericClosingParenMatch[4];
-    const currentPrefix = `${num})${spacing}`;
-    const nextPrefix = `${num + 1})${spacing}`;
-    return {
-      indent,
-      nextPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  // 4. Alphabetical with dot, e.g. a. or b.
-  const alphaDotMatch = line.match(/^(\s*)([a-zA-Z])\.(\s*)(.*)$/);
-  if (alphaDotMatch) {
-    const indent = alphaDotMatch[1];
-    const alphaStr = alphaDotMatch[2];
-    const spacing = alphaDotMatch[3] || ' ';
-    const rest = alphaDotMatch[4];
-    const num = alphaToInt(alphaStr);
-    const isUpper = alphaStr === alphaStr.toUpperCase();
-    const nextAlphaRaw = intToAlpha(num + 1);
-    const nextAlpha = isUpper ? nextAlphaRaw.toUpperCase() : nextAlphaRaw;
-    const currentPrefix = `${alphaStr}.${spacing}`;
-    const nextPrefix = `${nextAlpha}.${spacing}`;
-    return {
-      indent,
-      nextPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  // 5. Alphabetical in parentheses, e.g. (a) or (b)
-  const alphaParenMatch = line.match(/^(\s*)\(([a-zA-Z])\)(\s*)(.*)$/);
-  if (alphaParenMatch) {
-    const indent = alphaParenMatch[1];
-    const alphaStr = alphaParenMatch[2];
-    const spacing = alphaParenMatch[3] || ' ';
-    const rest = alphaParenMatch[4];
-    const num = alphaToInt(alphaStr);
-    const isUpper = alphaStr === alphaStr.toUpperCase();
-    const nextAlphaRaw = intToAlpha(num + 1);
-    const nextAlpha = isUpper ? nextAlphaRaw.toUpperCase() : nextAlphaRaw;
-    const currentPrefix = `(${alphaStr})${spacing}`;
-    const nextPrefix = `(${nextAlpha})${spacing}`;
-    return {
-      indent,
-      nextPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  // 6. Bullets (*, -, +, •, ◦, ▪)
-  const bulletMatch = line.match(/^(\s*)([-*+•◦▪])(\s*)(.*)$/);
-  if (bulletMatch) {
-    const indent = bulletMatch[1];
-    const bulletChar = bulletMatch[2];
-    const spacing = bulletMatch[3] || ' ';
-    const rest = bulletMatch[4];
-    const currentPrefix = `${bulletChar}${spacing}`;
-    return {
-      indent,
-      nextPrefix: currentPrefix,
-      currentPrefix,
-      isOnlyPrefix: rest.trim().length === 0,
-    };
-  }
-
-  return null;
+  const parsed = parseListLine(line);
+  if (!parsed) return null;
+  return {
+    indent: parsed.indent,
+    nextPrefix: parsed.nextPrefix,
+    currentPrefix: parsed.prefix,
+    isOnlyPrefix: parsed.isOnlyPrefix,
+  };
 }
 
 /**
@@ -485,11 +581,14 @@ export function applyNumberingToText(
 
   const lines = targetText.split(/\r?\n/);
 
+  const isStructuralLine = (line: string) =>
+    /^\s*(?:#{1,6}(?:\s|$)|\||```|~~~|---|>\s?)/.test(line);
+
   // Check if target lines are already numbered with this exact requested format (toggle off check)
-  const nonBlankLines = lines.filter((l) => l.trim().length > 0);
+  const candidateLines = lines.filter((l) => l.trim().length > 0 && !isStructuralLine(l));
   const isTargetAlreadyThisFormat =
-    nonBlankLines.length > 0 &&
-    nonBlankLines.every((line, idx) => {
+    candidateLines.length > 0 &&
+    candidateLines.every((line, idx) => {
       const prefix = getNumberingPrefix(format, idx).trim();
       const trimmed = line.trimStart();
       return trimmed.startsWith(prefix);
@@ -497,8 +596,8 @@ export function applyNumberingToText(
 
   let itemIndex = 0;
   const newLines = lines.map((line) => {
-    if (!line.trim()) {
-      return line; // Keep empty lines intact
+    if (!line.trim() || isStructuralLine(line)) {
+      return line; // Keep empty lines and structural Markdown intact
     }
 
     const leadingSpacesMatch = line.match(/^(\s*)/);
@@ -506,10 +605,8 @@ export function applyNumberingToText(
     const trimmedContent = line.slice(leadingSpaces.length);
 
     // Strip existing list prefixes: bullets (*, -, +), numbers (1., 1)), roman ((i), (ii)), alpha (a., (a))
-    const strippedContent = trimmedContent.replace(
-      /^(?:[-*+•◦▪]\s+|\d+[\.\)]\s+|\(\d+\)\s+|\([a-zA-Z0-9ivxlcdmIVXLCDM]+\)\s+|[a-zA-Z][\.\)]\s+)/,
-      '',
-    );
+    const parsed = parseListLine(trimmedContent);
+    const strippedContent = parsed ? parsed.content : trimmedContent;
 
     if (isTargetAlreadyThisFormat) {
       // Toggle off: remove the numbering
@@ -558,6 +655,16 @@ export function applyInlineFormatToText(
       text: before + unwrapped + after,
       newSelectionStart: selectionStart,
       newSelectionEnd: selectionStart + unwrapped.length,
+    };
+  }
+
+  if (before.endsWith(wrapper) && after.startsWith(wrapper)) {
+    const unwrappedBefore = before.slice(0, -wrapper.length);
+    const unwrappedAfter = after.slice(wrapper.length);
+    return {
+      text: unwrappedBefore + selected + unwrappedAfter,
+      newSelectionStart: selectionStart - wrapper.length,
+      newSelectionEnd: selectionEnd - wrapper.length,
     };
   }
 

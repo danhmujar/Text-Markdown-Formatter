@@ -31,7 +31,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
   return (
     <div
       id={`edit-mode-toolbar-${r}-${c}`}
-      role="toolbar"
+      role="group"
       aria-label="Edit mode formatting"
       style={{
         backgroundColor: 'var(--surface-bg)',
@@ -131,7 +131,10 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
 
         <div style={{ backgroundColor: 'var(--border-color)' }} className="w-px h-3.5 mx-0.5" />
 
-        <label className="flex items-center gap-1 text-[10px] font-semibold" title="Character added before the next list item">
+        <label
+          className="flex items-center gap-1 text-[10px] font-semibold"
+          title="Character added before the next list item"
+        >
           End:
           <select
             aria-label="Smart list line ending"

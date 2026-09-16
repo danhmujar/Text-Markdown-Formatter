@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- scrollable preview region must be focusable */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   ClipboardEvent as ReactClipboardEvent,
   KeyboardEvent as ReactKeyboardEvent,
@@ -86,6 +86,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
   onListTerminatorChange,
 }) {
   const [showWarnings, setShowWarnings] = useState(false);
+  const warningTriggerRef = useRef<HTMLButtonElement>(null);
   const isDark = options.theme === 'dark';
   const isEditMode = content.length === 0 || mode === 'edit';
   const warnings = useMemo(() => analyzeSyntaxWarnings(content), [content]);
@@ -107,6 +108,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
     if (!showWarnings) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setShowWarnings(false);
+      if (event.key === 'Escape') warningTriggerRef.current?.focus();
     };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
@@ -137,6 +139,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             </span>
             {warnings.length > 0 && (
               <button
+                ref={warningTriggerRef}
                 type="button"
                 onClick={() => setShowWarnings((visible) => !visible)}
                 aria-expanded={showWarnings}

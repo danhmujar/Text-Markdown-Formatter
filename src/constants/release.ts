@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.12.0';
+export const APP_VERSION = '0.13.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Edit-mode keyboard handling, list continuation, and syntax validation remediation',
+    description:
+      'Resolved critical audit findings across edit mode: fixed Roman numeral continuation to advance past (iv) to (v) instead of (w), added support for parenthesized numeric lists (1), excluded bullet lists from line terminators, ensured fallback Enter replaces active selections without duplicating text, protected structural markdown (headings, code blocks, tables, blockquotes) from bulk numbering, prevented global Undo/Redo from intercepting textarea typing history, added multi-line Tab and Shift+Tab indent/dedent handling, and refined syntax validation to catch glued bold markers while ignoring punctuation-adjacent formatting.',
+  },
   {
     date: '2026-09-16',
     title: 'Custom smart-list continuation for numeric and Roman lists',

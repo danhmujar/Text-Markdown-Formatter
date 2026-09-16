@@ -102,7 +102,9 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
 
     const registerTextarea = useCallback(
       (rowIndex: number, colIndex: number, element: HTMLTextAreaElement | null) => {
-        textareaRefs.current[`${rowIndex}-${colIndex}`] = element;
+        const cellId = `${rowIndex}-${colIndex}`;
+        if (element) textareaRefs.current[cellId] = element;
+        else delete textareaRefs.current[cellId];
       },
       [textareaRefs],
     );

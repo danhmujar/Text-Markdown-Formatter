@@ -81,4 +81,46 @@ describe('FormatterCell', () => {
     expect(buildHtml).toHaveBeenCalledOnce();
     expect(container.querySelector('#formatter-preview-0-0')?.innerHTML).toBe('<p>Preview</p>');
   });
+
+  it('returns focus to the warning toggle after Escape', () => {
+    act(() =>
+      root.render(
+        React.createElement(
+          TooltipProvider,
+          null,
+          React.createElement(FormatterCell, {
+            rowIndex: 0,
+            colIndex: 0,
+            content: 'word**bold**',
+            inputHadBr: false,
+            options,
+            mode: 'edit',
+            isCopied: false,
+            feedback: null,
+            label: 'Cleaned Text',
+            showLabel: false,
+            registerTextarea: vi.fn(),
+            onModeChange: vi.fn(),
+            onClear: vi.fn(),
+            onCopy: vi.fn(),
+            onKeyDown: vi.fn(),
+            onPaste: vi.fn(),
+            onChange: vi.fn(),
+            onSmartClean: vi.fn(),
+            onApplyNumbering: vi.fn(),
+            onApplyInlineFormat: vi.fn(),
+            listTerminator: ';',
+            onListTerminatorChange: vi.fn(),
+          }),
+        ),
+      ),
+    );
+
+    const toggle = container.querySelector<HTMLButtonElement>('button[aria-expanded]');
+    expect(toggle).not.toBeNull();
+    act(() => toggle?.click());
+    act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
+
+    expect(document.activeElement).toBe(toggle);
+  });
 });
