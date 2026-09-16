@@ -1,7 +1,7 @@
 {
   "name": "text-markdown-formatter",
   "private": true,
-  "version": "0.7.2",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -20,6 +20,7 @@
     "a11y:check": "npm run build && playwright test"
   },
   "dependencies": {
+    "@radix-ui/react-tooltip": "^1.2.16",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",

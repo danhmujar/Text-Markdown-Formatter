@@ -4,6 +4,7 @@ import { ChangelogDialog } from './components/ChangelogDialog';
 import { ComparisonWorkspace } from './components/ComparisonWorkspace';
 import { FormatterWorkspace } from './components/FormatterWorkspace';
 import { Header } from './components/Header';
+import { TooltipProvider } from './components/ui';
 import { ToastContainer, showToast } from './components/Toast';
 import type { StyleOptions } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
@@ -127,7 +128,7 @@ export default function App() {
   } = useCopy({ grid, options, getOutputContent: getFormattedContent });
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       <div
         ref={appBackgroundRef}
         id="app-background"
@@ -192,6 +193,6 @@ export default function App() {
         triggerRef={aboutTriggerRef}
         backgroundRef={appBackgroundRef}
       />
-    </>
+    </TooltipProvider>
   );
 }

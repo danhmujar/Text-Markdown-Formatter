@@ -96,3 +96,9 @@ existing pill via Animotion (item 1) instead.
   Layout panel (`animotion-fade-in-down`), EditToolbar feedback
   (`animotion-fade-in`). Verified live via computed `animation-name` in
   Chromium; lint, typecheck, Prettier, and unit tests pass.
+- 2026-09-16: item 2 started (EditToolbar scope). Added `components.json`,
+  installed `@radix-ui/react-tooltip`, created `src/components/ui/tooltip.tsx`
+  (`TooltipProvider/Tooltip/TooltipTrigger/TooltipContent` plus a one-line
+  `Tip` wrapper), mounted the provider in `App.tsx`, and converted all 7
+  EditToolbar `title=` hints. Header/ThemePicker/settings-panel conversions
+  remain open.

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as markdownFormatter from '../../utils/markdownFormatter';
 import type { StyleOptions } from '../../types';
 import { FormatterCell } from '../FormatterCell';
+import { TooltipProvider } from '../ui';
 
 const options: StyleOptions = {
   fontFamily: 'Calibri',
@@ -44,28 +45,32 @@ describe('FormatterCell', () => {
       .spyOn(markdownFormatter, 'buildInlineStyledHtml')
       .mockReturnValue('<p>Preview</p>');
     const renderCell = (mode: 'edit' | 'preview') =>
-      React.createElement(FormatterCell, {
-        rowIndex: 0,
-        colIndex: 0,
-        content: '**content**',
-        inputHadBr: false,
-        options,
-        mode,
-        isCopied: false,
-        feedback: null,
-        label: 'Cleaned Text',
-        showLabel: false,
-        registerTextarea: vi.fn(),
-        onModeChange: vi.fn(),
-        onClear: vi.fn(),
-        onCopy: vi.fn(),
-        onKeyDown: vi.fn(),
-        onPaste: vi.fn(),
-        onChange: vi.fn(),
-        onSmartClean: vi.fn(),
-        onApplyNumbering: vi.fn(),
-        onApplyInlineFormat: vi.fn(),
-      });
+      React.createElement(
+        TooltipProvider,
+        null,
+        React.createElement(FormatterCell, {
+          rowIndex: 0,
+          colIndex: 0,
+          content: '**content**',
+          inputHadBr: false,
+          options,
+          mode,
+          isCopied: false,
+          feedback: null,
+          label: 'Cleaned Text',
+          showLabel: false,
+          registerTextarea: vi.fn(),
+          onModeChange: vi.fn(),
+          onClear: vi.fn(),
+          onCopy: vi.fn(),
+          onKeyDown: vi.fn(),
+          onPaste: vi.fn(),
+          onChange: vi.fn(),
+          onSmartClean: vi.fn(),
+          onApplyNumbering: vi.fn(),
+          onApplyInlineFormat: vi.fn(),
+        }),
+      );
 
     act(() => root.render(renderCell('edit')));
     expect(buildHtml).not.toHaveBeenCalled();
