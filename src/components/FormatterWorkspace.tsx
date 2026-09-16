@@ -266,7 +266,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
 
         <div className="flex-1 overflow-auto bg-[var(--surface-bg)] p-3">
           <div
-            className="grid h-full min-h-[18rem] min-w-max w-full gap-3"
+            className="grid h-full min-h-[18rem] min-w-full w-full gap-3"
             style={{
               gridTemplateColumns: `repeat(${numCols}, minmax(16rem, 1fr))`,
               gridTemplateRows: `repeat(${numRows}, minmax(18rem, 1fr))`,

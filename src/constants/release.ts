@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.11.1';
+export const APP_VERSION = '0.11.2';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Wide preview tables stay inside the cell',
+    description:
+      'Tables with many columns no longer stretch the whole workspace sideways: the grid now caps at the available width and a wide preview table scrolls horizontally inside its own cell instead. Multi-cell layouts keep their minimum column widths and page scrolling exactly as before.',
+  },
   {
     date: '2026-09-16',
     title: 'Theme-aware buttons, tooltips, and notifications',

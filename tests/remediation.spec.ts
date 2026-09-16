@@ -205,8 +205,11 @@ test.describe('a11y remediation', () => {
     await page.locator('#comparison-back-btn').click();
 
     await page.getByRole('button', { name: 'About this app' }).click();
+    // Let the dialog entrance finish so axe scans final colors, not mid-fade blends.
+    await page.waitForTimeout(400);
     await expectNoAxeViolations(page);
     await page.getByRole('button', { name: 'View changelog' }).click();
+    await page.waitForTimeout(400);
     await expectNoAxeViolations(page);
   });
 
