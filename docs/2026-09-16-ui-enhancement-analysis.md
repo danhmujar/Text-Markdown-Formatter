@@ -63,12 +63,26 @@ removes custom code that must be maintained against axe-core specs.
 - Effort: an afternoon including Playwright re-verification. Risk: medium —
   must preserve the `inert`-restore contract the a11y suite asserts.
 
-### 4. shadcn `popover` for Layout settings
+### 4. shadcn `popover` for Layout settings — evaluated, rejected
 
 `EditorSettingsPanel` re-implements outside-click dismissal and Escape handling
-around an absolutely positioned panel. Popover absorbs that logic.
+around an absolutely positioned panel. Popover absorbs that logic — but at the
+cost of two pinned behaviors Radix cannot be configured to keep:
 
-- Effort: half a day with tests. Risk: low-medium — covered by workspace specs.
+- Radix `PopoverContent` hardcodes `FocusScope loop: true`, so Tab cycles inside
+  the open panel forever. The a11y suite pins Tab escaping the panel to the
+  first textarea (`a11y.spec.ts:25-27`); trapping Tab in a non-modal panel with
+  no dialog semantics is a keyboard-accessibility regression, not a tradeoff.
+- Radix `DismissableLayer` closes on focus-outside, so focusing a grid cell
+  while the panel is open dismisses it. The remediation suite fills
+  `#formatter-textarea-4-4` mid-flow and reuses the open panel afterwards
+  (`remediation.spec.ts:48-51`); both specs failed verbatim against the Radix
+  build (Tab loop + panel-gone timeout), proven via a temporary debug spec.
+
+Verdict: keep the ~20-line hand-rolled dropdown — it has exactly the spec'd
+behavior (Tab escapes, focus changes don't close, mousedown-outside + Escape
+close with trigger focus-return). No dependency added; evaluated 2026-09-16,
+reverted to zero diff.
 
 ### 5. Skip: `sonner` toast replacement
 
