@@ -96,6 +96,15 @@ existing pill via Animotion (item 1) instead.
   Layout panel (`animotion-fade-in-down`), EditToolbar feedback
   (`animotion-fade-in`). Verified live via computed `animation-name` in
   Chromium; lint, typecheck, Prettier, and unit tests pass.
+- 2026-09-16: theme-aware buttons. Rewrote `BUTTON_VARIANTS` on CSS vars
+  (`neutral`, `neutralOnSurface`, kept `presetActive`, added
+  `disabledMuted`), converted Header groups/menus, settings presets,
+  EditToolbar, cell buttons, tooltips, and the cleanup notification off
+  hardcoded slate/indigo; disabled accent buttons now go flat-neutral instead
+  of muddy opacity-on-accent. Removed three dead `isDark` branches/props.
+  Semantic colors (success/warning/danger/focus) intentionally unchanged.
+  Verified across all 8 themes x dark/light via screenshots; full gate green
+  (lint, typecheck, 108 unit, 18 browser).
 - 2026-09-16: contrast-gate fix. The remediation "representative states" axe
   check failed on the Layout panel because its new 0.2s entrance animation was
   still mid-fade when axe scanned (proven: violations at 0ms, zero at 500ms;

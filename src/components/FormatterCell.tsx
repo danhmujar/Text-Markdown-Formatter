@@ -127,7 +127,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
           <div className="flex min-w-0 items-center gap-2">
             <span
               id={`formatter-cell-label-${rowIndex}-${colIndex}`}
-              className={`${showLabel ? '' : 'sr-only '}shrink-0 text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+              className={`${showLabel ? '' : 'sr-only '}shrink-0 text-[11px] font-medium text-[var(--text-secondary)]`}
             >
               {label}
             </span>
@@ -167,9 +167,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
                   'flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-8',
                   isEditMode
                     ? 'border-[var(--primary-blue)] bg-[var(--primary-blue)] text-[var(--primary-foreground)]'
-                    : isDark
-                      ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300')
-                      : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700'),
+                    : BUTTON_VARIANTS.neutralOnSurface,
                 )}
               >
                 {isEditMode ? (
@@ -217,7 +215,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
                 type="button"
                 onClick={() => onClear(rowIndex, colIndex)}
                 aria-label={`Clear ${label}`}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-red-600 sm:min-h-8 sm:min-w-8"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-red-600 sm:min-h-8 sm:min-w-8"
               >
                 <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
               </button>

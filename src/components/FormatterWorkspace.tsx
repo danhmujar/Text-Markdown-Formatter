@@ -5,6 +5,7 @@ import { hasBrTags, isMarkdownTable } from '../utils/markdownFormatter';
 import { useGridActions } from '../hooks/useGridActions';
 import { useFormatterActions } from '../hooks/useFormatterActions';
 import { FormatterCell } from './FormatterCell';
+import { BUTTON_VARIANTS } from './ui';
 import { EditorSettingsPanel } from './ui/EditorSettingsPanel';
 
 interface FormatterWorkspaceProps {
@@ -38,7 +39,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
     const [showSettings, setShowSettings] = useState(false);
     const settingsRef = useRef<HTMLDivElement>(null);
     const settingsTriggerRef = useRef<HTMLButtonElement>(null);
-    const isDark = options.theme === 'dark';
     const numRows = grid.length;
     const numCols = Math.max(...grid.map((row) => row.length), 1);
     const gridRef = useRef(grid);
@@ -163,11 +163,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                 <span
                   role="img"
                   aria-label={`${totalStats.totalWarnings} syntax ${totalStats.totalWarnings === 1 ? 'warning' : 'warnings'} across the workspace`}
-                  className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                    isDark
-                      ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
-                      : 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
-                  }`}
+                  className="flex items-center gap-1 rounded-full border border-[var(--warning-border)] bg-[var(--warning-bg)] px-2 py-0.5 text-[10px] font-medium text-[var(--warning-color)]"
                 >
                   <AlertTriangle aria-hidden="true" className="h-3 w-3" />
                   {totalStats.totalWarnings}
@@ -184,7 +180,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
               type="button"
               onClick={handleSmartCleanupAll}
               disabled={totalStats.totalChars === 0}
-              className="flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-9"
+              className={`flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-9 ${BUTTON_VARIANTS.disabledMuted}`}
               style={{
                 backgroundColor: 'var(--accent-bg)',
                 borderColor: 'var(--accent-border)',
@@ -212,7 +208,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
               </button>
               {showSettings && (
                 <EditorSettingsPanel
-                  isDark={isDark}
                   numRows={numRows}
                   numCols={numCols}
                   onSetSingleLayout={setSingleLayout}
@@ -231,7 +226,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                   type="button"
                   onClick={onCopyAllGrid}
                   disabled={totalStats.totalChars === 0}
-                  className="flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-[var(--primary-foreground)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-9"
+                  className={`flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-[var(--primary-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-9 ${BUTTON_VARIANTS.disabledMuted}`}
                   style={{ backgroundColor: 'var(--primary-blue)' }}
                 >
                   {copiedAll ? (
@@ -262,11 +257,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            className={`flex shrink-0 items-center gap-2 border-b px-4 py-2 text-xs ${
-              isDark
-                ? 'border-indigo-800/80 bg-indigo-950/80 text-indigo-200'
-                : 'border-indigo-200 bg-indigo-50 text-indigo-800'
-            }`}
+            className="flex shrink-0 items-center gap-2 border-b border-[var(--accent-border)] bg-[var(--accent-bg)] px-4 py-2 text-xs text-[var(--primary-blue)]"
           >
             <Sparkles aria-hidden="true" className="h-3.5 w-3.5" />
             <span className="font-medium">{cleanupNotification}</span>

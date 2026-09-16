@@ -30,9 +30,26 @@ export function showToast(
   }
 }
 
+function useDarkMode(): boolean {
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== 'undefined' && document.body.classList.contains('dark-theme'),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      setIsDark(document.body.classList.contains('dark-theme')),
+    );
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+}
+
 export const ToastContainer: React.FC = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const timeoutIdsRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const isDark = useDarkMode();
 
   useEffect(() => {
     const handleToastEvent = (e: Event) => {
@@ -94,10 +111,16 @@ export const ToastContainer: React.FC = () => {
             role={isError ? 'alert' : 'status'}
             className={`pointer-events-auto flex items-center gap-2.5 rounded-full border py-2 pl-4 pr-2 text-xs shadow-lg animotion-fade-in-up ${
               isError
-                ? 'bg-rose-950 border-rose-800 text-rose-200 shadow-rose-950/40'
+                ? isDark
+                  ? 'bg-rose-950 border-rose-800 text-rose-200 shadow-rose-950/40'
+                  : 'bg-white border-rose-200 text-rose-900 shadow-rose-200/40'
                 : isSuccess
-                  ? 'bg-emerald-950 border-emerald-800 text-emerald-200 shadow-emerald-950/40'
-                  : 'bg-slate-900 border-slate-700 text-slate-200 shadow-slate-950/40'
+                  ? isDark
+                    ? 'bg-emerald-950 border-emerald-800 text-emerald-200 shadow-emerald-950/40'
+                    : 'bg-white border-emerald-200 text-emerald-900 shadow-emerald-200/40'
+                  : isDark
+                    ? 'bg-slate-900 border-slate-700 text-slate-200 shadow-slate-950/40'
+                    : 'bg-white border-slate-200 text-slate-700 shadow-slate-300/40'
             }`}
           >
             <div className="shrink-0">
@@ -105,18 +128,22 @@ export const ToastContainer: React.FC = () => {
                 <AlertCircle
                   aria-hidden="true"
                   focusable="false"
-                  className="w-4 h-4 text-rose-400"
+                  className={`w-4 h-4 ${isDark ? 'text-rose-400' : 'text-rose-600'}`}
                 />
               )}
               {isSuccess && (
                 <CheckCircle2
                   aria-hidden="true"
                   focusable="false"
-                  className="w-4 h-4 text-emerald-400"
+                  className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}
                 />
               )}
               {!isError && !isSuccess && (
-                <Info aria-hidden="true" focusable="false" className="w-4 h-4 text-blue-400" />
+                <Info
+                  aria-hidden="true"
+                  focusable="false"
+                  className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+                />
               )}
             </div>
             <p className="flex-1 leading-relaxed break-words">{toast.msg}</p>
@@ -127,7 +154,9 @@ export const ToastContainer: React.FC = () => {
                   removeToast(toast.id);
                   toast.action?.onClick();
                 }}
-                className="shrink-0 rounded px-2 py-1 font-semibold text-blue-300 hover:text-blue-100 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+                className={`shrink-0 rounded px-2 py-1 font-semibold transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none ${
+                  isDark ? 'text-blue-300 hover:text-blue-100' : 'text-blue-700 hover:text-blue-900'
+                }`}
               >
                 {toast.action.label}
               </button>
@@ -136,7 +165,11 @@ export const ToastContainer: React.FC = () => {
               type="button"
               onClick={() => removeToast(toast.id)}
               aria-label="Close notification"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-slate-400 transition hover:text-slate-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none ${
+                isDark
+                  ? 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
               title="Close notification"
             >
               <X aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />

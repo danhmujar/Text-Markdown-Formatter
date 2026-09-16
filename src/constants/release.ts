@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.10.1';
+export const APP_VERSION = '0.11.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Theme-aware buttons, tooltips, and notifications',
+    description:
+      'Buttons, tooltips, and notifications now follow the active theme instead of fixed slate and indigo fills: header controls, the mobile menu, theme swatches, layout presets, editor formatting buttons, cell actions, and the cleanup banner tint with the selected palette in both light and dark modes, while toasts use a white card in light mode and keep their dark card after dark. Disabled accent actions such as Smart Cleanup, Copy-all, and Compare render as flat neutral buttons instead of washed-out accent fills so their unavailable state reads clearly on every theme.',
+  },
   {
     date: '2026-09-16',
     title: 'Sturdier About and changelog dialogs',

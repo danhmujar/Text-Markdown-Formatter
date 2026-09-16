@@ -38,9 +38,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
     >
       {/* Numbering and list format buttons */}
       <div className="flex items-center gap-1 flex-wrap">
-        <span
-          className={`text-[10px] font-semibold uppercase tracking-wider mr-1 hidden sm:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
-        >
+        <span className="text-[10px] font-semibold uppercase tracking-wider mr-1 hidden sm:inline text-[var(--text-secondary)]">
           Format:
         </span>
 
@@ -119,12 +117,10 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
             aria-label="Format as bullet list"
             className={cn(
               'px-1.5 py-0.5 rounded border text-[10.5px] font-medium hidden sm:inline-flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
-              isDark
-                ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-300')
-                : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-700'),
+              BUTTON_VARIANTS.neutral,
             )}
           >
-            <List aria-hidden="true" focusable="false" className="w-3 h-3 text-slate-400" />
+            <List aria-hidden="true" focusable="false" className="w-3 h-3" />
             <span>Bullet</span>
           </button>
         </Tip>
@@ -140,9 +136,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
             aria-label="Format selection as bold"
             className={cn(
               'px-1.5 py-0.5 rounded border text-[10.5px] font-bold flex items-center transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
-              isDark
-                ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-200')
-                : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-800'),
+              BUTTON_VARIANTS.neutral,
             )}
           >
             <Bold aria-hidden="true" focusable="false" className="w-3 h-3" />
@@ -158,9 +152,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
             aria-label="Format selection as italic"
             className={cn(
               'px-1.5 py-0.5 rounded border text-[10.5px] font-serif italic flex items-center transition cursor-pointer active:scale-95 shadow-2xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
-              isDark
-                ? cn(BUTTON_VARIANTS.neutralDark, 'text-slate-200')
-                : cn(BUTTON_VARIANTS.neutralLight, 'text-slate-800'),
+              BUTTON_VARIANTS.neutral,
             )}
           >
             <Italic aria-hidden="true" focusable="false" className="w-3 h-3" />
@@ -175,7 +167,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
             onClick={onSmartClean}
             aria-label="Clean and format markdown syntax"
             style={{
-              backgroundColor: isDark ? 'var(--accent-bg)' : 'var(--accent-bg)',
+              backgroundColor: 'var(--accent-bg)',
               borderColor: 'var(--accent-border)',
               color: 'var(--primary-blue)',
             }}

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Eraser, GitCompare, Pencil } from 'lucide-react';
 import { ComparisonResult } from './ComparisonResult';
+import { BUTTON_VARIANTS } from './ui';
 
 interface ComparisonWorkspaceProps {
   onBackToFormatter: () => void;
@@ -163,7 +164,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
               type="submit"
               disabled={isBlank}
               aria-describedby={isBlank ? 'comparison-content-prompt' : undefined}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`inline-flex min-h-11 items-center gap-1.5 rounded-md border px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${BUTTON_VARIANTS.disabledMuted}`}
               style={{
                 backgroundColor: 'var(--primary-blue)',
                 borderColor: 'var(--primary-blue)',

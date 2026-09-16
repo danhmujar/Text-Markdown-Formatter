@@ -5,7 +5,6 @@ import { BUTTON_VARIANTS } from './buttonVariants';
 import { Tip } from './tooltip';
 
 interface EditorSettingsPanelProps {
-  isDark: boolean;
   numRows: number;
   numCols: number;
   onSetSingleLayout: () => void;
@@ -22,7 +21,6 @@ const GROW_BUTTON_BASE =
   'px-2.5 py-2 rounded-md border flex items-center justify-center gap-1.5 text-[11px] font-medium transition cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none';
 
 export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
-  isDark,
   numRows,
   numCols,
   onSetSingleLayout,
@@ -46,9 +44,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
       <div className="p-3 space-y-3">
         {/* Layout presets */}
         <div>
-          <span
-            className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
-          >
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Layout
           </span>
           <div className="grid grid-cols-2 gap-1.5 mt-1.5">
@@ -63,9 +59,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
                   PRESET_BUTTON_BASE,
                   numRows === 1 && numCols === 1
                     ? BUTTON_VARIANTS.presetActive
-                    : isDark
-                      ? BUTTON_VARIANTS.presetDark
-                      : BUTTON_VARIANTS.presetLight,
+                    : BUTTON_VARIANTS.neutral,
                 )}
               >
                 <Square aria-hidden="true" focusable="false" className="w-3 h-3" />
@@ -83,9 +77,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
                   PRESET_BUTTON_BASE,
                   numRows === 2 && numCols === 2
                     ? BUTTON_VARIANTS.presetActive
-                    : isDark
-                      ? BUTTON_VARIANTS.presetDark
-                      : BUTTON_VARIANTS.presetLight,
+                    : BUTTON_VARIANTS.neutral,
                 )}
               >
                 <Grid2X2 aria-hidden="true" focusable="false" className="w-3 h-3 text-amber-400" />
@@ -103,9 +95,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
                   PRESET_BUTTON_BASE,
                   numRows === 1 && numCols === 2
                     ? BUTTON_VARIANTS.presetActive
-                    : isDark
-                      ? BUTTON_VARIANTS.presetDark
-                      : BUTTON_VARIANTS.presetLight,
+                    : BUTTON_VARIANTS.neutral,
                 )}
               >
                 <Columns aria-hidden="true" focusable="false" className="w-3 h-3 text-cyan-400" />
@@ -123,9 +113,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
                   PRESET_BUTTON_BASE,
                   numRows === 2 && numCols === 1
                     ? BUTTON_VARIANTS.presetActive
-                    : isDark
-                      ? BUTTON_VARIANTS.presetDark
-                      : BUTTON_VARIANTS.presetLight,
+                    : BUTTON_VARIANTS.neutral,
                 )}
               >
                 <Rows aria-hidden="true" focusable="false" className="w-3 h-3 text-emerald-400" />
@@ -139,9 +127,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
 
         {/* Grow grid */}
         <div>
-          <span
-            className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
-          >
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Grid
           </span>
           <div className="grid grid-cols-2 gap-1.5 mt-1.5">
@@ -151,10 +137,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
                 type="button"
                 onClick={onAddColumnRight}
                 aria-label="Add column to the right"
-                className={cn(
-                  GROW_BUTTON_BASE,
-                  isDark ? BUTTON_VARIANTS.growDark : BUTTON_VARIANTS.growLight,
-                )}
+                className={cn(GROW_BUTTON_BASE, BUTTON_VARIANTS.neutral)}
               >
                 <Plus aria-hidden="true" focusable="false" className="w-3 h-3 text-cyan-500" />
                 <span>+ Col</span>
@@ -166,19 +149,14 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
                 type="button"
                 onClick={onAddRowDown}
                 aria-label="Add row down"
-                className={cn(
-                  GROW_BUTTON_BASE,
-                  isDark ? BUTTON_VARIANTS.growDark : BUTTON_VARIANTS.growLight,
-                )}
+                className={cn(GROW_BUTTON_BASE, BUTTON_VARIANTS.neutral)}
               >
                 <Plus aria-hidden="true" focusable="false" className="w-3 h-3 text-emerald-500" />
                 <span>+ Row</span>
               </button>
             </Tip>
           </div>
-          <p
-            className={`mt-1.5 text-[10px] leading-snug ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
-          >
+          <p className="mt-1.5 text-[10px] leading-snug text-[var(--text-secondary)]">
             Presets can remove cells outside the new layout; confirmation is required first. + adds
             an empty row/col.
           </p>

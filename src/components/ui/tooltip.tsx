@@ -15,7 +15,11 @@ export function TooltipContent({
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
-        style={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9' }}
+        style={{
+          backgroundColor: 'var(--panel-bg)',
+          borderColor: 'var(--border-color)',
+          color: 'var(--text-primary)',
+        }}
         className={cn(
           'animotion-fade-in z-[70] max-w-xs rounded-md border px-2 py-1 text-xs shadow-lg',
           className,
