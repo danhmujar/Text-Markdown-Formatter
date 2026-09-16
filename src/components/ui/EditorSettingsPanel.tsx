@@ -37,7 +37,7 @@ export const EditorSettingsPanel: React.FC<EditorSettingsPanelProps> = ({
       role="group"
       aria-labelledby="settings-panel-title"
       style={{ backgroundColor: 'var(--panel-bg)', borderColor: 'var(--border-color)' }}
-      className="absolute right-0 top-full mt-2 w-72 rounded-lg border shadow-xl z-30 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+      className="absolute right-0 top-full mt-2 w-72 rounded-lg border shadow-xl z-30 overflow-hidden animotion-fade-in-down"
     >
       <h2 id="settings-panel-title" className="sr-only">
         Layout and Grid Settings

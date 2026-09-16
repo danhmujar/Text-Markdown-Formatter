@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.7.1';
+export const APP_VERSION = '0.7.2';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Interface entrance animations',
+    description:
+      'Notifications, the mobile navigation menu, the Layout settings panel, and editor feedback now animate in with short fade-and-slide motion instead of appearing instantly. Motion is disabled automatically for users who prefer reduced motion.',
+  },
   {
     date: '2026-09-16',
     title: 'Compact pill notifications and Catalyst copy labels',

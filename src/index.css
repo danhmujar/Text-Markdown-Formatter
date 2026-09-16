@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './styles/themes.css';
+@import './styles/animations.css';
 
 /* Custom subtle scrollbars for balanced containers */
 .custom-scrollbar::-webkit-scrollbar {

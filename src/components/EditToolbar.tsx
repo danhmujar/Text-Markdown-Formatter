@@ -190,7 +190,7 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
           <span
             role="status"
             aria-live="polite"
-            className="text-[10px] font-medium text-emerald-500 dark:text-emerald-400 flex items-center gap-1 animate-in fade-in duration-150"
+            className="text-[10px] font-medium text-emerald-500 dark:text-emerald-400 flex items-center gap-1 animotion-fade-in"
           >
             <Check aria-hidden="true" focusable="false" className="w-3 h-3" />
             <span>{feedback}</span>

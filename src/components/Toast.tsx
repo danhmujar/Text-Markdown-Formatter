@@ -92,7 +92,7 @@ export const ToastContainer: React.FC = () => {
             key={toast.id}
             id={`toast-item-${toast.id}`}
             role={isError ? 'alert' : 'status'}
-            className={`pointer-events-auto flex items-center gap-2.5 rounded-full border py-2 pl-4 pr-2 text-xs shadow-lg transition-all duration-200 animate-in slide-in-from-bottom-2 ${
+            className={`pointer-events-auto flex items-center gap-2.5 rounded-full border py-2 pl-4 pr-2 text-xs shadow-lg animotion-fade-in-up ${
               isError
                 ? 'bg-rose-950 border-rose-800 text-rose-200 shadow-rose-950/40'
                 : isSuccess

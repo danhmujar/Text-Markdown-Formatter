@@ -406,7 +406,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
             ref={mobileMenuRef}
             id="mobile-header-menu"
             aria-label="Mobile application navigation and settings"
-            className="xl:hidden absolute top-full left-0 right-0 p-4 bg-[var(--panel-bg)] border-t border-b shadow-xl max-h-[calc(100vh-56px)] overflow-y-auto space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-150 z-40"
+            className="xl:hidden absolute top-full left-0 right-0 p-4 bg-[var(--panel-bg)] border-t border-b shadow-xl max-h-[calc(100vh-56px)] overflow-y-auto space-y-3.5 animotion-fade-in-down z-40"
             style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--panel-bg)' }}
           >
             {/* Group 1: Session & History Actions */}
