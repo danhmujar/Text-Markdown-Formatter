@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { StyleOptions } from '../types';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
-import { buildInlineStyledHtml, NumberingFormat } from '../utils/markdownFormatter';
+import { buildInlineStyledHtml, ListTerminator, NumberingFormat } from '../utils/markdownFormatter';
 import { cn } from '../utils/cn';
 import { BUTTON_VARIANTS } from './ui';
 import { EditToolbar } from './EditToolbar';
@@ -56,6 +56,8 @@ interface FormatterCellProps {
   onSmartClean: (rowIndex: number, colIndex: number) => void;
   onApplyNumbering: (rowIndex: number, colIndex: number, format: NumberingFormat) => void;
   onApplyInlineFormat: (rowIndex: number, colIndex: number, wrapper: string, label: string) => void;
+  listTerminator: ListTerminator;
+  onListTerminatorChange: (value: ListTerminator) => void;
 }
 
 export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function FormatterCell({
@@ -80,6 +82,8 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
   onSmartClean,
   onApplyNumbering,
   onApplyInlineFormat,
+  listTerminator,
+  onListTerminatorChange,
 }) {
   const [showWarnings, setShowWarnings] = useState(false);
   const isDark = options.theme === 'dark';
@@ -260,6 +264,8 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             onApplyInlineFormat(rowIndex, colIndex, wrapper, formatLabel)
           }
           onSmartClean={() => onSmartClean(rowIndex, colIndex)}
+          listTerminator={listTerminator}
+          onListTerminatorChange={onListTerminatorChange}
         />
       )}
 

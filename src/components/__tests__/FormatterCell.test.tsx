@@ -69,6 +69,8 @@ describe('FormatterCell', () => {
           onSmartClean: vi.fn(),
           onApplyNumbering: vi.fn(),
           onApplyInlineFormat: vi.fn(),
+          listTerminator: ';',
+          onListTerminatorChange: vi.fn(),
         }),
       );
 

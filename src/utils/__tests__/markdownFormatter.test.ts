@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { smartCleanupMarkdown, prepareCopiedText } from '../cleanup';
 import { tsvToMarkdownTable, isMarkdownTable, preprocessMarkdownWithTsv } from '../tableConvert';
-import { getNextListPrefix } from '../listNumbering';
+import { getNextListPrefix, applySmartListEnter, applyListIndent, applyListDedent } from '../listNumbering';
 
 describe('smartCleanupMarkdown', () => {
   it('keeps inline pipes in nested-list prose intact', () => {
@@ -134,5 +134,73 @@ describe('getNextListPrefix', () => {
     const next = getNextListPrefix('1.');
     expect(next?.isOnlyPrefix).toBe(true);
     expect(next?.nextPrefix).toBe('2. ');
+  });
+});
+
+describe('applySmartListEnter', () => {
+  it('appends a semicolon and continues (i) to (ii)', () => {
+    const value = '(i) Test';
+    const result = applySmartListEnter(value, value.length);
+    expect(result?.text).toBe('(i) Test;\n(ii) ');
+    expect(result?.newCursor).toBe('(i) Test;\n(ii) '.length);
+  });
+
+  it('continues numeric-dot lists', () => {
+    expect(applySmartListEnter('1. Test', 7, '')?.text).toBe('1. Test\n2. ');
+    expect(applySmartListEnter('2. Test', 7, ':')?.text).toBe('2. Test:\n3. ');
+  });
+
+  it('always appends even when punctuation already ends the line', () => {
+    const value = '(ii) Done.';
+    expect(applySmartListEnter(value, value.length)?.text).toBe('(ii) Done.;\n(iii) ');
+  });
+
+  it('continues Tab-created sub-items with the next letter', () => {
+    const value = '(i) Test;\n   a. sub';
+    const result = applySmartListEnter(value, value.length);
+    expect(result?.text).toBe('(i) Test;\n   a. sub;\n   b. ');
+  });
+
+  it('returns null for prefix-only roman lines so Enter exits the list', () => {
+    expect(applySmartListEnter('(ii) ', 5)).toBeNull();
+  });
+
+  it('dedents an empty sub-item back to the next parent roman', () => {
+    const value = '(i) Test;\n   b. ';
+    expect(applySmartListEnter(value, value.length)?.text).toBe('(i) Test;\n(ii) ');
+  });
+
+  it('ignores unrelated styles like numeric-parentheses and bullets', () => {
+    expect(applySmartListEnter('(1) item', 8)).toBeNull();
+    expect(applySmartListEnter('* item', 6)).toBeNull();
+  });
+});
+
+describe('applyListIndent / applyListDedent', () => {
+  it('swaps top-level (ii) to a 3-space sub-item', () => {
+    const value = '(i) Test;\n(ii) ';
+    const result = applyListIndent(value, value.length);
+    expect(result?.text).toBe('(i) Test;\n   a. ');
+  });
+
+  it('adds one indent level to an already-indented sub-item', () => {
+    const result = applyListIndent('   a. sub', 9);
+    expect(result?.text).toBe('      a. sub');
+  });
+
+  it('dedents a one-level sub-item back to the next parent roman', () => {
+    const value = '(i) Test;\n   a. sub';
+    const result = applyListDedent(value, value.length);
+    expect(result?.text).toBe('(i) Test;\n(ii) sub');
+  });
+
+  it('dedents deeper levels by one 3-space step', () => {
+    const result = applyListDedent('      b. sub', 12);
+    expect(result?.text).toBe('   b. sub');
+  });
+
+  it('ignores non-list lines', () => {
+    expect(applyListIndent('plain', 5)).toBeNull();
+    expect(applyListDedent('(i) x', 5)).toBeNull();
   });
 });

@@ -1,9 +1,16 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   applyInlineFormatToText,
+  applyListDedent,
+  applyListIndent,
   applyNumberingToText,
+  applySmartListEnter,
   getNextListPrefix,
+  getListTerminator,
+  setListTerminator,
+  subscribeListTerminator,
+  type ListTerminator,
   NumberingFormat,
   smartCleanupMarkdown,
 } from '../utils/markdownFormatter';
@@ -17,6 +24,9 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
   const [cellModes, setCellModes] = useState<Record<string, 'preview' | 'edit'>>({});
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const [cellFeedback, setCellFeedback] = useState<Record<string, string | null>>({});
+  const [listTerminator, setTerminator] = useState<ListTerminator>(() => getListTerminator());
+
+  useEffect(() => subscribeListTerminator(() => setTerminator(getListTerminator())), []);
 
   const showCellFeedback = useCallback((cellId: string, message: string) => {
     setCellFeedback((previous) => ({ ...previous, [cellId]: message }));
@@ -98,6 +108,22 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
 
   const handleTextareaKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLTextAreaElement>, rowIndex: number, colIndex: number) => {
+      if (event.ctrlKey || event.altKey || event.metaKey) return;
+      const textarea = event.currentTarget;
+
+      if (event.key === 'Tab' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        const value = textarea.value;
+        const cursor = textarea.selectionStart;
+        const result = event.shiftKey
+          ? applyListDedent(value, cursor)
+          : applyListIndent(value, cursor);
+        if (!result) return;
+        event.preventDefault();
+        onContentChange(rowIndex, colIndex, result.text, false);
+        setTimeout(() => textarea.setSelectionRange(result.newCursor, result.newCursor), 0);
+        return;
+      }
+
       if (
         event.key !== 'Enter' ||
         event.shiftKey ||
@@ -108,9 +134,19 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
         return;
       }
 
-      const textarea = event.currentTarget;
       const value = textarea.value;
       const cursor = textarea.selectionStart;
+      const smartResult = applySmartListEnter(value, cursor, listTerminator);
+      if (smartResult) {
+        event.preventDefault();
+        onContentChange(rowIndex, colIndex, smartResult.text, false);
+        setTimeout(
+          () => textarea.setSelectionRange(smartResult.newCursor, smartResult.newCursor),
+          0,
+        );
+        return;
+      }
+
       const lineStart = value.lastIndexOf('\n', Math.max(0, cursor - 1)) + 1;
       const lineToCursor = value.substring(lineStart, cursor);
       const nextNewline = value.indexOf('\n', cursor);
@@ -134,7 +170,7 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
       onContentChange(rowIndex, colIndex, nextValue, false);
       setTimeout(() => textarea.setSelectionRange(nextPosition, nextPosition), 0);
     },
-    [onContentChange],
+    [listTerminator, onContentChange],
   );
 
   return {
@@ -146,5 +182,7 @@ export function useFormatterActions({ getContent, onContentChange }: UseFormatte
     handleApplyInlineFormat,
     handleSmartCleanCell,
     handleTextareaKeyDown,
+    listTerminator,
+    setListTerminator,
   };
 }

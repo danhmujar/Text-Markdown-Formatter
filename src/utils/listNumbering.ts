@@ -130,11 +130,190 @@ export function getNumberingPrefix(format: NumberingFormat, index: number): stri
   }
 }
 
+export type ListTerminator = ';' | ':' | '';
+
+const TERMINATOR_KEY = 'formatter-list-terminator-v1';
+const TERMINATOR_EVENT = 'formatter:list-terminator';
+
+/** Persisted line-ending for smart list Enter; ';' by default, '' disables. */
+export function getListTerminator(): ListTerminator {
+  try {
+    const raw = localStorage.getItem(TERMINATOR_KEY);
+    if (raw === ':' || raw === '' || raw === ';') return raw;
+  } catch {
+    // storage unavailable (private mode) — fall through to default
+  }
+  return ';';
+}
+
+export function setListTerminator(terminator: ListTerminator): void {
+  try {
+    localStorage.setItem(TERMINATOR_KEY, terminator);
+  } catch {
+    // storage unavailable — setting applies to this session only
+  }
+  window.dispatchEvent(new Event(TERMINATOR_EVENT));
+}
+
+export function subscribeListTerminator(listener: () => void): () => void {
+  window.addEventListener(TERMINATOR_EVENT, listener);
+  return () => window.removeEventListener(TERMINATOR_EVENT, listener);
+}
+
+export interface ListEditResult {
+  text: string;
+  newCursor: number;
+}
+
 export interface NextListPrefixResult {
   indent: string;
   nextPrefix: string;
   currentPrefix: string;
   isOnlyPrefix: boolean;
+}
+
+function splitLineAt(
+  value: string,
+  cursor: number,
+): { lineStart: number; lineEnd: number; fullLine: string } {
+  const safeCursor = Math.max(0, Math.min(cursor, value.length));
+  const lineStart = value.lastIndexOf('\n', Math.max(0, safeCursor - 1)) + 1;
+  const nextNewline = value.indexOf('\n', safeCursor);
+  const lineEnd = nextNewline === -1 ? value.length : nextNewline;
+  return { lineStart, lineEnd, fullLine: value.substring(lineStart, lineEnd) };
+}
+
+/**
+ * Smart Enter for roman- and numeric-led lists: appends the terminator
+ * (";" or ":", '' disables) at the cursor and continues with the next
+ * marker. "(i) Test" becomes "(i) Test;" plus "(ii) "; "1. Test" becomes
+ * "1. Test;" plus "2. ". Tab-created "   a. sub" lines continue with "   b. ".
+ * Returns null for prefix-only lines (caller falls through to the
+ * existing exit/dedent behavior) and for unrelated list styles.
+ */
+export function applySmartListEnter(
+  value: string,
+  cursor: number,
+  terminator: ListTerminator = ';',
+): ListEditResult | null {
+  const { fullLine } = splitLineAt(value, cursor);
+
+  const romanMatch = fullLine.match(/^(\s*)\(([ivxlcdm]+)\)(\s*)(.*)$/i);
+  if (romanMatch) {
+    if (romanMatch[4].trim().length === 0) return null;
+    const indent = romanMatch[1];
+    const spacing = romanMatch[3] || ' ';
+    const insertion = `${terminator}\n${indent}(${intToRoman(romanToInt(romanMatch[2]) + 1)})${spacing}`;
+    return {
+      text: value.substring(0, cursor) + insertion + value.substring(cursor),
+      newCursor: cursor + insertion.length,
+    };
+  }
+
+  const numericMatch = fullLine.match(/^(\s*)(\d+)\.(\s*)(.*)$/);
+  if (numericMatch) {
+    if (numericMatch[4].trim().length === 0) return null;
+    const indent = numericMatch[1];
+    const spacing = numericMatch[3] || ' ';
+    const insertion = `${terminator}\n${indent}${parseInt(numericMatch[2], 10) + 1}.${spacing}`;
+    return {
+      text: value.substring(0, cursor) + insertion + value.substring(cursor),
+      newCursor: cursor + insertion.length,
+    };
+  }
+
+  const subMatch = fullLine.match(/^(\s+)([a-zA-Z])\.(\s*)(.*)$/);
+  if (subMatch) {
+    if (subMatch[4].trim().length === 0) return applyListDedent(value, cursor);
+    const indent = subMatch[1];
+    const spacing = subMatch[3] || ' ';
+    const isUpper = subMatch[2] === subMatch[2].toUpperCase();
+    const nextAlphaRaw = intToAlpha(alphaToInt(subMatch[2]) + 1);
+    const insertion = `${terminator}\n${indent}${isUpper ? nextAlphaRaw.toUpperCase() : nextAlphaRaw}.${spacing}`;
+    return {
+      text: value.substring(0, cursor) + insertion + value.substring(cursor),
+      newCursor: cursor + insertion.length,
+    };
+  }
+
+  return null;
+}
+
+/** Finds the nearest column-0 roman or numeric marker above the given offset. */
+function findPrecedingTopMarker(
+  value: string,
+  lineStart: number,
+): { kind: 'roman' | 'numeric'; num: number } | null {
+  const lines = value.substring(0, lineStart).split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const roman = lines[i].match(/^\(([ivxlcdm]+)\)\s/i);
+    if (roman) return { kind: 'roman', num: romanToInt(roman[1]) };
+    const numeric = lines[i].match(/^(\d+)\.\s/);
+    if (numeric) return { kind: 'numeric', num: parseInt(numeric[1], 10) };
+  }
+  return null;
+}
+
+/** Formats the marker after the given top-level marker. */
+function formatNextTopMarker(marker: { kind: 'roman' | 'numeric'; num: number }): string {
+  return marker.kind === 'roman' ? `(${intToRoman(marker.num + 1)}) ` : `${marker.num + 1}. `;
+}
+
+/**
+ * Tab on a top-level "(ii) " or "2. " line swaps it to a "   a. " sub-item;
+ * Tab on an already-indented sub-item adds one more 3-space level.
+ * Returns null for unrelated lines (caller leaves default behavior).
+ */
+export function applyListIndent(value: string, cursor: number): ListEditResult | null {
+  const { lineStart, lineEnd, fullLine } = splitLineAt(value, cursor);
+
+  const romanMatch = fullLine.match(/^\(([ivxlcdm]+)\)(\s*)(.*)$/i);
+  const numericMatch = romanMatch ? null : fullLine.match(/^(\d+)\.(\s*)(.*)$/);
+  if (romanMatch || numericMatch) {
+    const spacing = romanMatch ? romanMatch[2] || ' ' : numericMatch![2] || ' ';
+    const rest = romanMatch ? romanMatch[3] : numericMatch![3];
+    const newLine = `   a.${spacing}${rest}`;
+    return {
+      text: value.substring(0, lineStart) + newLine + value.substring(lineEnd),
+      newCursor: cursor + (newLine.length - fullLine.length),
+    };
+  }
+
+  const subMatch = fullLine.match(/^(\s+)([a-zA-Z]\..*)$/);
+  if (subMatch) {
+    const newLine = `   ${fullLine}`;
+    return {
+      text: value.substring(0, lineStart) + newLine + value.substring(lineEnd),
+      newCursor: cursor + 3,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Shift+Tab on a one-level "   a. " sub-item converts it back to the next
+ * parent roman marker (e.g. after "(i)" it becomes "(ii) "); deeper levels
+ * lose one 3-space indent. Returns null when there is nothing to dedent.
+ */
+export function applyListDedent(value: string, cursor: number): ListEditResult | null {
+  const { lineStart, lineEnd, fullLine } = splitLineAt(value, cursor);
+
+  const subMatch = fullLine.match(/^(\s+)([a-zA-Z])\.(\s*)(.*)$/);
+  if (!subMatch) return null;
+  const [, indent, , , rest] = subMatch;
+
+  let newLine: string;
+  if (indent.length <= 3) {
+    const prev = findPrecedingTopMarker(value, lineStart);
+    newLine = prev === null ? fullLine.trimStart() : `${formatNextTopMarker(prev)}${rest}`;
+  } else {
+    newLine = fullLine.slice(3);
+  }
+  return {
+    text: value.substring(0, lineStart) + newLine + value.substring(lineEnd),
+    newCursor: Math.max(lineStart, cursor + (newLine.length - fullLine.length)),
+  };
 }
 
 /**

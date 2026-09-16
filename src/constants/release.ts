@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.11.3';
+export const APP_VERSION = '0.12.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Custom smart-list continuation for numeric and Roman lists',
+    description:
+      'Pressing Enter now continues both 1. 2. 3. and (i) (ii) (iii) lists, while Tab creates a three-space a. sub-list and Shift+Tab returns to the parent item. Empty sub-items dedent automatically. The new End selector lets you choose a semicolon, colon, or no inserted terminator so list punctuation stays under your control, and the choice persists between sessions.',
+  },
   {
     date: '2026-09-16',
     title: 'Single-row cell actions and natural-width preview tables',

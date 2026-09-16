@@ -73,6 +73,8 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
       handleApplyInlineFormat,
       handleSmartCleanCell,
       handleTextareaKeyDown,
+      listTerminator,
+      setListTerminator,
     } = useFormatterActions({ getContent, onContentChange: handleCellChange });
 
     useEffect(() => {
@@ -300,6 +302,8 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     onApplyNumbering={handleApplyNumbering}
                     onApplyInlineFormat={handleApplyInlineFormat}
                     onSmartClean={handleSmartCleanCell}
+                    listTerminator={listTerminator}
+                    onListTerminatorChange={setListTerminator}
                   />
                 );
               }),

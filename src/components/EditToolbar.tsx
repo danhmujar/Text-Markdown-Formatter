@@ -1,6 +1,6 @@
 import React from 'react';
 import { ListOrdered, List, Bold, Italic, Sparkles, Check } from 'lucide-react';
-import { NumberingFormat } from '../utils/markdownFormatter';
+import { ListTerminator, NumberingFormat } from '../utils/markdownFormatter';
 import { cn } from '../utils/cn';
 import { BUTTON_VARIANTS } from './ui';
 import { Tip } from './ui';
@@ -13,6 +13,8 @@ interface EditToolbarProps {
   onApplyNumbering: (format: NumberingFormat) => void;
   onApplyInlineFormat: (wrapper: string, label: string) => void;
   onSmartClean: () => void;
+  listTerminator: ListTerminator;
+  onListTerminatorChange: (value: ListTerminator) => void;
 }
 
 export const EditToolbar: React.FC<EditToolbarProps> = ({
@@ -23,6 +25,8 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
   onApplyNumbering,
   onApplyInlineFormat,
   onSmartClean,
+  listTerminator,
+  onListTerminatorChange,
 }) => {
   return (
     <div
@@ -126,6 +130,21 @@ export const EditToolbar: React.FC<EditToolbarProps> = ({
         </Tip>
 
         <div style={{ backgroundColor: 'var(--border-color)' }} className="w-px h-3.5 mx-0.5" />
+
+        <label className="flex items-center gap-1 text-[10px] font-semibold" title="Character added before the next list item">
+          End:
+          <select
+            aria-label="Smart list line ending"
+            value={listTerminator}
+            onChange={(event) => onListTerminatorChange(event.target.value as ListTerminator)}
+            className="rounded border bg-transparent px-1 py-0.5 font-mono text-[11px] font-semibold"
+            style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+          >
+            <option value=";">;</option>
+            <option value=":">:</option>
+            <option value="">None</option>
+          </select>
+        </label>
 
         {/* Bold Button */}
         <Tip tip="Toggle **bold** formatting on selection">
