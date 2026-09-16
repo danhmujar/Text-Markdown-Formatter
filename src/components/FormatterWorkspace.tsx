@@ -239,7 +239,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                   ) : (
                     <Copy aria-hidden="true" className="h-3.5 w-3.5" />
                   )}
-                  <span>{copiedAll ? 'Copied' : 'Copy all'}</span>
+                  <span>{copiedAll ? 'Copied' : 'Copy all to Catalyst'}</span>
                 </button>
                 <button
                   type="button"

@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.7.0';
+export const APP_VERSION = '0.7.1';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Compact pill notifications and Catalyst copy labels',
+    description:
+      'Notifications are now compact pills docked bottom-right: the container shrink-wraps short messages, caps at 320px with wrapping for long text, and uses tighter padding with a smaller close button, so single-line toasts render around 258×50px instead of the previous full-width bar. Solid backgrounds replace the translucent fill so app border lines no longer bleed through the toast, and mobile keeps a full-width minus-margin layout. Copy buttons now name their destination explicitly — “Copy to Catalyst” per cell and “Copy all to Catalyst” in the workspace header — while the Excel variants keep their labels.',
+  },
   {
     date: '2026-09-14',
     title: 'Installable offline support with prompted updates',

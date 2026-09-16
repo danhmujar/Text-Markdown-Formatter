@@ -197,7 +197,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
                 ) : (
                   <Copy aria-hidden="true" className="h-3 w-3" />
                 )}
-                <span>{isCopied ? 'Copied' : 'Copy'}</span>
+                <span>{isCopied ? 'Copied' : 'Copy to Catalyst'}</span>
               </button>
             )}
             {content && onCopyExcel && (

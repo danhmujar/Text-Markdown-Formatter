@@ -81,7 +81,7 @@ export const ToastContainer: React.FC = () => {
     <div
       id="global-toast-container"
       aria-live="polite"
-      className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"
+      className="fixed bottom-4 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none sm:left-auto sm:right-4 sm:w-auto sm:max-w-xs"
     >
       {toasts.map((toast) => {
         const isError = toast.type === 'error';
@@ -92,15 +92,15 @@ export const ToastContainer: React.FC = () => {
             key={toast.id}
             id={`toast-item-${toast.id}`}
             role={isError ? 'alert' : 'status'}
-            className={`pointer-events-auto flex items-start gap-2.5 p-3 rounded-lg border shadow-lg backdrop-blur-sm text-xs transition-all duration-200 animate-in slide-in-from-bottom-2 ${
+            className={`pointer-events-auto flex items-center gap-2.5 rounded-full border py-2 pl-4 pr-2 text-xs shadow-lg transition-all duration-200 animate-in slide-in-from-bottom-2 ${
               isError
-                ? 'bg-rose-950/90 border-rose-800 text-rose-200 shadow-rose-950/40'
+                ? 'bg-rose-950 border-rose-800 text-rose-200 shadow-rose-950/40'
                 : isSuccess
-                  ? 'bg-emerald-950/90 border-emerald-800 text-emerald-200 shadow-emerald-950/40'
-                  : 'bg-slate-900/90 border-slate-700 text-slate-200 shadow-slate-950/40'
+                  ? 'bg-emerald-950 border-emerald-800 text-emerald-200 shadow-emerald-950/40'
+                  : 'bg-slate-900 border-slate-700 text-slate-200 shadow-slate-950/40'
             }`}
           >
-            <div className="shrink-0 mt-0.5">
+            <div className="shrink-0">
               {isError && (
                 <AlertCircle
                   aria-hidden="true"
@@ -136,7 +136,7 @@ export const ToastContainer: React.FC = () => {
               type="button"
               onClick={() => removeToast(toast.id)}
               aria-label="Close notification"
-              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded text-slate-400 transition hover:text-slate-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-slate-400 transition hover:text-slate-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
               title="Close notification"
             >
               <X aria-hidden="true" focusable="false" className="w-3.5 h-3.5" />
