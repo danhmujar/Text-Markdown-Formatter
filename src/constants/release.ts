@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.9.0';
+export const APP_VERSION = '0.10.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Sturdier About and changelog dialogs',
+    description:
+      'The About and changelog dialogs now run on a maintained dialog foundation with the same look, keyboard traps, and focus behavior, opening with a short fade-and-slide entrance.',
+  },
   {
     date: '2026-09-16',
     title: 'Instant hints across header, themes, and layouts',

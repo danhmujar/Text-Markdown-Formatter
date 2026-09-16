@@ -107,4 +107,15 @@ existing pill via Animotion (item 1) instead.
   mobile theme swatches), ThemePicker (palette trigger + swatches), Layout
   settings panel (4 presets + 2 grow buttons). Only intentional keeps: the
   Offline status pill (text already visible) and the toast close button
-  (self-evident X). Verified Hover on Comparison in Chromium; full suite green.
+  (self-evident X). Verified   Hover on Comparison in Chromium; full suite green.
+- 2026-09-16: item 3 done. Installed `@radix-ui/react-dialog`, created
+  `src/components/ui/dialog.tsx` (Overlay/Content wrappers plus a shared
+  `useBackgroundInert` hook), and migrated About + Changelog, deleting ~130
+  lines of hand-rolled focus-trap code. Preserved the spec-pinned contracts:
+  `inert` on `#app-background`, exact Tab orders, FAB focus return, backdrop
+  `[role="presentation"]` dismissal, and `aria-modal` (re-added explicitly —
+  current Radix omits it). Verified: dialog a11y spec, full a11y file (11
+  passed), small-screen changelog spec, 108 unit tests. Note: remediation
+  "representative states" contrast check fails identically at 0.7.2/0.9.0
+  with and without this work (teal dark-theme colors) — pre-existing,
+  unrelated.
