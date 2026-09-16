@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.11.2';
+export const APP_VERSION = '0.11.3';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-16',
+    title: 'Single-row cell actions and natural-width preview tables',
+    description:
+      'The Edit, Copy to Catalyst, Excel, and delete buttons now stay in one row on all screen widths — swiping sideways on narrow cells — instead of dropping to a second row, and the bar never stretches wider than the screen. Preview tables keep their natural column widths and scroll horizontally inside the cell instead of squeezing text into narrow columns.',
+  },
   {
     date: '2026-09-16',
     title: 'Wide preview tables stay inside the cell',

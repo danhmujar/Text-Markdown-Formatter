@@ -21,9 +21,13 @@
   background: rgba(148, 163, 184, 0.45);
 }
 
-/* Contain wide preview tables: scroll inside the cell instead of stretching the page */
+/* Wide preview tables keep their natural width and scroll inside the cell
+   instead of squeezing columns or stretching the page. The !important wins
+   over the inline width:100% the HTML builder sets for copy fidelity. */
 [id^='formatter-preview-'] table {
   display: block;
-  max-width: 100%;
+  width: max-content !important;
+  min-width: 100%;
+  max-width: none;
   overflow-x: auto;
 }

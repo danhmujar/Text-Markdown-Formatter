@@ -117,14 +117,14 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
         borderColor: warnings.length ? 'var(--warning-border)' : 'var(--border-color)',
         color: 'var(--text-primary)',
       }}
-      className="flex h-full flex-col overflow-hidden rounded-lg border shadow-sm transition focus-within:ring-1 focus-within:ring-blue-500/40"
+      className="flex h-full flex-col overflow-clip rounded-lg border shadow-sm transition focus-within:ring-1 focus-within:ring-blue-500/40"
     >
       {showCellHeader ? (
         <div
-          className="min-h-10 shrink-0 border-b px-3 py-1.5 text-xs sm:flex sm:items-center sm:justify-between sm:gap-2"
+          className="sticky left-0 z-10 flex min-h-10 max-w-[calc(100vw-2rem)] shrink-0 items-center justify-between gap-2 border-b px-3 py-1.5 text-xs"
           style={{ backgroundColor: 'var(--surface-bg)', borderColor: 'var(--border-color)' }}
         >
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 shrink-0 items-center gap-2">
             <span
               id={`formatter-cell-label-${rowIndex}-${colIndex}`}
               className={`${showLabel ? '' : 'sr-only '}shrink-0 text-[11px] font-medium text-[var(--text-secondary)]`}
@@ -155,7 +155,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             )}
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center justify-end gap-1.5 sm:mt-0">
+          <div className="flex min-w-0 flex-nowrap items-center justify-end gap-1.5 overflow-x-auto">
             {content && (
               <button
                 id={`toggle-edit-mode-${rowIndex}-${colIndex}`}
