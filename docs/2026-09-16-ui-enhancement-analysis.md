@@ -96,6 +96,15 @@ existing pill via Animotion (item 1) instead.
   Layout panel (`animotion-fade-in-down`), EditToolbar feedback
   (`animotion-fade-in`). Verified live via computed `animation-name` in
   Chromium; lint, typecheck, Prettier, and unit tests pass.
+- 2026-09-16: contrast-gate fix. The remediation "representative states" axe
+  check failed on the Layout panel because its new 0.2s entrance animation was
+  still mid-fade when axe scanned (proven: violations at 0ms, zero at 500ms;
+  reproduced identically at 0.7.2/0.9.0 baselines, so not a dialog
+  regression). Removed the entrance animation from `EditorSettingsPanel`
+  only — toast, menus, and feedback keep theirs. Also hardened
+  `tests/a11y.spec.ts` ("Changelog" heading query now `exact: true`) after the
+  new changelog entry title collided with it under substring matching. Full
+  gate green: lint, typecheck, 108 unit, 18 browser.
 - 2026-09-16: item 2 started (EditToolbar scope). Added `components.json`,
   installed `@radix-ui/react-tooltip`, created `src/components/ui/tooltip.tsx`
   (`TooltipProvider/Tooltip/TooltipTrigger/TooltipContent` plus a one-line

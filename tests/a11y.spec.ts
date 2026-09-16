@@ -100,7 +100,7 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(changelogDialog).toBeVisible();
     await expect(changelogDialog).toHaveAttribute('aria-modal', 'true');
     await expect(changelogDialog).toHaveAttribute('aria-labelledby', 'changelog-dialog-title');
-    await expect(page.getByRole('heading', { name: 'Changelog' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Changelog', exact: true })).toBeVisible();
     await expect(changelogDialog).toContainText(`Version ${APP_VERSION}`);
     await expect(changelogDialog).toContainText('Release information');
     await expect(changelogDialog).toContainText(
