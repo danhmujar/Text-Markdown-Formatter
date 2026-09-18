@@ -9,13 +9,12 @@ export function buildGridHtml(
   grid: string[][],
   options: StyleOptions = {} as StyleOptions,
   isForWordCopy: boolean = false,
-  tableBrLiteral: boolean = false,
 ): string {
   const numRows = grid.length;
   const numCols = Math.max(...grid.map((r) => r.length), 1);
 
   if (numRows === 1 && numCols === 1) {
-    return buildInlineStyledHtml(grid[0][0] || '', options, isForWordCopy, tableBrLiteral);
+    return buildInlineStyledHtml(grid[0][0] || '', options, isForWordCopy);
   }
 
   const isDarkTheme = options?.theme === 'dark';
@@ -30,12 +29,7 @@ export function buildGridHtml(
     tableHtml += `  <tr>\n`;
     for (let c = 0; c < numCols; c++) {
       const cellContent = grid[r] && grid[r][c] ? grid[r][c] : '';
-      const renderedCell = buildInlineStyledHtml(
-        cellContent,
-        options,
-        isForWordCopy,
-        tableBrLiteral,
-      );
+      const renderedCell = buildInlineStyledHtml(cellContent, options, isForWordCopy);
       tableHtml += `    <td style="border: 1px solid ${tableBorder}; padding: 10pt 12pt; vertical-align: top; width: ${Math.round(100 / numCols)}%;">\n${renderedCell}\n    </td>\n`;
     }
     tableHtml += `  </tr>\n`;
@@ -53,11 +47,10 @@ export function buildInlineStyledHtml(
   rawMarkdown: string,
   options: StyleOptions = {} as StyleOptions,
   isForWordCopy: boolean = false,
-  tableBrLiteral: boolean = false,
 ): string {
   if (!rawMarkdown) return '';
 
-  const cacheKey = `${rawMarkdown}|${options?.theme || 'light'}|${options?.fontFamily || ''}|${options?.fontSize || 11}|${options?.lineHeight || 1.15}|${options?.bulletLevel1 || 'disc'}|${options?.bulletLevel2 || 'circle'}|${options?.bulletLevel3 || 'square'}|${options?.tableBorderColor || ''}|${options?.tableHeaderBg || ''}|${options?.tableHeaderColor || ''}|${options?.primaryColor || ''}|${options?.tableAlternateBg !== false}|${options?.highlightBoldKeys !== false}|${isForWordCopy}|${tableBrLiteral}`;
+  const cacheKey = `${rawMarkdown}|${options?.theme || 'light'}|${options?.fontFamily || ''}|${options?.fontSize || 11}|${options?.lineHeight || 1.15}|${options?.bulletLevel1 || 'disc'}|${options?.bulletLevel2 || 'circle'}|${options?.bulletLevel3 || 'square'}|${options?.tableBorderColor || ''}|${options?.tableHeaderBg || ''}|${options?.tableHeaderColor || ''}|${options?.primaryColor || ''}|${options?.tableAlternateBg !== false}|${options?.highlightBoldKeys !== false}|${isForWordCopy}`;
   if (htmlCache.has(cacheKey)) {
     const cached = htmlCache.get(cacheKey)!;
     htmlCache.delete(cacheKey);
@@ -259,12 +252,6 @@ export function buildInlineStyledHtml(
       }
     });
 
-    if (tableBrLiteral) {
-      container.querySelectorAll('td br, th br').forEach((br) => {
-        const textNode = doc.createTextNode('<br>');
-        br.replaceWith(textNode);
-      });
-    }
     const outputHtml = container.innerHTML;
     if (htmlCache.size >= MAX_CACHE_SIZE) {
       const firstKey = htmlCache.keys().next().value;

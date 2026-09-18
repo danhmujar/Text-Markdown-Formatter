@@ -12,7 +12,6 @@ import {
   Copy,
   Edit3,
   Eye,
-  Table,
   Trash2,
 } from 'lucide-react';
 import type { StyleOptions } from '../types';
@@ -41,7 +40,6 @@ interface FormatterCellProps {
   onModeChange: (rowIndex: number, colIndex: number, mode: 'preview' | 'edit') => void;
   onClear: (rowIndex: number, colIndex: number) => void;
   onCopy: (rowIndex: number, colIndex: number) => void;
-  onCopyExcel?: (rowIndex: number, colIndex: number) => void;
   onKeyDown: (
     event: ReactKeyboardEvent<HTMLTextAreaElement>,
     rowIndex: number,
@@ -75,7 +73,6 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
   onModeChange,
   onClear,
   onCopy,
-  onCopyExcel,
   onKeyDown,
   onPaste,
   onChange,
@@ -203,18 +200,6 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
                   <Copy aria-hidden="true" className="h-3 w-3" />
                 )}
                 <span>{isCopied ? 'Copied' : 'Copy to Catalyst'}</span>
-              </button>
-            )}
-            {content && onCopyExcel && (
-              <button
-                type="button"
-                onClick={() => onCopyExcel(rowIndex, colIndex)}
-                aria-label={`Copy formatted ${label} for Excel`}
-                className="flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-8"
-                style={{ borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}
-              >
-                <Table aria-hidden="true" className="h-3 w-3" />
-                <span>Excel</span>
               </button>
             )}
             {content && (

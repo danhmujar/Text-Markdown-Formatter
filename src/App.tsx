@@ -127,14 +127,11 @@ export default function App() {
     [grid],
   );
 
-  const {
-    copiedCell,
-    copiedAll,
-    handleCopyCell,
-    handleCopyCellExcel,
-    handleCopyAllGrid,
-    handleCopyAllGridExcel,
-  } = useCopy({ grid, options, getOutputContent: getFormattedContent });
+  const { copiedCell, copiedAll, handleCopyCell, handleCopyAllGrid } = useCopy({
+    grid,
+    options,
+    getOutputContent: getFormattedContent,
+  });
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -169,9 +166,7 @@ export default function App() {
               onChangeGrid={updateGrid}
               onCommitPaste={commitPaste}
               onCopyCell={handleCopyCell}
-              onCopyCellExcel={handleCopyCellExcel}
               onCopyAllGrid={handleCopyAllGrid}
-              onCopyAllGridExcel={handleCopyAllGridExcel}
               copiedCell={copiedCell}
               copiedAll={copiedAll}
             />

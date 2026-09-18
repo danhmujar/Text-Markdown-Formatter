@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.3';
+export const APP_VERSION = '0.13.4';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-18',
+    title: 'Unified formatted copy actions',
+    description:
+      'Removed the redundant Excel copy buttons and routed individual-cell and multi-cell copying through one Catalyst-compatible clipboard path. Rich HTML, plain-text fallbacks, sanitization, and table-cell line breaks now behave consistently across copy actions.',
+  },
   {
     date: '2026-09-16',
     title: 'Edit-mode keyboard handling, list continuation, and syntax validation remediation',

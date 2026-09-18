@@ -35,7 +35,6 @@ const sections = [
       'Multi-cell text and Markdown workspace',
       'Copy all or individual cells to Catalyst',
       'Word/Outlook-compatible formatted copy',
-      'Excel-compatible copy',
       'Themes and dark mode',
       'Smart Cleanup and syntax warnings',
       'Undo and redo',

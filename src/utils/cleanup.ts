@@ -183,7 +183,7 @@ function isMarkdownBlockLine(line: string): boolean {
 /**
  * Prepares the output text for copying:
  * If the original input contained <br> tags and is NOT a markdown table, converts the edited output's line breaks back to <br>.
- * When a markdown table is present, line breaks are kept as clean newlines to preserve table structure (with Copy for Excel handling table grids).
+ * When a markdown table is present, line breaks are kept as clean newlines to preserve table structure.
  * Otherwise, returns the edited output as-is.
  */
 export function prepareCopiedText(outputText: string, originalInputText: string): string {

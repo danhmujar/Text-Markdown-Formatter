@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Check, ChevronDown, Copy, Settings2, Sparkles, Table } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, Copy, Settings2, Sparkles } from 'lucide-react';
 import type { StyleOptions } from '../types';
 import { hasBrTags, isMarkdownTable } from '../utils/markdownFormatter';
 import { useGridActions } from '../hooks/useGridActions';
@@ -15,9 +15,7 @@ interface FormatterWorkspaceProps {
   onChangeGrid: (grid: string[][], isTyping?: boolean) => void;
   onCommitPaste: (rawGrid: string[][], cleanedGrid: string[][]) => void;
   onCopyCell: (rowIndex: number, colIndex: number) => void;
-  onCopyCellExcel?: (rowIndex: number, colIndex: number) => void;
   onCopyAllGrid: () => void;
-  onCopyAllGridExcel?: () => void;
   copiedCell: string | null;
   copiedAll: boolean;
 }
@@ -30,9 +28,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
     onChangeGrid,
     onCommitPaste,
     onCopyCell,
-    onCopyCellExcel,
     onCopyAllGrid,
-    onCopyAllGridExcel,
     copiedCell,
     copiedAll,
   }) {
@@ -240,17 +236,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                   )}
                   <span>{copiedAll ? 'Copied' : 'Copy all to Catalyst'}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={onCopyAllGridExcel}
-                  disabled={totalStats.totalChars === 0}
-                  aria-label="Copy all formatted text for Excel"
-                  className="flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-9"
-                  style={{ borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}
-                >
-                  <Table aria-hidden="true" className="h-3.5 w-3.5" />
-                  <span>Excel</span>
-                </button>
               </>
             )}
           </div>
@@ -297,7 +282,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     onModeChange={changeMode}
                     onClear={handleClearCell}
                     onCopy={onCopyCell}
-                    onCopyExcel={onCopyCellExcel}
                     onKeyDown={handleTextareaKeyDown}
                     onPaste={handleCellPaste}
                     onChange={handleCellInput}

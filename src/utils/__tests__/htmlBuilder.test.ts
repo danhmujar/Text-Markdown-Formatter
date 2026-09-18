@@ -70,4 +70,13 @@ describe('buildInlineStyledHtml list spacing', () => {
 
     expect(nestedItem?.getAttribute('style')).toContain('margin: 0px');
   });
+
+  it('keeps table-cell line breaks as HTML breaks for copy', () => {
+    const html = buildInlineStyledHtml('| Value |\n| --- |\n| First<br>Second |', options, true);
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    expect(container.querySelector('td br')).not.toBeNull();
+    expect(container.querySelector('td')?.textContent).toBe('FirstSecond');
+  });
 });

@@ -36,7 +36,6 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
         outputContent,
         { ...optionsRef.current, theme: 'light' },
         true,
-        false,
       );
 
       const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
@@ -51,32 +50,6 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       }
     } catch (err) {
       logger.error('Copy cell error:', err);
-      showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
-    }
-  }, []);
-
-  const handleCopyCellExcel = useCallback(async (rowIndex: number, colIndex: number) => {
-    try {
-      const outputContent = getOutputContentRef.current(rowIndex, colIndex);
-      const inputContent = gridRef.current[rowIndex]?.[colIndex] || '';
-      const textToCopy = prepareCopiedText(outputContent, inputContent);
-      const wordExportHtml = buildInlineStyledHtml(
-        outputContent,
-        { ...optionsRef.current, theme: 'light' },
-        true,
-        true,
-      );
-      const success = await copyFormattedTextToClipboard(wordExportHtml, textToCopy, {
-        sanitize: true,
-      });
-      if (success) {
-        setCopiedCell(`${rowIndex}-${colIndex}`);
-        setTimeout(() => setCopiedCell(null), 2500);
-      } else {
-        showToast('Copy failed — check clipboard permissions (HTTPS required)', 'error');
-      }
-    } catch (err) {
-      logger.error('Copy cell Excel error:', err);
       showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
     }
   }, []);
@@ -100,7 +73,6 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
         outputMatrix,
         { ...optionsRef.current, theme: 'light' },
         true,
-        false,
       );
 
       let combinedText = '';
@@ -126,51 +98,10 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
     }
   }, []);
 
-  const handleCopyAllGridExcel = useCallback(async () => {
-    try {
-      const currentGrid = gridRef.current;
-      const outputMatrix = currentGrid.map((row, r) =>
-        row.map((_, c) => getOutputContentRef.current(r, c)),
-      );
-      const preparedMatrix = currentGrid.map((row, r) =>
-        row.map((inputCell, c) => {
-          const outputCell = getOutputContentRef.current(r, c);
-          return prepareCopiedText(outputCell, inputCell);
-        }),
-      );
-      const wordExportGridHtml = buildGridHtml(
-        outputMatrix,
-        { ...optionsRef.current, theme: 'light' },
-        true,
-        true,
-      );
-      let combinedText = '';
-      if (preparedMatrix.length === 1 && preparedMatrix[0].length === 1) {
-        combinedText = preparedMatrix[0][0];
-      } else {
-        combinedText = preparedMatrix.map((row) => row.join('\t')).join('\n');
-      }
-      const success = await copyFormattedTextToClipboard(wordExportGridHtml, combinedText, {
-        sanitize: true,
-      });
-      if (success) {
-        setCopiedAll(true);
-        setTimeout(() => setCopiedAll(false), 2500);
-      } else {
-        showToast('Copy all failed — check clipboard permissions (HTTPS required)', 'error');
-      }
-    } catch (err) {
-      logger.error('Copy all grid Excel error:', err);
-      showToast(`Copy error: ${(err as Error).message || 'Unknown error'}`, 'error');
-    }
-  }, []);
-
   return {
     copiedCell,
     copiedAll,
     handleCopyCell,
-    handleCopyCellExcel,
     handleCopyAllGrid,
-    handleCopyAllGridExcel,
   };
 }
