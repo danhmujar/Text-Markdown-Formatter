@@ -6,7 +6,11 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
+  const configuredBase = process.env.VITE_BASE_PATH ?? '/';
+  const base = configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`;
+
   return {
+    base,
     plugins: [
       react(),
       tailwindcss(),
@@ -19,13 +23,13 @@ export default defineConfig(() => {
           'apple-touch-icon.png',
         ],
         manifest: {
-          id: '/',
+          id: base,
           name: 'Text & Markdown Formatter',
           short_name: 'Text Formatter',
           description:
             'Paste wrapped text, remove accidental line breaks automatically, preview the cleaned result, and copy formatted content.',
-          start_url: '/',
-          scope: '/',
+          start_url: base,
+          scope: base,
           display: 'standalone',
           background_color: '#ffffff',
           theme_color: '#2563eb',

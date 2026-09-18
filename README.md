@@ -2,7 +2,7 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.13.0**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.13.1**.
 
 ## Features
 
@@ -33,6 +33,16 @@ npm run preview    # serve dist/ (Playwright uses :4173)
 ```
 
 No backend required. Optional env vars are documented in `.env.example` (`GEMINI_API_KEY`, `APP_URL`) and only needed when deploying via AI Studio/Cloud Run.
+
+## GitHub Pages deployment
+
+Pushes to `main` are built and deployed by `.github/workflows/deploy-pages.yml`. The workflow sets
+`VITE_BASE_PATH` from the repository name so the app works at the project-site URL:
+`https://<owner>.github.io/<repository>/`.
+
+In the repository’s **Settings → Pages**, set **Source** to **GitHub Actions**. Local development
+and `npm run preview` continue to use the root path by default; set `VITE_BASE_PATH` explicitly when
+testing a project subpath locally.
 
 ## Automatic versioning
 
