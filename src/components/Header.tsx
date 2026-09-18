@@ -116,7 +116,7 @@ export const Header: React.FC<HeaderProps> = React.memo(function Header({
         {/* Title */}
         <div className="flex items-center gap-3 min-w-0">
           <img
-            src="/pwa-192x192.png"
+            src={`${import.meta.env.BASE_URL}pwa-192x192.png`}
             alt="Text & Markdown Formatter icon"
             className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 object-contain"
           />
