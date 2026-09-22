@@ -11,17 +11,20 @@ import { logger } from '../utils/logger';
 
 interface UseCopyArgs {
   grid: string[][];
+  preserveBr: boolean[][];
   options: StyleOptions;
   getOutputContent: (rowIndex: number, colIndex: number) => string;
 }
 
-export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
+export function useCopy({ grid, preserveBr, options, getOutputContent }: UseCopyArgs) {
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState<boolean>(false);
   const gridRef = useRef(grid);
+  const preserveBrRef = useRef(preserveBr);
   const optionsRef = useRef(options);
   const getOutputContentRef = useRef(getOutputContent);
   gridRef.current = grid;
+  preserveBrRef.current = preserveBr;
   optionsRef.current = options;
   getOutputContentRef.current = getOutputContent;
 
@@ -31,7 +34,11 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
     try {
       const outputContent = getOutputContentRef.current(rowIndex, colIndex);
       const inputContent = gridRef.current[rowIndex]?.[colIndex] || '';
-      const textToCopy = prepareCopiedText(outputContent, inputContent);
+      const textToCopy = prepareCopiedText(
+        outputContent,
+        inputContent,
+        preserveBrRef.current[rowIndex]?.[colIndex],
+      );
       const wordExportHtml = buildInlineStyledHtml(
         outputContent,
         { ...optionsRef.current, theme: 'light' },
@@ -65,7 +72,7 @@ export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
       const preparedMatrix = currentGrid.map((row, r) =>
         row.map((inputCell, c) => {
           const outputCell = getOutputContentRef.current(r, c);
-          return prepareCopiedText(outputCell, inputCell);
+          return prepareCopiedText(outputCell, inputCell, preserveBrRef.current[r]?.[c]);
         }),
       );
 

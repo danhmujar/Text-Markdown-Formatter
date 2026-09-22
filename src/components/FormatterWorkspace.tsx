@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Check, ChevronDown, Copy, Settings2, Sparkles } from 'lucide-react';
 import type { StyleOptions } from '../types';
-import { hasBrTags, isMarkdownTable } from '../utils/markdownFormatter';
+import { convertBrToNewlines, isMarkdownTable } from '../utils/markdownFormatter';
 import { useGridActions } from '../hooks/useGridActions';
 import { useFormatterActions } from '../hooks/useFormatterActions';
 import { FormatterCell } from './FormatterCell';
@@ -10,6 +10,7 @@ import { EditorSettingsPanel } from './ui/EditorSettingsPanel';
 
 interface FormatterWorkspaceProps {
   grid: string[][];
+  preserveBr: boolean[][];
   options: StyleOptions;
   focusRequest: number;
   onChangeGrid: (grid: string[][], isTyping?: boolean) => void;
@@ -23,6 +24,7 @@ interface FormatterWorkspaceProps {
 export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
   function FormatterWorkspace({
     grid,
+    preserveBr,
     options,
     focusRequest,
     onChangeGrid,
@@ -40,7 +42,8 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
     const gridRef = useRef(grid);
     gridRef.current = grid;
     const getContent = useCallback(
-      (rowIndex: number, colIndex: number) => gridRef.current[rowIndex]?.[colIndex] || '',
+      (rowIndex: number, colIndex: number) =>
+        convertBrToNewlines(gridRef.current[rowIndex]?.[colIndex] || ''),
       [],
     );
 
@@ -273,7 +276,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     label={getCellLabel(rowIndex, colIndex)}
                     showLabel={numRows > 1 || numCols > 1}
                     content={content}
-                    inputHadBr={hasBrTags(content) && !isTable}
+                    inputHadBr={Boolean(preserveBr[rowIndex]?.[colIndex]) && !isTable}
                     options={options}
                     mode={cellModes[cellId] ?? 'preview'}
                     isCopied={copiedCell === cellId}

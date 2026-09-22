@@ -10,7 +10,7 @@ import type { StyleOptions } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
 import { readWorkspace, useWorkspacePersistence } from './hooks/useWorkspacePersistence';
 import { useCopy } from './hooks/useCopy';
-import { convertBrToNewlines, hasBrTags } from './utils/markdownFormatter';
+import { convertBrToNewlines } from './utils/markdownFormatter';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
 import { usePwaUpdate } from './hooks/usePwaUpdate';
@@ -20,9 +20,9 @@ type AppMode = 'formatter' | 'comparison';
 
 export default function App() {
   const [persistedInitialState] = useState(() => readWorkspace());
-  const { grid, updateGrid, commitPaste, resetHistory, undo, redo, canUndo, canRedo } =
+  const { grid, preserveBr, updateGrid, commitPaste, resetHistory, undo, redo, canUndo, canRedo } =
     useGridHistory(persistedInitialState);
-  const { clearStorage } = useWorkspacePersistence(grid, persistedInitialState);
+  const { clearStorage } = useWorkspacePersistence(grid, preserveBr, persistedInitialState);
   const [appMode, setAppMode] = useState<AppMode>('formatter');
   const [focusRequest, setFocusRequest] = useState(0);
   const restoreFormatterFocusRef = useRef(false);
@@ -122,13 +122,14 @@ export default function App() {
   const getFormattedContent = useCallback(
     (rowIndex: number, colIndex: number) => {
       const source = grid[rowIndex]?.[colIndex] || '';
-      return hasBrTags(source) ? convertBrToNewlines(source) : source;
+      return convertBrToNewlines(source);
     },
     [grid],
   );
 
   const { copiedCell, copiedAll, handleCopyCell, handleCopyAllGrid } = useCopy({
     grid,
+    preserveBr,
     options,
     getOutputContent: getFormattedContent,
   });
@@ -161,6 +162,7 @@ export default function App() {
           <div className="h-full" hidden={appMode !== 'formatter'}>
             <FormatterWorkspace
               grid={grid}
+              preserveBr={preserveBr}
               options={options}
               focusRequest={focusRequest}
               onChangeGrid={updateGrid}

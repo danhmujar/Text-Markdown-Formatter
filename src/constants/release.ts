@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.4';
+export const APP_VERSION = '0.13.5';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-22',
+    title: 'Catalyst copy fidelity and supported inline LaTeX rendering',
+    description:
+      'Edit mode now displays report notes that use <br> tags as ordinary editable line breaks while retaining the cell\'s original break format through typing, paste, Undo/Redo, and workspace restoration. Copy to Catalyst reconstructs <br> tags in the plain-text clipboard payload even after editing removes the original tags, while rich HTML keeps the same visible line structure and Markdown tables retain their newline-safe behavior. The shared renderer also converts the supported inline LaTeX forms \\ge and \\geq to ≥ and \\text{CO}_2\\text{eq} to CO₂eq across preview and rich copy, without changing code spans. Regression coverage now includes the report-note sample, editable line-break normalization, copy reversion, history metadata, persistence, and supported math symbols.',
+  },
   {
     date: '2026-09-18',
     title: 'Unified formatted copy actions',

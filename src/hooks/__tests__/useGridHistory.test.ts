@@ -121,6 +121,25 @@ describe('useGridHistory', () => {
     hook.unmount();
   });
 
+  it('preserves break-format metadata when editing away the source tags', () => {
+    const hook = renderGridHistoryHook({ grid: [['First<br>Second']] });
+
+    expect(hook.getResult().preserveBr).toEqual([[true]]);
+    act(() => {
+      hook.getResult().updateGrid([['First\nSecond\nAdded']], true);
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(hook.getResult().preserveBr).toEqual([[true]]);
+    act(() => {
+      hook.getResult().undo();
+    });
+
+    expect(hook.getResult().grid).toEqual([['First<br>Second']]);
+    expect(hook.getResult().preserveBr).toEqual([[true]]);
+    hook.unmount();
+  });
+
   it('keeps the raw paste as the first undo target', () => {
     const hook = renderGridHistoryHook({ grid: [['before']] });
 

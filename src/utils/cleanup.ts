@@ -186,10 +186,14 @@ function isMarkdownBlockLine(line: string): boolean {
  * When a markdown table is present, line breaks are kept as clean newlines to preserve table structure.
  * Otherwise, returns the edited output as-is.
  */
-export function prepareCopiedText(outputText: string, originalInputText: string): string {
+export function prepareCopiedText(
+  outputText: string,
+  originalInputText: string,
+  preserveBr?: boolean,
+): string {
   if (!outputText) return '';
   const isTable = isMarkdownTable(outputText) || isMarkdownTable(originalInputText);
-  const inputHadBr = hasBrTags(originalInputText) && !isTable;
+  const inputHadBr = (preserveBr ?? hasBrTags(originalInputText)) && !isTable;
 
   if (inputHadBr) {
     return convertNewlinesToBr(outputText);

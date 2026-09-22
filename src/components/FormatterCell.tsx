@@ -16,7 +16,12 @@ import {
 } from 'lucide-react';
 import type { StyleOptions } from '../types';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
-import { buildInlineStyledHtml, ListTerminator, NumberingFormat } from '../utils/markdownFormatter';
+import {
+  buildInlineStyledHtml,
+  convertBrToNewlines,
+  ListTerminator,
+  NumberingFormat,
+} from '../utils/markdownFormatter';
 import { cn } from '../utils/cn';
 import { BUTTON_VARIANTS } from './ui';
 import { EditToolbar } from './EditToolbar';
@@ -95,11 +100,15 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
       return '<p class="text-rose-400 italic text-xs">Preview failed to render</p>';
     }
   }, [content, isEditMode, options]);
+  const editorContent = useMemo(() => convertBrToNewlines(content), [content]);
   const wordCount = useMemo(
     () => (content.trim() ? content.trim().split(/\s+/).length : 0),
     [content],
   );
-  const lineCount = useMemo(() => (content ? content.split(/\r?\n/).length : 0), [content]);
+  const lineCount = useMemo(
+    () => (editorContent ? editorContent.split(/\r?\n/).length : 0),
+    [editorContent],
+  );
 
   useEffect(() => {
     if (!showWarnings) return;
@@ -262,7 +271,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
           <textarea
             ref={(element) => registerTextarea(rowIndex, colIndex, element)}
             id={`formatter-textarea-${rowIndex}-${colIndex}`}
-            value={content}
+            value={editorContent}
             onChange={(event) => onChange(rowIndex, colIndex, event.target.value)}
             onKeyDown={(event) => onKeyDown(event, rowIndex, colIndex)}
             onPaste={(event) => onPaste(event, rowIndex, colIndex)}

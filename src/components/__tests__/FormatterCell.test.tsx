@@ -123,4 +123,41 @@ describe('FormatterCell', () => {
 
     expect(document.activeElement).toBe(toggle);
   });
+
+  it('shows preserved HTML breaks as editable newlines', () => {
+    act(() =>
+      root.render(
+        React.createElement(
+          TooltipProvider,
+          null,
+          React.createElement(FormatterCell, {
+            rowIndex: 0,
+            colIndex: 0,
+            content: 'First<br>Second',
+            inputHadBr: true,
+            options,
+            mode: 'edit',
+            isCopied: false,
+            feedback: null,
+            label: 'Cleaned Text',
+            showLabel: false,
+            registerTextarea: vi.fn(),
+            onModeChange: vi.fn(),
+            onClear: vi.fn(),
+            onCopy: vi.fn(),
+            onKeyDown: vi.fn(),
+            onPaste: vi.fn(),
+            onChange: vi.fn(),
+            onSmartClean: vi.fn(),
+            onApplyNumbering: vi.fn(),
+            onApplyInlineFormat: vi.fn(),
+            listTerminator: ';',
+            onListTerminatorChange: vi.fn(),
+          }),
+        ),
+      ),
+    );
+
+    expect(container.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('First\nSecond');
+  });
 });

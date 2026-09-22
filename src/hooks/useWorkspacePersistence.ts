@@ -3,7 +3,7 @@ import type { GridHistoryState } from './useGridHistory';
 import { isGridWithinLimits, MAX_GRID_TOTAL_CHARACTERS } from '../utils/tableConvert';
 
 export const WORKSPACE_STORAGE_KEY = 'text-markdown-formatter:workspace';
-export const WORKSPACE_STORAGE_VERSION = 2;
+export const WORKSPACE_STORAGE_VERSION = 3;
 const FALLBACK: GridHistoryState = { grid: [['']] };
 const MAX_SERIALIZED_WORKSPACE_CHARACTERS = MAX_GRID_TOTAL_CHARACTERS * 6 + 100_000;
 
@@ -16,6 +16,19 @@ function isValidGrid(value: unknown): value is string[][] {
         Array.isArray(row) && row.length > 0 && row.every((cell) => typeof cell === 'string'),
     ) &&
     isGridWithinLimits(value)
+  );
+}
+
+function isValidPreserveBr(value: unknown, grid: string[][]): value is boolean[][] {
+  return (
+    Array.isArray(value) &&
+    value.length === grid.length &&
+    value.every(
+      (row, rowIndex) =>
+        Array.isArray(row) &&
+        row.length === grid[rowIndex].length &&
+        row.every((cell) => typeof cell === 'boolean'),
+    )
   );
 }
 
@@ -46,13 +59,20 @@ export function readWorkspace(): GridHistoryState {
     const candidate = parsed as {
       version?: unknown;
       grid?: unknown;
+      preserveBr?: unknown;
       outputOverrides?: unknown;
     };
     if (!isValidGrid(candidate.grid)) return FALLBACK;
     if (candidate.version === WORKSPACE_STORAGE_VERSION) {
-      return { grid: candidate.grid.map((row) => [...row]) };
+      const grid = candidate.grid.map((row) => [...row]);
+      return isValidPreserveBr(candidate.preserveBr, grid)
+        ? { grid, preserveBr: candidate.preserveBr.map((row) => [...row]) }
+        : { grid };
     }
-    if (candidate.version === 1) {
+    if (candidate.version === 2 || candidate.version === 1) {
+      if (candidate.version === 2) {
+        return { grid: candidate.grid.map((row) => [...row]) };
+      }
       const migrated = migrateVersionOne(candidate.grid, candidate.outputOverrides);
       return migrated && isGridWithinLimits(migrated) ? { grid: migrated } : FALLBACK;
     }
@@ -64,10 +84,12 @@ export function readWorkspace(): GridHistoryState {
 
 export function useWorkspacePersistence(
   grid: string[][],
+  preserveBr: boolean[][],
   initialState: GridHistoryState = readWorkspace(),
 ) {
   const [restoredState] = useState<GridHistoryState>(() => ({
     grid: initialState.grid.map((row) => [...row]),
+    preserveBr: initialState.preserveBr?.map((row) => [...row]),
   }));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextPersistRef = useRef(false);
@@ -91,7 +113,7 @@ export function useWorkspacePersistence(
     timerRef.current = setTimeout(() => {
       try {
         if (!isGridWithinLimits(grid)) return;
-        const serialized = JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid });
+        const serialized = JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid, preserveBr });
         if (serialized.length > MAX_SERIALIZED_WORKSPACE_CHARACTERS) return;
         window.localStorage.setItem(WORKSPACE_STORAGE_KEY, serialized);
       } catch {
@@ -103,7 +125,7 @@ export function useWorkspacePersistence(
       clearTimeout(timerRef.current ?? undefined);
       timerRef.current = null;
     };
-  }, [grid]);
+  }, [grid, preserveBr]);
 
   return { initialState: restoredState, clearStorage };
 }

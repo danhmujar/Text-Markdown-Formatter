@@ -6,6 +6,7 @@ import {
   isPasteWithinLimits,
   sanitizeInputText,
   smartCleanupMarkdown,
+  convertBrToNewlines,
 } from '../utils/markdownFormatter';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
 import { showToast } from '../components/Toast';
@@ -157,7 +158,7 @@ export function useGridActions({
 
       const textarea = event.currentTarget;
       const currentGrid = gridRef.current;
-      const current = currentGrid[rowIndex]?.[colIndex] || '';
+      const current = convertBrToNewlines(currentGrid[rowIndex]?.[colIndex] || '');
       const before = current.substring(0, textarea.selectionStart);
       const after = current.substring(textarea.selectionEnd);
       const cleanedPaste = sanitizeInputText(text);

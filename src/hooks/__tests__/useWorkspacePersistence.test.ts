@@ -19,12 +19,23 @@ describe('readWorkspace', () => {
     expect(readWorkspace()).toEqual({ grid: [['']] });
   });
 
-  it('restores a valid version two grid', () => {
+  it('restores a valid current-version grid', () => {
     localStorage.setItem(
       WORKSPACE_STORAGE_KEY,
       JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid: [['saved']] }),
     );
     expect(readWorkspace()).toEqual({ grid: [['saved']] });
+  });
+
+  it('restores break-format metadata with the workspace', () => {
+    const grid = [['First\nSecond']];
+    const preserveBr = [[true]];
+    localStorage.setItem(
+      WORKSPACE_STORAGE_KEY,
+      JSON.stringify({ version: WORKSPACE_STORAGE_VERSION, grid, preserveBr }),
+    );
+
+    expect(readWorkspace()).toEqual({ grid, preserveBr });
   });
 
   it('falls back when a saved grid exceeds workspace limits', () => {
