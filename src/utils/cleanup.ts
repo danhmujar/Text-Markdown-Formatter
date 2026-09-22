@@ -182,23 +182,13 @@ function isMarkdownBlockLine(line: string): boolean {
 
 /**
  * Prepares the output text for copying:
- * If the original input contained <br> tags and is NOT a markdown table, converts the edited output's line breaks back to <br>.
+ * Converts prose line breaks to <br> for Catalyst, including newly typed text.
  * When a markdown table is present, line breaks are kept as clean newlines to preserve table structure.
- * Otherwise, returns the edited output as-is.
  */
-export function prepareCopiedText(
-  outputText: string,
-  originalInputText: string,
-  preserveBr?: boolean,
-): string {
+export function prepareCopiedText(outputText: string, originalInputText: string): string {
   if (!outputText) return '';
   const isTable = isMarkdownTable(outputText) || isMarkdownTable(originalInputText);
-  const inputHadBr = (preserveBr ?? hasBrTags(originalInputText)) && !isTable;
-
-  if (inputHadBr) {
-    return convertNewlinesToBr(outputText);
-  }
-  return outputText;
+  return isTable ? outputText : convertNewlinesToBr(outputText);
 }
 
 export function sanitizeInputText(raw: string, isTyping = false): string {

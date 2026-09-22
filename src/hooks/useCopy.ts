@@ -11,34 +11,27 @@ import { logger } from '../utils/logger';
 
 interface UseCopyArgs {
   grid: string[][];
-  preserveBr: boolean[][];
   options: StyleOptions;
   getOutputContent: (rowIndex: number, colIndex: number) => string;
 }
 
-export function useCopy({ grid, preserveBr, options, getOutputContent }: UseCopyArgs) {
+export function useCopy({ grid, options, getOutputContent }: UseCopyArgs) {
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState<boolean>(false);
   const gridRef = useRef(grid);
-  const preserveBrRef = useRef(preserveBr);
   const optionsRef = useRef(options);
   const getOutputContentRef = useRef(getOutputContent);
   gridRef.current = grid;
-  preserveBrRef.current = preserveBr;
   optionsRef.current = options;
   getOutputContentRef.current = getOutputContent;
 
   // Copy a single cell:
-  // Provides rich formatted HTML for Word/Outlook and plain text with <br> reversion if input had <br>.
+  // Provides rich formatted HTML for Word/Outlook and Catalyst-safe plain text.
   const handleCopyCell = useCallback(async (rowIndex: number, colIndex: number) => {
     try {
       const outputContent = getOutputContentRef.current(rowIndex, colIndex);
       const inputContent = gridRef.current[rowIndex]?.[colIndex] || '';
-      const textToCopy = prepareCopiedText(
-        outputContent,
-        inputContent,
-        preserveBrRef.current[rowIndex]?.[colIndex],
-      );
+      const textToCopy = prepareCopiedText(outputContent, inputContent);
       const wordExportHtml = buildInlineStyledHtml(
         outputContent,
         { ...optionsRef.current, theme: 'light' },
@@ -62,7 +55,7 @@ export function useCopy({ grid, preserveBr, options, getOutputContent }: UseCopy
   }, []);
 
   // Copy all containers:
-  // Provides rich formatted HTML table/block for Word/Outlook and plain text with <br> reversion if input had <br>.
+  // Provides rich formatted HTML table/block for Word/Outlook and Catalyst-safe plain text.
   const handleCopyAllGrid = useCallback(async () => {
     try {
       const currentGrid = gridRef.current;
@@ -72,7 +65,7 @@ export function useCopy({ grid, preserveBr, options, getOutputContent }: UseCopy
       const preparedMatrix = currentGrid.map((row, r) =>
         row.map((inputCell, c) => {
           const outputCell = getOutputContentRef.current(r, c);
-          return prepareCopiedText(outputCell, inputCell, preserveBrRef.current[r]?.[c]);
+          return prepareCopiedText(outputCell, inputCell);
         }),
       );
 

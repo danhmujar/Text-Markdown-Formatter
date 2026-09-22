@@ -133,7 +133,6 @@ export default function App() {
 
   const { copiedCell, copiedAll, handleCopyCell, handleCopyAllGrid } = useCopy({
     grid,
-    preserveBr,
     options,
     getOutputContent: getFormattedContent,
   });

@@ -125,20 +125,24 @@ describe('isMarkdownTable and prepareCopiedText', () => {
     expect(result).toBe('Line 1<br>Line 2');
   });
 
+  it('converts line breaks to <br> for text typed from scratch', () => {
+    expect(prepareCopiedText('Line 1\nLine 2', 'Line 1\nLine 2')).toBe('Line 1<br>Line 2');
+  });
+
   it('keeps the original <br> format after editing a copied report note', () => {
     const sample =
       '(i) Base Salary - At its meeting held on July 15, 2025, the Board of Directors decided to grant Mr. Duncan Minto a gross annual fixed compensation of €300,000 under his corporate office as Chief Executive Officer on a pro rata basis from July 15, 2025.<br>(ii) STI - Only maximum bonus is disclosed, thus target bonus was calculated using a 2/3 of maximum bonus assumption.<br>(iii) LTI - Mr. Duncan Minto did not receive any performance shares under his mandate as Chief Executive Officer.';
     const edited = `${convertBrToNewlines(sample)}\n(iv) Added note.`;
 
-    expect(prepareCopiedText(edited, 'edited note without tags', true)).toBe(
+    expect(prepareCopiedText(edited, 'edited note without tags')).toBe(
       '(i) Base Salary - At its meeting held on July 15, 2025, the Board of Directors decided to grant Mr. Duncan Minto a gross annual fixed compensation of €300,000 under his corporate office as Chief Executive Officer on a pro rata basis from July 15, 2025.<br>(ii) STI - Only maximum bonus is disclosed, thus target bonus was calculated using a 2/3 of maximum bonus assumption.<br>(iii) LTI - Mr. Duncan Minto did not receive any performance shares under his mandate as Chief Executive Officer.<br>(iv) Added note.',
     );
   });
 
   it.each(['- first\n- second', '# Heading\nParagraph', '```\ncode\n```'])(
-    'preserves Markdown block newlines when input contains <br>',
+    'preserves Markdown block newlines',
     (output) => {
-      expect(prepareCopiedText(output, 'source<br>')).toBe(output);
+      expect(prepareCopiedText(output, output)).toBe(output);
     },
   );
 });

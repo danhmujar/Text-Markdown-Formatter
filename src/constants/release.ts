@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.7';
+export const APP_VERSION = '0.13.8';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-22',
+    title: 'Preserve line breaks when copying typed text',
+    description:
+      'Catalyst plain-text copy now restores prose line breaks as <br> tags even when text was typed or edited from ordinary newlines. Markdown tables and structural block breaks remain newline-safe, with regression coverage for scratch typing and edited notes.',
+  },
   {
     date: '2026-09-22',
     title: 'Duplicate update notifications prevented',
