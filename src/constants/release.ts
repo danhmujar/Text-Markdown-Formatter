@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.6';
+export const APP_VERSION = '0.13.7';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-22',
+    title: 'Duplicate update notifications prevented',
+    description:
+      'Persistent update notifications are now deduplicated at the shared toast boundary, so repeated service-worker events or remounted update handlers cannot stack duplicate Reload prompts. Regression coverage now verifies that identical persistent notifications render only once.',
+  },
   {
     date: '2026-09-22',
     title: 'Update prompts with automatic changelog review',

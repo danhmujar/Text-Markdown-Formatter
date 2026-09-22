@@ -53,6 +53,20 @@ describe('ToastContainer', () => {
     expect(container.textContent).not.toContain('A new version is available.');
   });
 
+  it('renders identical persistent notifications only once', () => {
+    const options = {
+      action: { label: 'Reload', onClick: vi.fn() },
+      duration: null,
+    };
+
+    act(() => {
+      showToast('A new version is available.', 'info', options);
+      showToast('A new version is available.', 'info', options);
+    });
+
+    expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+  });
+
   it('retains the existing four-second default timeout for ordinary toasts', () => {
     act(() => showToast('Saved', 'success'));
     expect(container.textContent).toContain('Saved');

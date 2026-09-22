@@ -64,7 +64,18 @@ export const ToastContainer: React.FC = () => {
         duration: customEvent.detail.duration,
       };
 
-      setToasts((prev) => [...prev.slice(-4), newToast]);
+      setToasts((prev) => {
+        const alreadyVisible =
+          newToast.duration === null &&
+          prev.some(
+            (toast) =>
+              toast.duration === null &&
+              toast.msg === newToast.msg &&
+              toast.type === newToast.type &&
+              toast.action?.label === newToast.action?.label,
+          );
+        return alreadyVisible ? prev : [...prev.slice(-4), newToast];
+      });
 
       if (newToast.duration !== null) {
         const timeoutId = setTimeout(() => {
