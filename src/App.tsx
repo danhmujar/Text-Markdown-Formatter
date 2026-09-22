@@ -13,7 +13,7 @@ import { useCopy } from './hooks/useCopy';
 import { convertBrToNewlines } from './utils/markdownFormatter';
 import { FONT_OPTIONS } from './constants/fonts';
 import { useTheme } from './hooks/useTheme';
-import { usePwaUpdate } from './hooks/usePwaUpdate';
+import { consumeChangelogAfterUpdate, usePwaUpdate } from './hooks/usePwaUpdate';
 import { getPrimaryForTheme } from './constants/themes';
 
 type AppMode = 'formatter' | 'comparison';
@@ -48,6 +48,10 @@ export default function App() {
     primaryColor: getPrimaryForTheme(colorTheme, isDark),
     theme: isDark ? 'dark' : 'light',
   });
+
+  useEffect(() => {
+    if (consumeChangelogAfterUpdate()) setChangelogOpen(true);
+  }, []);
 
   useEffect(() => {
     setOptions((previous) => ({

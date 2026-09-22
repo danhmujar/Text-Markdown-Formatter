@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.5';
+export const APP_VERSION = '0.13.6';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-22',
+    title: 'Update prompts with automatic changelog review',
+    description:
+      'Persistent update notifications are now deduplicated so one waiting service worker cannot stack duplicate Reload prompts. Choosing Reload records a one-time handoff, and the Changelog opens automatically after the updated app starts so users can review what changed immediately.',
+  },
   {
     date: '2026-09-22',
     title: 'Catalyst copy fidelity and supported inline LaTeX rendering',

@@ -3,12 +3,23 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { showToast } from '../components/Toast';
 
 export const PWA_UPDATE_INTERVAL_MS = 30 * 60 * 1000;
+export const PWA_CHANGELOG_ON_RELOAD_KEY = 'text-markdown-formatter:changelog-after-update';
 
 export interface UsePwaUpdateOptions {
   intervalMs?: number;
 }
 
 const EMPTY_PWA_UPDATE_OPTIONS: UsePwaUpdateOptions = {};
+
+export function consumeChangelogAfterUpdate(): boolean {
+  try {
+    if (sessionStorage.getItem(PWA_CHANGELOG_ON_RELOAD_KEY) !== '1') return false;
+    sessionStorage.removeItem(PWA_CHANGELOG_ON_RELOAD_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function usePwaUpdate(options: UsePwaUpdateOptions = EMPTY_PWA_UPDATE_OPTIONS): void {
   const { intervalMs = PWA_UPDATE_INTERVAL_MS } = options;
@@ -42,17 +53,21 @@ export function usePwaUpdate(options: UsePwaUpdateOptions = EMPTY_PWA_UPDATE_OPT
   }, [offlineReady, setOfflineReady]);
 
   useEffect(() => {
-    if (!needRefresh) {
-      updateNotifiedRef.current = false;
-      return;
-    }
+    if (!needRefresh) return;
     if (updateNotifiedRef.current) return;
     updateNotifiedRef.current = true;
     setNeedRefresh(false);
     showToast('A new version is available.', 'info', {
       action: {
         label: 'Reload',
-        onClick: () => void updateServiceWorkerRef.current(true),
+        onClick: () => {
+          try {
+            sessionStorage.setItem(PWA_CHANGELOG_ON_RELOAD_KEY, '1');
+          } catch {
+            // The reload still works when session storage is unavailable.
+          }
+          void updateServiceWorkerRef.current(true);
+        },
       },
       duration: null,
     });

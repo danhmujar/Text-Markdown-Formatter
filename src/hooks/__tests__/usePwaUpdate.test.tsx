@@ -2,7 +2,12 @@ import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RegisterSWOptions } from 'vite-plugin-pwa/types';
-import { PWA_UPDATE_INTERVAL_MS, usePwaUpdate } from '../usePwaUpdate';
+import {
+  consumeChangelogAfterUpdate,
+  PWA_CHANGELOG_ON_RELOAD_KEY,
+  PWA_UPDATE_INTERVAL_MS,
+  usePwaUpdate,
+} from '../usePwaUpdate';
 import type { ToastMessage } from '../../components/Toast';
 
 type ToastDetail = Omit<ToastMessage, 'id'>;
@@ -73,6 +78,7 @@ describe('usePwaUpdate', () => {
     controls.offlineReady = false;
     controls.needRefresh = false;
     controls.options = null;
+    sessionStorage.clear();
     vi.clearAllMocks();
     controls.updateServiceWorker.mockResolvedValue(undefined);
     Object.defineProperty(document, 'hidden', { configurable: true, value: false });
@@ -119,9 +125,31 @@ describe('usePwaUpdate', () => {
     });
     expect(controls.updateServiceWorker).toHaveBeenCalledTimes(1);
     expect(controls.updateServiceWorker).toHaveBeenCalledWith(true);
+    expect(sessionStorage.getItem(PWA_CHANGELOG_ON_RELOAD_KEY)).toBe('1');
 
     await rerenderHook();
     expect(toasts).toHaveLength(1);
+  });
+
+  it('does not show a second update toast after the virtual flag is cleared and raised again', async () => {
+    controls.needRefresh = true;
+    await renderHook();
+    expect(toasts).toHaveLength(1);
+
+    controls.needRefresh = false;
+    await rerenderHook();
+    controls.needRefresh = true;
+    await rerenderHook();
+
+    expect(toasts).toHaveLength(1);
+  });
+
+  it('consumes the one-time changelog request after an update reload', () => {
+    sessionStorage.setItem(PWA_CHANGELOG_ON_RELOAD_KEY, '1');
+
+    expect(consumeChangelogAfterUpdate()).toBe(true);
+    expect(sessionStorage.getItem(PWA_CHANGELOG_ON_RELOAD_KEY)).toBeNull();
+    expect(consumeChangelogAfterUpdate()).toBe(false);
   });
 
   it('stays silent until the worker reports readiness or an update', async () => {
