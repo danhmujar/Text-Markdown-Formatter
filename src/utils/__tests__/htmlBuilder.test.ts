@@ -19,6 +19,28 @@ const options: StyleOptions = {
 };
 
 describe('buildInlineStyledHtml list spacing', () => {
+  it('renders inline greater-than-or-equal math without changing code spans', () => {
+    const markdown = '120% for $\\ge$120% of the index (ceiling) and `$\\ge$` stays literal';
+    const container = document.createElement('div');
+    container.innerHTML = buildInlineStyledHtml(markdown, options);
+
+    expect(container.textContent?.trim()).toBe(
+      '120% for ≥120% of the index (ceiling) and $\\ge$ stays literal',
+    );
+    expect(container.querySelector('code')?.textContent).toBe('$\\ge$');
+  });
+
+  it('renders text fragments with subscripts', () => {
+    const markdown =
+      'Emissions fell by 14.6 Mt $\\text{CO}_2\\text{eq}$, exceeding the maximum reduction target of 8.7 Mt $\\text{CO}_2\\text{eq}$.';
+    const container = document.createElement('div');
+    container.innerHTML = buildInlineStyledHtml(markdown, options);
+
+    expect(container.textContent?.trim()).toBe(
+      'Emissions fell by 14.6 Mt CO₂eq, exceeding the maximum reduction target of 8.7 Mt CO₂eq.',
+    );
+  });
+
   it('separates the final paragraph of top-level ordered items', () => {
     const html = buildInlineStyledHtml('1. a\n\n   b\n\n   c\n2. d', options);
     const container = document.createElement('div');

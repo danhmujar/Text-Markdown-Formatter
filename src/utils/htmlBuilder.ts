@@ -1,9 +1,39 @@
-import { marked } from 'marked';
+import { Marked, Tokens } from 'marked';
 import { StyleOptions } from '../types';
 import { THEME_COLORS } from '../constants/theme';
 import { preprocessMarkdownWithTsv } from './tableConvert';
 import { sanitizeHtml } from './security/sanitize';
 import { logger } from './logger';
+
+// ponytail: support the report's known symbols; use a math renderer for arbitrary LaTeX.
+const INLINE_MATH_SYMBOLS = {
+  '\\ge': '≥',
+  '\\geq': '≥',
+  '\\text{CO}_2\\text{eq}': 'CO₂eq',
+};
+
+const markdownParser = new Marked({
+  extensions: [
+    {
+      name: 'inlineMath',
+      level: 'inline',
+      start: (source) => source.indexOf('$'),
+      tokenizer(source) {
+        const match = /^\$\s*(\\geq?|\\text\{CO\}_2\\text\{eq\})\s*\$/.exec(source);
+        if (!match) return;
+
+        return {
+          type: 'inlineMath',
+          raw: match[0],
+          text: INLINE_MATH_SYMBOLS[match[1] as keyof typeof INLINE_MATH_SYMBOLS],
+        };
+      },
+      renderer(token: Tokens.Generic) {
+        return token.text;
+      },
+    },
+  ],
+});
 
 export function buildGridHtml(
   grid: string[][],
@@ -62,7 +92,10 @@ export function buildInlineStyledHtml(
     const processedMarkdown = preprocessMarkdownWithTsv(rawMarkdown);
     // Sanitize marked output before any DOM manipulation: single security point for both
     // the preview (dangerouslySetInnerHTML) and the Word/Sheets copy paths.
-    const dirtyHtml = marked.parse(processedMarkdown, { gfm: true, breaks: true }) as string;
+    const dirtyHtml = markdownParser.parse(processedMarkdown, {
+      gfm: true,
+      breaks: true,
+    }) as string;
     const rawHtml = sanitizeHtml(dirtyHtml);
     if (!rawHtml) return '';
 
@@ -265,7 +298,7 @@ export function buildInlineStyledHtml(
   } catch (err) {
     logger.warn('Error formatting markdown into styled HTML:', err);
     try {
-      const fallbackParsed = marked.parse(
+      const fallbackParsed = markdownParser.parse(
         `*Error rendering formatted preview — showing fallback:*\n\n` + rawMarkdown.slice(0, 500),
       ) as string;
       return sanitizeHtml(fallbackParsed);
