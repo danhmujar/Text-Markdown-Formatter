@@ -86,6 +86,14 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       ]);
     });
 
+    it('removes nested Sheets cell wrappers while keeping line breaks', () => {
+      const html =
+        '<table><tr><td><div><div>First<br>Second</div></div></td><td>Other</td></tr></table>';
+      expect(parsePasteToGrid('First\nSecond\tOther', html)).toEqual([
+        ['First<br>Second', 'Other'],
+      ]);
+    });
+
     it('parses plain text with double line breaks from copied HTML elements into rows', () => {
       const text = 'First Item\n\nSecond Item\n\nThird Item';
       const result = parsePasteToGrid(text);

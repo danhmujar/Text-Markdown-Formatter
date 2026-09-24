@@ -220,6 +220,9 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
             cellHtml = cellHtml.replace(/\r?\n/g, ' ').trim();
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = sanitizeHtml(cellHtml);
+            while (tempDiv.children.length === 1 && tempDiv.firstElementChild?.tagName === 'DIV') {
+              tempDiv.replaceChildren(...tempDiv.firstElementChild.childNodes);
+            }
             let cleanedCell = tempDiv.innerHTML.trim();
             cleanedCell = cleanedCell.replace(/(?:<br>\s*)+/gi, '<br>');
             if (cleanedCell.length > MAX_GRID_CELL_CHARACTERS) oversized = true;

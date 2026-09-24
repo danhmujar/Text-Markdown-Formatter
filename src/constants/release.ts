@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.8';
+export const APP_VERSION = '0.13.9';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-24',
+    title: 'Clean Google Sheets cell wrappers on paste',
+    description:
+      'Pasting multiple cells from Google Sheets now removes nested HTML div wrappers around each cell while keeping its line breaks. Copy all to Catalyst no longer exposes those wrappers as literal tags. Added regression coverage for the Sheets table paste.',
+  },
   {
     date: '2026-09-22',
     title: 'Preserve line breaks when copying typed text',
