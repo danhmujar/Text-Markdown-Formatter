@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import { sanitizeHtml } from './security/sanitize';
+import katexStyles from 'katex/dist/katex.min.css?inline';
 
 export interface SanitizeOptions {
   security?: boolean;
@@ -107,9 +108,11 @@ export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {
         Array.from(htmlEl.attributes).forEach((attr) => {
           if (
             attr.name.startsWith('data-') ||
-            attr.name.startsWith('aria-') ||
-            attr.name === 'id' ||
-            attr.name === 'class' ||
+            (attr.name.startsWith('aria-') && !htmlEl.closest('.katex')) ||
+            (attr.name === 'id' && !htmlEl.closest('.katex')) ||
+            (attr.name === 'class' &&
+              !htmlEl.closest('.katex') &&
+              !Array.from(htmlEl.classList).some((name) => name.startsWith('katex'))) ||
             attr.name === 'contenteditable' ||
             attr.name === 'tabindex' ||
             attr.name === 'spellcheck'
@@ -206,6 +209,7 @@ export async function copyFormattedTextToClipboard(
 <head>
 <meta charset="utf-8">
 <style>
+  ${katexStyles}
   /* Standard MSO and Spreadsheet fallback rules */
   body { font-family: 'Segoe UI', 'Aptos', Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1e293b; background-color: transparent; }
   ul { margin: 4pt 0; padding-left: 20pt; }

@@ -4,28 +4,28 @@ import { THEME_COLORS } from '../constants/theme';
 import { preprocessMarkdownWithTsv } from './tableConvert';
 import { sanitizeHtml } from './security/sanitize';
 import { logger } from './logger';
-
-// ponytail: support the report's known symbols; use a math renderer for arbitrary LaTeX.
-const INLINE_MATH_SYMBOLS = {
-  '\\ge': '≥',
-  '\\geq': '≥',
-  '\\text{CO}_2\\text{eq}': 'CO₂eq',
-};
+import { parseMath, renderMath } from './math';
+import 'katex/dist/katex.min.css';
 
 const markdownParser = new Marked({
   extensions: [
     {
       name: 'inlineMath',
       level: 'inline',
-      start: (source) => source.indexOf('$'),
+      start: (source) => {
+        const positions = ['$', '\\(', '\\[']
+          .map((delimiter) => source.indexOf(delimiter))
+          .filter((index) => index >= 0);
+        return positions.length ? Math.min(...positions) : undefined;
+      },
       tokenizer(source) {
-        const match = /^\$\s*(\\geq?|\\text\{CO\}_2\\text\{eq\})\s*\$/.exec(source);
-        if (!match) return;
+        const token = parseMath(source).find((candidate) => candidate.start === 0);
+        if (!token) return;
 
         return {
           type: 'inlineMath',
-          raw: match[0],
-          text: INLINE_MATH_SYMBOLS[match[1] as keyof typeof INLINE_MATH_SYMBOLS],
+          raw: token.raw,
+          text: renderMath(token),
         };
       },
       renderer(token: Tokens.Generic) {
@@ -128,6 +128,10 @@ export function buildInlineStyledHtml(
 
     // Style container
     container.style.cssText = `font-family: ${fontFam}; font-size: ${baseSize}pt; line-height: ${lineH}; color: ${textColor}; word-break: break-word;`;
+    container.querySelectorAll('.katex-display').forEach((el) => {
+      (el as HTMLElement).style.cssText =
+        'overflow-x: auto; overflow-y: hidden; max-width: 100%; color: inherit;';
+    });
 
     // Style Headings
     container.querySelectorAll('h1').forEach((el) => {

@@ -68,6 +68,7 @@ export default defineConfig(() => {
             marked: ['marked'],
             ui: ['lucide-react'],
             purify: ['dompurify'],
+            math: ['katex'],
           },
         },
       },

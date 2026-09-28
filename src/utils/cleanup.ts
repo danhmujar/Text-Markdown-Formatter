@@ -1,5 +1,6 @@
 import { isWrappedParagraph } from './textWrap';
 import { isMarkdownTable } from './tableConvert';
+import { parseMath } from './math';
 
 const WORD_CHAR_PATTERN =
   '[a-zA-Z0-9\\u00C0-\\u024F\\u1E00-\\u1EFF\\u0400-\\u04FF\\u4E00-\\u9FFF\\u3040-\\u30FF\\uAC00-\\uD7AF]';
@@ -297,7 +298,14 @@ export function smartCleanupMarkdown(
     };
   }
 
+  const mathTokens = parseMath(raw);
+  const mathSources: string[] = [];
   let text = raw;
+  for (let index = mathTokens.length - 1; index >= 0; index--) {
+    const token = mathTokens[index];
+    const id = mathSources.push(token.raw) - 1;
+    text = `${text.slice(0, token.start)}\uE000MATHSOURCE${id}\uE001${text.slice(token.end)}`;
+  }
   let fixesCount = 0;
   let spacesCleaned = false;
   let quotesStandardized = false;
@@ -577,7 +585,12 @@ export function smartCleanupMarkdown(
     }
   }
 
-  const finalCleaned = joined.trim();
+  const finalCleaned = joined
+    .trim()
+    .replace(
+      /\uE000MATHSOURCE(\d+)\uE001/g,
+      (_match, index: string) => mathSources[Number(index)] || '',
+    );
   const hasChanges = finalCleaned !== raw.trim();
 
   return {

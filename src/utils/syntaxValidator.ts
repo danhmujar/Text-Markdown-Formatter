@@ -1,4 +1,5 @@
 import { SyntaxWarning } from '../types';
+import { mathParseError, parseMath } from './math';
 
 /**
  * Analyzes a markdown text string and returns real-time warnings
@@ -10,6 +11,35 @@ export function analyzeSyntaxWarnings(text: string): SyntaxWarning[] {
   }
 
   const warnings: SyntaxWarning[] = [];
+  const mathTokens = parseMath(text);
+  const outsideCode = text
+    .replace(/^\s{0,3}(```+|~~~+)[\s\S]*?^\s{0,3}\1[^\n]*(?:\n|$)/gm, '')
+    .replace(/(`+)[\s\S]*?\1/g, '');
+  const hasUnmatchedMath =
+    (outsideCode.match(/(?<!\\)\$\$(?!\$)/g)?.length ?? 0) % 2 === 1 ||
+    (outsideCode.match(/(?<!\\)(?<!\$)\$(?!\$)/g)?.length ?? 0) % 2 === 1 ||
+    (outsideCode.match(/(?<!\\)\\\(/g)?.length ?? 0) !==
+      (outsideCode.match(/(?<!\\)\\\)/g)?.length ?? 0) ||
+    (outsideCode.match(/(?<!\\)\\\[/g)?.length ?? 0) !==
+      (outsideCode.match(/(?<!\\)\\\]/g)?.length ?? 0);
+  if (hasUnmatchedMath) {
+    warnings.push({
+      id: 'unmatched-math-delimiter',
+      severity: 'warning',
+      title: 'Unmatched Math Delimiter',
+      description: 'A math delimiter does not have a matching closing delimiter.',
+      fixSuggestion: 'Add the matching math delimiter or escape the literal character.',
+    });
+  }
+  mathTokens.filter(mathParseError).forEach((token, index) => {
+    warnings.push({
+      id: `invalid-math-${index + 1}`,
+      severity: 'warning',
+      title: 'Invalid Math Expression',
+      description: 'KaTeX could not parse this expression; its original source remains visible.',
+      snippet: token.raw.slice(0, 80),
+    });
+  });
   const lines = text.split(/\r?\n/);
 
   // 1. Check for Unclosed Code Fences (```)

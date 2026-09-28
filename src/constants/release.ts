@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.13.9';
+export const APP_VERSION = '0.14.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-28',
+    title: 'General LaTeX math rendering with KaTeX',
+    description:
+      'Preview and rich HTML copy now render the KaTeX-supported LaTeX math subset using locally bundled KaTeX, including inline and display equations, fractions, roots, scripts, symbols, matrices, and environments. Original LaTeX remains available in plain-text copy; Smart Clean protects math source, syntax warnings identify unmatched delimiters and invalid expressions, and KaTeX output is sanitized with accessible MathML. Escaped delimiters, currency-like text, and code remain literal.',
+  },
   {
     date: '2026-09-24',
     title: 'Clean Google Sheets cell wrappers on paste',

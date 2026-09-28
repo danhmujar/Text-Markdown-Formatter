@@ -24,9 +24,8 @@ describe('buildInlineStyledHtml list spacing', () => {
     const container = document.createElement('div');
     container.innerHTML = buildInlineStyledHtml(markdown, options);
 
-    expect(container.textContent?.trim()).toBe(
-      '120% for ≥120% of the index (ceiling) and $\\ge$ stays literal',
-    );
+    expect(container.querySelector('.katex-html')?.textContent?.trim()).toBe('≥');
+    expect(container.textContent).toContain('120% for');
     expect(container.querySelector('code')?.textContent).toBe('$\\ge$');
   });
 
@@ -36,9 +35,8 @@ describe('buildInlineStyledHtml list spacing', () => {
     const container = document.createElement('div');
     container.innerHTML = buildInlineStyledHtml(markdown, options);
 
-    expect(container.textContent?.trim()).toBe(
-      'Emissions fell by 14.6 Mt CO₂eq, exceeding the maximum reduction target of 8.7 Mt CO₂eq.',
-    );
+    expect(container.querySelectorAll('.katex-html')).toHaveLength(2);
+    expect(container.querySelector('.katex-html')?.textContent).toContain('CO2');
   });
 
   it('separates the final paragraph of top-level ordered items', () => {

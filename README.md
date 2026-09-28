@@ -2,12 +2,13 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.13.9**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.14.0**.
 
 ## Features
 
 - **2D Grid Editor** — grows from 1×1 to 100 rows × 50 columns, with Single, Left/Right, Top/Bottom, and 2×2 presets plus per-cell counters and toolbar actions.
 - **Live Preview** — inline-styled HTML with LRU cache (`htmlBuilder.ts:43`), per-theme colors, nested list bullets (`disc`/`circle`/`square`), and table styles that survive paste.
+- **LaTeX Math** — locally bundled KaTeX renders inline `$…$` / `\(…\)` and display `$$…$$` / `\[…\]` expressions in preview and rich HTML copy; plain text retains the original source delimiters.
 - **Smart Cleanup** (`cleanup.ts:81`) — strips zero-width chars, normalizes curly quotes, fixes headings/bullets/checkboxes/blockquotes/links, unwraps hard-wrapped PDF paragraphs, auto-closes `**bold`/`~~strike~~`/fences (skipped while typing via `{isTyping:true}`).
 - **Table & Paste Intelligence** — `tsvToMarkdownTable` converts tab-delimited pastes; `parsePasteToGrid` detects grids but avoids turning hard-wrapped prose (avg line >40 chars, no tabs) into a multi-row grid.
 - **Syntax Validator** (`syntaxValidator.ts:7`) — real-time warnings for unclosed fences, backticks, HTML tags, `**`/`~~`, broken links, empty list items, and table separator/column mismatches.
