@@ -20,6 +20,14 @@
 
 Verification order: `lint` -> `typecheck` -> `test` -> `build` -> `a11y:check` (a11y needs a built `dist` for `preview` server).
 
+## Windows sandbox execution
+
+- Keep the native Windows Codex sandbox set to `unelevated`; this managed laptop cannot provide administrator/UAC credentials. Do not change it to `elevated`.
+- If Node.js, npm, npx, Vite, Vitest, Playwright, or esbuild fails because the sandbox blocks child-process creation (for example, `spawn EPERM`), retry the exact command using a narrowly scoped per-command sandbox approval (`require_escalated`).
+- Per-command sandbox approval is not Windows administrator elevation. Do not request an administrator password, change machine security settings, or weaken the sandbox globally.
+- Keep Node.js and Git PATH additions process-local and use the portable tool locations from the global instructions.
+- Report sandbox failures separately from genuine project or test failures.
+
 ## Stack & Entrypoints
 
 - Vite 6 + React 19 + TypeScript strict (`tsconfig.json:8` `strict`, `noUnusedLocals/Parameters`, `isolatedModules`, `moduleResolution:bundler`, `jsx:react-jsx`).
