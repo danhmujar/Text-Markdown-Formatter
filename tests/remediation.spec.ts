@@ -104,6 +104,57 @@ test.describe('a11y remediation', () => {
     await expect(page.locator('#header-undo-btn')).toBeDisabled();
   });
 
+  test('table paste uses intact Markdown when rich clipboard HTML splits emphasis markers', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const textarea = page.locator('#formatter-textarea-0-0');
+    const richTable =
+      '<table><tr><td><strong>Dorte Clausen</strong></td></tr>' +
+      '<tr><td><strong>Hossein Armandi</strong></td></tr>' +
+      '<tr><td><span>**Kjartan Frisch Herrik</span> **</td></tr></table>';
+    const paste = (text: string, html: string) =>
+      textarea.evaluate(
+        (element, data) => {
+          const clipboardData = new DataTransfer();
+          clipboardData.setData('text/plain', data.text);
+          clipboardData.setData('text/html', data.html);
+          element.dispatchEvent(
+            new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }),
+          );
+        },
+        { text, html },
+      );
+
+    await paste(
+      '| Name |\n| --- |\n| **Dorte Clausen** |\n| **Hossein Armandi** |\n| **Kjartan Frisch Herrik** |',
+      richTable,
+    );
+    await expect(page.locator('#formatter-preview-0-0 table td strong')).toHaveText([
+      'Dorte Clausen',
+      'Hossein Armandi',
+      'Kjartan Frisch Herrik',
+    ]);
+
+    await page.locator('#header-clear-all-btn').click();
+    await paste('**Dorte Clausen**\n**Hossein Armandi**\n**Kjartan Frisch Herrik**', richTable);
+    await expect(page.locator('#formatter-preview-2-0 strong')).toHaveText(
+      'Kjartan Frisch Herrik',
+    );
+
+    await page.locator('#header-clear-all-btn').click();
+    const originalTable =
+      '| Name | Status | Notes |\n| --- | --- | --- |\n' +
+      '| **Rita Balice-Gordon** | *(Blank)* | Post-FYE joiner; captured in Compensation Notes. |\n' +
+      '| **Kjartan Frisch Herrik** | **[REMOVE ROW]** | Not disclosed in any authoritative source. |';
+    await paste(originalTable, richTable);
+    await expect(
+      page.locator('#formatter-preview-0-0 table tbody tr').last().locator('strong'),
+    ).toHaveText(['Kjartan Frisch Herrik', '[REMOVE ROW]']);
+    await page.locator('#toggle-edit-mode-0-0').click();
+    await expect(textarea).toHaveValue(originalTable);
+  });
+
   test('remote and oversized paste inputs stay inside resource boundaries', async ({ page }) => {
     const remoteRequests: string[] = [];
     page.on('request', (request) => {

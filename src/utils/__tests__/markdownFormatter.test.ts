@@ -27,6 +27,24 @@ describe('smartCleanupMarkdown', () => {
     expect(smartCleanupMarkdown(table).cleaned).toBe(table);
   });
 
+  it('preserves adjacent bold cells in a pasted Markdown table', () => {
+    const table =
+      '| **Rita Balice-Gordon** | *(Blank)* | Post-FYE joiner; captured in Compensation Notes. |\n| **Kjartan Frisch Herrik** | **[REMOVE ROW]** | Not disclosed in any authoritative source. |';
+
+    expect(smartCleanupMarkdown(table).cleaned).toBe(table);
+  });
+
+  it('keeps whitespace between neighboring formatted spans and table cells', () => {
+    const valid = '**First** and **Second**; __One__ and __Two__; ~~Old~~ and ~~Older~~';
+    const row = '| **Name** | **[REMOVE ROW]** | *Note* | *Other* | ~~Old~~ | ~~Older~~ |';
+
+    expect(smartCleanupMarkdown(valid).cleaned).toBe(valid);
+    expect(smartCleanupMarkdown(row).cleaned).toBe(row);
+    expect(smartCleanupMarkdown('** bold ** __ bold __ ~~ strike ~~').cleaned).toBe(
+      '**bold** __bold__ ~~strike~~',
+    );
+  });
+
   it('repairs missing outer pipes in confirmed markdown table blocks', () => {
     const malformedTable = 'Header | Value\n:--- | :---\nOne | Two';
 
@@ -87,6 +105,46 @@ describe('smartCleanupMarkdown', () => {
   it('fixes missing spaces around italic and strikethrough delimiters', () => {
     const report = smartCleanupMarkdown('Check*this*out and ~~old~~new text');
     expect(report.cleaned).toBe('Check *this* out and ~~old~~ new text');
+  });
+
+  it('repairs one-sided inner spaces in bold, italic, and strikethrough table cells', () => {
+    expect(smartCleanupMarkdown('**Kjartan Frisch Herrik **').cleaned).toBe(
+      '**Kjartan Frisch Herrik**',
+    );
+    const table =
+      '| Name | Emphasis | Removed |\n| --- | --- | --- |\n| **Kjartan Frisch Herrik ** | *italic text * | ~~removed text ~~ |';
+
+    const report = smartCleanupMarkdown(table);
+    expect(report.cleaned).toBe(
+      '| Name | Emphasis | Removed |\n| --- | --- | --- |\n| **Kjartan Frisch Herrik** | *italic text* | ~~removed text~~ |',
+    );
+    expect(report.details.markdownFixed).toBe(true);
+  });
+
+  it('repairs opening and both-sided inner spaces without changing adjacent spans', () => {
+    expect(smartCleanupMarkdown('** name** * name* ~~ name~~').cleaned).toBe(
+      '**name** *name* ~~name~~',
+    );
+    expect(smartCleanupMarkdown('** name ** * name * ~~ name ~~').cleaned).toBe(
+      '**name** *name* ~~name~~',
+    );
+    const valid = '**Compensation**, **Membership**; *first*, *second*; ~~old~~, ~~older~~';
+    expect(smartCleanupMarkdown(valid).cleaned).toBe(valid);
+    expect(smartCleanupMarkdown('**first **, **second**; *one *, *two*').cleaned).toBe(
+      '**first**, **second**; *one*, *two*',
+    );
+  });
+
+  it('leaves inline code, escaped markers, and valid table padding alone', () => {
+    const table = '| **Bold** | *Italic* | ~~Strike~~ |\n| --- | --- | --- |';
+    expect(smartCleanupMarkdown(table).cleaned).toBe(table);
+    expect(smartCleanupMarkdown('`**literal **` and `*literal *` and `~~literal ~~`').cleaned).toBe(
+      '`**literal **` and `*literal *` and `~~literal ~~`',
+    );
+    expect(smartCleanupMarkdown('\\**literal ** and \\*literal *').cleaned).toBe(
+      '\\**literal ** and \\*literal *',
+    );
+    expect(smartCleanupMarkdown('** ** * * ~~ ~~').cleaned).toBe('** ** * * ~~ ~~');
   });
 
   it('preserves valid multiline bold and strikethrough', () => {

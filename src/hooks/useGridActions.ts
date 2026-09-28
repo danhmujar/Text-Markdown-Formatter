@@ -4,6 +4,7 @@ import {
   parsePasteToGrid,
   isGridWithinLimits,
   isPasteWithinLimits,
+  isMarkdownTable,
   sanitizeInputText,
   smartCleanupMarkdown,
   convertBrToNewlines,
@@ -131,7 +132,7 @@ export function useGridActions({
         return true;
       }
 
-      if (parsedMatrix === null && html && html.includes('<table')) {
+      if (parsedMatrix === null && html && html.includes('<table') && !isMarkdownTable(text)) {
         logger.warn('Table parse failed, using text fallback');
         showToast('Table parse failed, using text fallback', 'error');
       }

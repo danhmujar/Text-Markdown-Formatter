@@ -8,6 +8,7 @@ import {
   tsvToMarkdownTable,
 } from '../tableConvert';
 import { smartCleanupMarkdown } from '../cleanup';
+import { buildInlineStyledHtml } from '../htmlBuilder';
 
 describe('Pillar 3: Reliability & Edge Cases', () => {
   describe('parsePasteToGrid', () => {
@@ -61,6 +62,23 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
       expect(parsePasteToGrid(markdownTable)).toBeNull();
     });
 
+    it('keeps the plain-text Markdown table when rich clipboard HTML differs', () => {
+      const text =
+        '| Name |\n| --- |\n| **Dorte Clausen** |\n| **Hossein Armandi** |\n| **Kjartan Frisch Herrik** |';
+      const html =
+        '<table><tr><th>Name</th></tr><tr><td><strong>Dorte Clausen</strong></td></tr>' +
+        '<tr><td><strong>Hossein Armandi</strong></td></tr>' +
+        '<tr><td><span>**Kjartan Frisch Herrik</span> **</td></tr></table>';
+
+      expect(parsePasteToGrid(text, html)).toBeNull();
+      const preview = document.createElement('div');
+      preview.innerHTML = buildInlineStyledHtml(smartCleanupMarkdown(text).cleaned);
+      expect(
+        Array.from(preview.querySelectorAll('td strong'), (strong) => strong.textContent),
+      ).toEqual(['Dorte Clausen', 'Hossein Armandi', 'Kjartan Frisch Herrik']);
+      expect(preview.textContent).not.toContain('**');
+    });
+
     it('still parses short column data as grid (avg <40)', () => {
       const result = parsePasteToGrid('apple\nbanana\ncherry');
       expect(result).toEqual([['apple'], ['banana'], ['cherry']]);
@@ -91,6 +109,37 @@ describe('Pillar 3: Reliability & Edge Cases', () => {
         '<table><tr><td><div><div>First<br>Second</div></div></td><td>Other</td></tr></table>';
       expect(parsePasteToGrid('First\nSecond\tOther', html)).toEqual([
         ['First<br>Second', 'Other'],
+      ]);
+    });
+
+    it('uses intact plain Markdown in matching HTML table cells and renders the pasted name bold', () => {
+      const text = '**Dorte Clausen**\n**Hossein Armandi**\n**Kjartan Frisch Herrik**';
+      const html =
+        '<table><tr><td><strong>Dorte Clausen</strong></td></tr>' +
+        '<tr><td><strong>Hossein Armandi</strong></td></tr>' +
+        '<tr><td><span>**Kjartan Frisch Herrik</span> **</td></tr></table>';
+      const grid = parsePasteToGrid(text, html);
+
+      expect(grid).toEqual([
+        ['<strong>Dorte Clausen</strong>'],
+        ['<strong>Hossein Armandi</strong>'],
+        ['**Kjartan Frisch Herrik**'],
+      ]);
+      const preview = document.createElement('div');
+      preview.innerHTML = buildInlineStyledHtml(smartCleanupMarkdown(grid![2][0]).cleaned);
+      expect(preview.querySelector('strong')?.textContent).toBe('Kjartan Frisch Herrik');
+      expect(preview.textContent).not.toContain('**');
+    });
+
+    it('retains HTML cell formatting when plain text does not match or lacks Markdown markers', () => {
+      const html = '<table><tr><td><strong>First</strong></td></tr><tr><td>Second</td></tr></table>';
+      expect(parsePasteToGrid('First\nSecond', html)).toEqual([
+        ['<strong>First</strong>'],
+        ['Second'],
+      ]);
+      expect(parsePasteToGrid('Different\nSecond', html)).toEqual([
+        ['<strong>First</strong>'],
+        ['Second'],
       ]);
     });
 

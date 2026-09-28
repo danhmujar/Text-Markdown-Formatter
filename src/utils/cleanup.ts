@@ -442,34 +442,48 @@ export function smartCleanupMarkdown(
       fixesCount++;
     }
 
-    // H. Fix Bold & Italic spacing glitches (e.g. ** bold ** -> **bold**, __ text __ -> __text__)
-    if (/\*\*\s+([^\*]+?)\s+\*\*/.test(line)) {
-      line = line.replace(/\*\*\s+([^\*]+?)\s+\*\*/g, '**$1**');
-      markdownFixed = true;
-      fixesCount++;
-    }
-    if (/__\s+([^_]+?)\s+__/.test(line)) {
-      line = line.replace(/__\s+([^_]+?)\s+__/g, '__$1__');
-      markdownFixed = true;
-      fixesCount++;
-    }
-    if (/~~\s+([^~]+?)\s+~~/.test(line)) {
-      line = line.replace(/~~\s+([^~]+?)\s+~~/g, '~~$1~~');
-      markdownFixed = true;
-      fixesCount++;
-    }
-
-    // Fix missing boundary spaces around inline markdown formatting (bold, italic, strikethrough)
+    // H. Fix spacing inside complete emphasis pairs and at their word boundaries.
     // Handles cases like "Portion:**The" -> "Portion:** The", "Court**AFFIRMED" -> "Court **AFFIRMED",
     // "**MODIFICATION**the" -> "**MODIFICATION** the", "found**GUILTY" -> "found **GUILTY",
     // "**Title**:Text" -> "**Title**: Text"
     const codeSpans: string[] = [];
     let tempLine = line.replace(/`[^`\n]+`/g, (m) => {
       codeSpans.push(m);
-      return `__INLINE_CODE_SPAN_${codeSpans.length - 1}__`;
+      return `\uE002CODESPAN${codeSpans.length - 1}\uE003`;
     });
 
     const beforeFormatSpacing = tempLine;
+
+    // Repair whitespace inside complete emphasis pairs. Do not cross another
+    // delimiter: adjacent valid spans must keep the spaces between them.
+    tempLine = tempLine.replace(
+      /(?<![\\*])\*\*(?!\*)([^*\n]+)\*\*(?!\*)/g,
+      (match, content: string) => {
+        const trimmed = content.replace(/^[ \t]+|[ \t]+$/g, '');
+        return trimmed ? `**${trimmed}**` : match;
+      },
+    );
+    tempLine = tempLine.replace(
+      /(?<![\\_])__(?!_)([^_\n]+)__(?!_)/g,
+      (match, content: string) => {
+        const trimmed = content.replace(/^[ \t]+|[ \t]+$/g, '');
+        return trimmed ? `__${trimmed}__` : match;
+      },
+    );
+    tempLine = tempLine.replace(
+      /(?<![\\*])\*(?!\*)([^*\n]+)\*(?!\*)/g,
+      (match, content: string) => {
+        const trimmed = content.replace(/^[ \t]+|[ \t]+$/g, '');
+        return trimmed ? `*${trimmed}*` : match;
+      },
+    );
+    tempLine = tempLine.replace(
+      /(?<![\\~])~~(?!~)([^~\n]+)~~(?!~)/g,
+      (match, content: string) => {
+        const trimmed = content.replace(/^[ \t]+|[ \t]+$/g, '');
+        return trimmed ? `~~${trimmed}~~` : match;
+      },
+    );
 
     // A. Triple asterisks (***bold italic***)
     tempLine = tempLine.replace(RE_TRIPLE_STAR_LEFT, '$1 ***$2***');
@@ -499,7 +513,7 @@ export function smartCleanupMarkdown(
     // Restore inline code spans
     if (codeSpans.length > 0) {
       tempLine = tempLine.replace(
-        /__INLINE_CODE_SPAN_(\d+)__/g,
+        /\uE002CODESPAN(\d+)\uE003/g,
         (_, idx) => codeSpans[parseInt(idx, 10)] || '',
       );
     }

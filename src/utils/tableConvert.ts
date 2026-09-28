@@ -174,6 +174,36 @@ export function preprocessMarkdownWithTsv(raw: string): string {
   return result.join('\n');
 }
 
+function restorePlainMarkdownCells(rows: string[][], plainText: string): string[][] {
+  if (!plainText || !/[*~]/.test(plainText)) return rows;
+
+  const lines = plainText.replace(/\r\n?/g, '\n').split('\n');
+  while (lines.length > 1 && !lines[lines.length - 1].trim()) lines.pop();
+  if (lines.length !== rows.length) return rows;
+
+  const plainRows = lines.map((line) => line.split('\t').map((cell) => cell.trim()));
+  if (plainRows.some((row, index) => row.length !== rows[index].length)) return rows;
+
+  return rows.map((row, rowIndex) =>
+    row.map((htmlCell, colIndex) => {
+      const plainCell = plainRows[rowIndex][colIndex];
+      if (!/(?:\*\*[^*\n]+\*\*|(?<!\*)\*[^*\n]+\*(?!\*)|~~[^~\n]+~~)/.test(plainCell)) {
+        return htmlCell;
+      }
+
+      const fragment = document.createElement('div');
+      fragment.innerHTML = htmlCell;
+      const htmlText = fragment.textContent?.trim() ?? '';
+      // A rich clipboard cell can split literal Markdown markers across spans.
+      // Use the intact text/plain cell only when both versions contain the same
+      // non-whitespace characters; keep unrelated HTML formatting intact.
+      return /[*~]/.test(htmlText) && plainCell.replace(/\s/g, '') === htmlText.replace(/\s/g, '')
+        ? plainCell
+        : htmlCell;
+    }),
+  );
+}
+
 function hasBrTags(text: string): boolean {
   if (!text) return false;
   return /<br\s*\/?>/i.test(text);
@@ -181,6 +211,9 @@ function hasBrTags(text: string): boolean {
 
 export function parsePasteToGrid(text: string, html?: string): string[][] | null {
   if (!isPasteWithinLimits(text)) return null;
+  // A Markdown table is already a complete document. Rich clipboard HTML may
+  // represent the same table with different whitespace or split inline spans.
+  if (isMarkdownTable(text)) return null;
   const safeHtml = html && html.length <= MAX_GRID_TOTAL_CHARACTERS ? html : undefined;
 
   // First check HTML table or row fragments if available
@@ -236,11 +269,12 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
           let maxCols = 1;
           for (const row of rows) maxCols = Math.max(maxCols, row.length);
           if (rows.length > 1 || maxCols > 1) {
-            return rows.map((r) => {
+            const normalizedRows = rows.map((r) => {
               const copy = [...r];
               while (copy.length < maxCols) copy.push('');
               return copy;
             });
+            return restorePlainMarkdownCells(normalizedRows, text);
           }
         }
       }

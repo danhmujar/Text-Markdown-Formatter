@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.14.2';
+export const APP_VERSION = '0.14.3';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-28',
+    title: 'Preserve Markdown spacing between adjacent table cells',
+    description:
+      'Pasting Markdown tables no longer collapses the boundary between adjacent formatted cells or moves spaces inside emphasis markers. Cleanup now repairs whitespace only within complete bold, italic, and strikethrough spans, while table paste preserves intact plain-text Markdown when rich HTML splits formatting markers.',
+  },
   {
     date: '2026-09-28',
     title: 'Streamlined Smart Cleanup controls',
