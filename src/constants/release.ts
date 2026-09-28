@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.14.1';
+export const APP_VERSION = '0.14.2';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-28',
+    title: 'Streamlined Smart Cleanup controls',
+    description:
+      'Removed the workspace-wide Smart Cleanup button because common cleanup is already handled automatically. Per-cell Smart Cleanup remains available when you want to manually clean a specific cell.',
+  },
   {
     date: '2026-09-28',
     title: 'General LaTeX math rendering with KaTeX',

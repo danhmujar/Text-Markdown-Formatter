@@ -103,26 +103,6 @@ export function useGridActions({
     [getCellLabel, handleCellChange, showCleanupNotification],
   );
 
-  const handleSmartCleanupAll = useCallback(() => {
-    let totalFixes = 0;
-    const nextGrid = gridRef.current.map((row) =>
-      row.map((cell) => {
-        if (!cell.trim()) return cell;
-        const report = smartCleanupMarkdown(cell);
-        totalFixes += report.fixesCount;
-        return report.cleaned;
-      }),
-    );
-    if (totalFixes > 0) {
-      onChangeGrid(nextGrid, false);
-      showCleanupNotification(
-        `Smart Cleanup: Standardized quotes, spaces & syntax (${totalFixes} fixes)`,
-      );
-      return;
-    }
-    showCleanupNotification('All markdown text is already clean and standardized');
-  }, [onChangeGrid, showCleanupNotification]);
-
   const handlePasteOnCell = useCallback(
     (
       event: ReactClipboardEvent<HTMLTextAreaElement>,
@@ -260,7 +240,6 @@ export function useGridActions({
     handleCellChange,
     handleClearCell,
     handleSmartCleanupCell,
-    handleSmartCleanupAll,
     handlePasteOnCell,
     setSingleLayout,
     setLeftRightLayout,

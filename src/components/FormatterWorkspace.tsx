@@ -52,7 +52,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
       totalStats,
       handleCellChange,
       handleClearCell,
-      handleSmartCleanupAll,
       handlePasteOnCell,
       setSingleLayout,
       setLeftRightLayout,
@@ -179,20 +178,6 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
           </div>
 
           <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5 sm:mt-0">
-            <button
-              type="button"
-              onClick={handleSmartCleanupAll}
-              disabled={totalStats.totalChars === 0}
-              className={`flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-9 ${BUTTON_VARIANTS.disabledMuted}`}
-              style={{
-                backgroundColor: 'var(--accent-bg)',
-                borderColor: 'var(--accent-border)',
-                color: 'var(--primary-blue)',
-              }}
-            >
-              <Sparkles aria-hidden="true" className="h-3.5 w-3.5" />
-              <span>Smart Cleanup</span>
-            </button>
             <div ref={settingsRef} className="relative">
               <button
                 ref={settingsTriggerRef}
