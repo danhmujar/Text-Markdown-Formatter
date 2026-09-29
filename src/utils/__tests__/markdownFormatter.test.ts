@@ -34,6 +34,13 @@ describe('smartCleanupMarkdown', () => {
     expect(smartCleanupMarkdown(table).cleaned).toBe(table);
   });
 
+  it('preserves adjacent bold spans separated by HTML line breaks inside a table cell', () => {
+    const table =
+      '| Measure | Summary |\n| :--- | :--- |\n| FY | **Quantifiable criteria:**<br>(i) Debt;<br><br>**Individual criteria:**<br>(ii) Strategy. |';
+
+    expect(smartCleanupMarkdown(table).cleaned).toBe(table);
+  });
+
   it('keeps whitespace between neighboring formatted spans and table cells', () => {
     const valid = '**First** and **Second**; __One__ and __Two__; ~~Old~~ and ~~Older~~';
     const row = '| **Name** | **[REMOVE ROW]** | *Note* | *Other* | ~~Old~~ | ~~Older~~ |';
@@ -160,6 +167,15 @@ describe('smartCleanupMarkdown', () => {
 });
 
 describe('isMarkdownTable and prepareCopiedText', () => {
+  it('preserves literal br tags in inline code while converting prose breaks', () => {
+    const input = 'Use `<br>` for line breaks.<br>Next paragraph.';
+
+    expect(convertBrToNewlines(input)).toBe('Use `<br>` for line breaks.\nNext paragraph.');
+    expect(convertBrToNewlines('Use `<br>` for line breaks.')).toBe(
+      'Use `<br>` for line breaks.',
+    );
+  });
+
   it('detects valid markdown tables accurately', () => {
     const table = '| Header 1 | Header 2 |\n| :--- | :--- |\n| Cell 1 | Cell 2 |';
     expect(isMarkdownTable(table)).toBe(true);

@@ -23,7 +23,7 @@ const RE_DOUBLE_STAR_LEFT = new RegExp(
   'gu',
 );
 const RE_DOUBLE_STAR_RIGHT = new RegExp(
-  `(?<!\\*)\\*\\*(?!\\s|\\*)([^\\*\\n]+?)(?<!\\s|\\*)\\*\\*(?!\\*)(${WORD_CHAR_PATTERN})`,
+  `(?<!\\*)\\*\\*(?!\\s|\\*)([^\\*<|\\n]+?)(?<!\\s|\\*)\\*\\*(?!\\*)(${WORD_CHAR_PATTERN})`,
   'gu',
 );
 const RE_DOUBLE_STAR_COLON = new RegExp(
@@ -109,7 +109,16 @@ export function convertBrToNewlines(text: string): string {
   if (!text) return '';
   if (!hasBrTags(text)) return text;
 
-  const lines = text.split(/\r?\n/);
+  const codeSpans: string[] = [];
+  const protectedText = text.replace(/`[^`\r\n]+`/g, (span) => {
+    codeSpans.push(span);
+    return `\uE002CODESPAN${codeSpans.length - 1}\uE003`;
+  });
+  if (!hasBrTags(protectedText)) return text;
+  const restoreCodeSpans = (value: string) =>
+    value.replace(/\uE002CODESPAN(\d+)\uE003/g, (_, index: string) => codeSpans[Number(index)]);
+
+  const lines = protectedText.split(/\r?\n/);
   let inCodeBlock = false;
   const out: string[] = [];
 
@@ -137,9 +146,9 @@ export function convertBrToNewlines(text: string): string {
   result = result.replace(/<br\s*\/?>\r?\n/gi, '\n').replace(/<br\s*\/?>/gi, '\n');
   const tableLines = result.split('\n').filter((l) => l.trim().startsWith('|'));
   if (tableLines.length >= 2) {
-    return out.join('\n');
+    return restoreCodeSpans(out.join('\n'));
   }
-  return result;
+  return restoreCodeSpans(result);
 }
 
 /**

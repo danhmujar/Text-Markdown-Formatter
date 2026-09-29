@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.14.3';
+export const APP_VERSION = '0.14.4';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-09-29',
+    title: 'Preserve Markdown table emphasis and literal line-break examples',
+    description:
+      'Pasted Markdown tables now keep adjacent bold spans separated by <br> tags intact, and inline-code examples such as `<br>` stay literal when output line breaks are normalized. Added regression coverage for both cases.',
+  },
   {
     date: '2026-09-28',
     title: 'Preserve Markdown spacing between adjacent table cells',

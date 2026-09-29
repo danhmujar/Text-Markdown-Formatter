@@ -202,7 +202,11 @@ test('configures repository-local hooks and rejects non-Git directories', () => 
   try {
     writeFixture(rootDir);
     git(rootDir, ['init', '-q']);
-    assert.equal(configureGitHooks(rootDir), rootDir);
+    const configuredRoot = configureGitHooks(rootDir);
+    assert.deepEqual(
+      [fs.statSync(configuredRoot).dev, fs.statSync(configuredRoot).ino],
+      [fs.statSync(rootDir).dev, fs.statSync(rootDir).ino],
+    );
     assert.equal(git(rootDir, ['config', '--local', 'core.hooksPath']).trim(), '.githooks');
     assert.throws(() => configureGitHooks(outsideDir));
   } finally {
