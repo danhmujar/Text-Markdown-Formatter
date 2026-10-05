@@ -52,6 +52,10 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
     }
 
     const kindLabel = lineKindLabel(line.kind);
+    const changedWordClass =
+      side === 'left'
+        ? 'rounded-sm bg-[var(--diff-removed-word-bg)]'
+        : 'rounded-sm bg-[var(--diff-added-word-bg)]';
 
     return (
       <div
@@ -68,7 +72,7 @@ export const ComparisonResult: React.FC<ComparisonResultProps> = ({
             <span
               key={`${segmentIndex}-${segment.text}`}
               data-diff-segment={segment.changed ? 'changed' : 'same'}
-              className={segment.changed ? 'rounded-sm bg-[var(--diff-highlight-bg)]' : ''}
+              className={segment.changed ? changedWordClass : ''}
             >
               {segment.text}
             </span>

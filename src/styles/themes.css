@@ -13,7 +13,8 @@
   --warning-bg: #fffbeb;
   --warning-border: #fcd34d;
   --success-color: #047857;
-  --diff-highlight-bg: #fde68a;
+  --diff-removed-word-bg: #fca5a5;
+  --diff-added-word-bg: #86efac;
   --font-sans: 'Google Sans Flex', system-ui, -apple-system, sans-serif;
 }
 
@@ -32,7 +33,8 @@ body.dark-theme {
   --warning-bg: #451a03;
   --warning-border: #b45309;
   --success-color: #6ee7b7;
-  --diff-highlight-bg: #854d0e;
+  --diff-removed-word-bg: #991b1b;
+  --diff-added-word-bg: #166534;
 }
 
 /* 1. Transformative Teal — 50% lighter (5% darken) */

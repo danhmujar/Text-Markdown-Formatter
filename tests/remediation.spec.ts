@@ -221,12 +221,14 @@ test.describe('a11y remediation', () => {
           primary: styles.getPropertyValue('--primary-blue').trim(),
           primaryForeground: styles.getPropertyValue('--primary-foreground').trim(),
           border: styles.getPropertyValue('--border-color').trim(),
-          diff: styles.getPropertyValue('--diff-highlight-bg').trim(),
+          diffRemovedWord: styles.getPropertyValue('--diff-removed-word-bg').trim(),
+          diffAddedWord: styles.getPropertyValue('--diff-added-word-bg').trim(),
         };
       }, theme);
       expect(contrastRatio(colors.primaryForeground, colors.primary)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(colors.border, colors.panel)).toBeGreaterThanOrEqual(3);
-      expect(contrastRatio(colors.text, colors.diff)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(colors.text, colors.diffRemovedWord)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(colors.text, colors.diffAddedWord)).toBeGreaterThanOrEqual(4.5);
     }
 
     await page.evaluate(() => {

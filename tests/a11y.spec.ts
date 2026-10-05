@@ -167,10 +167,16 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(rows.nth(0).locator('[data-diff-segment="changed"]')).toHaveCount(2);
     await expect(
       rows.nth(0).locator('[data-diff-side="left"] [data-diff-segment="changed"]'),
-    ).toHaveClass(/bg-\[var\(--diff-highlight-bg\)\]/);
+    ).toHaveClass(/bg-\[var\(--diff-removed-word-bg\)\]/);
     await expect(
       rows.nth(0).locator('[data-diff-side="right"] [data-diff-segment="changed"]'),
-    ).toHaveClass(/bg-\[var\(--diff-highlight-bg\)\]/);
+    ).toHaveClass(/bg-\[var\(--diff-added-word-bg\)\]/);
+    await expect(
+      rows.nth(0).locator('[data-diff-side="left"][data-diff-kind="removed"]'),
+    ).not.toHaveAttribute('style', /--diff-(removed|added)-line-bg/);
+    await expect(
+      rows.nth(0).locator('[data-diff-side="right"][data-diff-kind="added"]'),
+    ).not.toHaveAttribute('style', /--diff-(removed|added)-line-bg/);
     await expect(rows.nth(0).locator('[aria-hidden="true"]')).toHaveCount(0);
     await expect(rows.nth(0).locator('[data-diff-side="left"]')).not.toHaveClass(
       /bg-(emerald|rose)-500/,
