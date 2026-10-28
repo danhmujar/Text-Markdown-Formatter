@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Check, ChevronDown, Copy, Settings2, Sparkles } from 'lucide-react';
-import type { StyleOptions } from '../types';
+import type { PasteBehavior, StyleOptions } from '../types';
 import { convertBrToNewlines, isMarkdownTable } from '../utils/markdownFormatter';
 import { useGridActions } from '../hooks/useGridActions';
 import { useFormatterActions } from '../hooks/useFormatterActions';
@@ -9,6 +9,10 @@ import { BUTTON_VARIANTS } from './ui';
 import { EditorSettingsPanel } from './ui/EditorSettingsPanel';
 
 interface FormatterWorkspaceProps {
+  editing: boolean;
+  onEditingChange: (editing: boolean) => void;
+  pasteBehavior: PasteBehavior;
+  onPasteBehaviorChange: (behavior: PasteBehavior) => void;
   grid: string[][];
   preserveBr: boolean[][];
   options: StyleOptions;
@@ -23,6 +27,10 @@ interface FormatterWorkspaceProps {
 
 export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
   function FormatterWorkspace({
+    editing,
+    onEditingChange,
+    pasteBehavior,
+    onPasteBehaviorChange,
     grid,
     preserveBr,
     options,
@@ -63,10 +71,8 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
     } = useGridActions({ grid, onChangeGrid, onCommitPaste, numRows, numCols });
 
     const {
-      cellModes,
       cellFeedback,
       textareaRefs,
-      setCellMode,
       handleApplyNumbering,
       handleApplyInlineFormat,
       handleSmartCleanCell,
@@ -107,30 +113,33 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
       [textareaRefs],
     );
 
-    const changeMode = useCallback(
-      (rowIndex: number, colIndex: number, mode: 'preview' | 'edit') => {
-        const cellId = `${rowIndex}-${colIndex}`;
-        setCellMode(cellId, mode);
-        if (mode === 'edit') setTimeout(() => textareaRefs.current[cellId]?.focus(), 0);
-      },
-      [setCellMode, textareaRefs],
-    );
-
     const handleCellPaste = useCallback(
       (event: React.ClipboardEvent<HTMLTextAreaElement>, rowIndex: number, colIndex: number) => {
-        if (handlePasteOnCell(event, rowIndex, colIndex)) {
-          setCellMode(`${rowIndex}-${colIndex}`, 'preview');
-        }
+        const result = handlePasteOnCell(
+          event,
+          rowIndex,
+          colIndex,
+          editing ? pasteBehavior : 'split-cells',
+          !editing,
+        );
+        if (!result || !editing) return;
+        const target = result.cursor === undefined ? '0-0' : `${rowIndex}-${colIndex}`;
+        setTimeout(() => {
+          const textarea = textareaRefs.current[target];
+          textarea?.focus();
+          if (result.cursor !== undefined)
+            textarea?.setSelectionRange(result.cursor, result.cursor);
+        }, 0);
       },
-      [handlePasteOnCell, setCellMode],
+      [handlePasteOnCell, pasteBehavior, editing, textareaRefs],
     );
 
     const handleCellInput = useCallback(
       (rowIndex: number, colIndex: number, value: string) => {
-        setCellMode(`${rowIndex}-${colIndex}`, 'edit');
+        onEditingChange(true);
         handleCellChange(rowIndex, colIndex, value, true);
       },
-      [handleCellChange, setCellMode],
+      [handleCellChange, onEditingChange],
     );
 
     return (
@@ -173,11 +182,32 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
               )}
             </div>
             <p className="mt-0.5 max-w-prose text-xs leading-5 text-[var(--text-secondary)]">
-              Paste wrapped text. Accidental line breaks are removed; intentional structure stays.
+              Paste and edit your text. Use Clean to remove accidental line breaks, then Preview to
+              review formatting.
             </p>
           </div>
 
           <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5 sm:mt-0">
+            <button
+              type="button"
+              onClick={() => onEditingChange(!editing)}
+              className="min-h-11 rounded-md bg-[var(--primary-blue)] px-3 text-xs font-medium text-[var(--primary-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)] focus-visible:ring-offset-2 sm:min-h-9"
+            >
+              {editing ? 'Preview' : 'Edit'}
+            </button>
+            {editing && (
+              <label className="flex items-center gap-2 text-xs">
+                <span>Paste behavior</span>
+                <select
+                  value={pasteBehavior}
+                  onChange={(event) => onPasteBehaviorChange(event.target.value as PasteBehavior)}
+                  className="min-h-11 rounded-md border border-[var(--border-color)] bg-[var(--surface-bg)] px-2 text-[var(--text-primary)] sm:min-h-9"
+                >
+                  <option value="single-cell">Keep in one cell</option>
+                  <option value="split-cells">Split into cells</option>
+                </select>
+              </label>
+            )}
             <div ref={settingsRef} className="relative">
               <button
                 ref={settingsTriggerRef}
@@ -263,11 +293,11 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     content={content}
                     inputHadBr={Boolean(preserveBr[rowIndex]?.[colIndex]) && !isTable}
                     options={options}
-                    mode={cellModes[cellId] ?? 'preview'}
+                    mode={editing ? 'edit' : 'preview'}
                     isCopied={copiedCell === cellId}
                     feedback={cellFeedback[cellId] ?? null}
                     registerTextarea={registerTextarea}
-                    onModeChange={changeMode}
+                    onModeChange={() => {}}
                     onClear={handleClearCell}
                     onCopy={onCopyCell}
                     onKeyDown={handleTextareaKeyDown}

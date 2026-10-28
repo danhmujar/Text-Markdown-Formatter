@@ -4,16 +4,7 @@ import type {
   ClipboardEvent as ReactClipboardEvent,
   KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import {
-  AlertTriangle,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Edit3,
-  Eye,
-  Trash2,
-} from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, ChevronUp, Copy, Trash2 } from 'lucide-react';
 import type { StyleOptions } from '../types';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
 import {
@@ -22,8 +13,6 @@ import {
   ListTerminator,
   NumberingFormat,
 } from '../utils/markdownFormatter';
-import { cn } from '../utils/cn';
-import { BUTTON_VARIANTS } from './ui';
 import { EditToolbar } from './EditToolbar';
 
 interface FormatterCellProps {
@@ -75,7 +64,6 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
   label,
   showLabel,
   registerTextarea,
-  onModeChange,
   onClear,
   onCopy,
   onKeyDown,
@@ -169,28 +157,6 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
           </div>
 
           <div className="flex min-w-0 flex-nowrap items-center justify-end gap-1.5 overflow-x-auto">
-            {content && (
-              <button
-                id={`toggle-edit-mode-${rowIndex}-${colIndex}`}
-                type="button"
-                onClick={() => onModeChange(rowIndex, colIndex, isEditMode ? 'preview' : 'edit')}
-                aria-label={isEditMode ? `Preview ${label}` : `Edit ${label}`}
-                aria-pressed={isEditMode}
-                className={cn(
-                  'flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-8',
-                  isEditMode
-                    ? 'border-[var(--primary-blue)] bg-[var(--primary-blue)] text-[var(--primary-foreground)]'
-                    : BUTTON_VARIANTS.neutralOnSurface,
-                )}
-              >
-                {isEditMode ? (
-                  <Eye aria-hidden="true" className="h-3 w-3" />
-                ) : (
-                  <Edit3 aria-hidden="true" className="h-3 w-3" />
-                )}
-                <span>{isEditMode ? 'Preview' : 'Edit'}</span>
-              </button>
-            )}
             {content && (
               <button
                 type="button"

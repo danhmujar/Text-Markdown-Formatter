@@ -137,21 +137,25 @@ test.describe('a11y remediation', () => {
     ]);
 
     await page.locator('#header-clear-all-btn').click();
+    await page.getByRole('button', { name: 'Edit', exact: true }).click();
+    await page.getByLabel('Paste behavior').selectOption('split-cells');
     await paste('**Dorte Clausen**\n**Hossein Armandi**\n**Kjartan Frisch Herrik**', richTable);
-    await expect(page.locator('#formatter-preview-2-0 strong')).toHaveText(
-      'Kjartan Frisch Herrik',
-    );
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    await expect(page.locator('#formatter-preview-2-0 strong')).toHaveText('Kjartan Frisch Herrik');
 
     await page.locator('#header-clear-all-btn').click();
+    await page.getByRole('button', { name: 'Edit', exact: true }).click();
+    await page.getByLabel('Paste behavior').selectOption('single-cell');
     const originalTable =
       '| Name | Status | Notes |\n| --- | --- | --- |\n' +
       '| **Rita Balice-Gordon** | *(Blank)* | Post-FYE joiner; captured in Compensation Notes. |\n' +
       '| **Kjartan Frisch Herrik** | **[REMOVE ROW]** | Not disclosed in any authoritative source. |';
     await paste(originalTable, richTable);
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await expect(
       page.locator('#formatter-preview-0-0 table tbody tr').last().locator('strong'),
     ).toHaveText(['Kjartan Frisch Herrik', '[REMOVE ROW]']);
-    await page.locator('#toggle-edit-mode-0-0').click();
+    await page.getByRole('button', { name: 'Edit', exact: true }).click();
     await expect(textarea).toHaveValue(originalTable);
   });
 
@@ -166,7 +170,7 @@ test.describe('a11y remediation', () => {
       .fill(
         '![remote](https://example.invalid/tracker.png)\n![local](/text-markdown-formatter-icon.png)\n![data](data:image/png;base64,AA==)',
       );
-    await page.locator('#toggle-edit-mode-0-0').click();
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
 
     const imageSources = await page
       .locator('#formatter-preview-0-0 img')
@@ -239,7 +243,7 @@ test.describe('a11y remediation', () => {
     });
     await page.reload();
     await page.locator('#formatter-textarea-0-0').fill('**Populated preview**');
-    await page.locator('#toggle-edit-mode-0-0').click();
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await expectNoAxeViolations(page);
 
     await page.locator('#editor-settings-btn').click();

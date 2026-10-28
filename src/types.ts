@@ -1,4 +1,5 @@
 export type ThemeMode = 'dark' | 'light' | 'word-classic' | 'modern-clean' | 'report-navy';
+export type PasteBehavior = 'single-cell' | 'split-cells';
 
 export interface StyleOptions {
   fontFamily: string;

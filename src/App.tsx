@@ -6,7 +6,7 @@ import { FormatterWorkspace } from './components/FormatterWorkspace';
 import { Header } from './components/Header';
 import { TooltipProvider } from './components/ui';
 import { ToastContainer, showToast } from './components/Toast';
-import type { StyleOptions } from './types';
+import type { PasteBehavior, StyleOptions } from './types';
 import { useGridHistory } from './hooks/useGridHistory';
 import { readWorkspace, useWorkspacePersistence } from './hooks/useWorkspacePersistence';
 import { useCopy } from './hooks/useCopy';
@@ -24,6 +24,8 @@ export default function App() {
     useGridHistory(persistedInitialState);
   const { clearStorage } = useWorkspacePersistence(grid, preserveBr, persistedInitialState);
   const [appMode, setAppMode] = useState<AppMode>('formatter');
+  const [editing, setEditing] = useState(false);
+  const [pasteBehavior, setPasteBehavior] = useState<PasteBehavior>('single-cell');
   const [focusRequest, setFocusRequest] = useState(0);
   const restoreFormatterFocusRef = useRef(false);
   const { colorTheme, isDark, toggleDarkMode, setColorTheme } = useTheme();
@@ -86,6 +88,7 @@ export default function App() {
   const handleClearAll = useCallback(() => {
     const hasContent = grid.some((row) => row.some((cell) => cell.trim().length > 0));
     resetHistory([['']]);
+    setEditing(false);
     clearStorage();
     setFocusRequest((request) => request + 1);
     showToast(hasContent ? 'Started new blank session' : 'Workspace is already empty', 'info');
@@ -164,6 +167,10 @@ export default function App() {
         <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-hidden">
           <div className="h-full" hidden={appMode !== 'formatter'}>
             <FormatterWorkspace
+              editing={editing}
+              onEditingChange={setEditing}
+              pasteBehavior={pasteBehavior}
+              onPasteBehaviorChange={setPasteBehavior}
               grid={grid}
               preserveBr={preserveBr}
               options={options}

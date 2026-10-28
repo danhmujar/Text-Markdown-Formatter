@@ -2,16 +2,15 @@ import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import type { ClipboardEvent as ReactClipboardEvent } from 'react';
 import {
   parsePasteToGrid,
+  sanitizeInputText,
   isGridWithinLimits,
   isPasteWithinLimits,
-  isMarkdownTable,
-  sanitizeInputText,
   smartCleanupMarkdown,
   convertBrToNewlines,
 } from '../utils/markdownFormatter';
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
 import { showToast } from '../components/Toast';
-import { logger } from '../utils/logger';
+import type { PasteBehavior } from '../types';
 
 interface UseGridActionsArgs {
   grid: string[][];
@@ -109,32 +108,32 @@ export function useGridActions({
       event: ReactClipboardEvent<HTMLTextAreaElement>,
       rowIndex: number,
       colIndex: number,
-    ): boolean => {
+      behavior: PasteBehavior,
+      clean: boolean,
+    ): { grid: string[][]; cursor?: number } | null => {
       const text = event.clipboardData.getData('text/plain');
-      if (!text) return false;
+      if (!text) return null;
       const html = event.clipboardData.getData('text/html');
       if (!isPasteWithinLimits(text)) {
         event.preventDefault();
         showToast('Paste is too large. Paste a smaller selection.', 'error');
-        return true;
+        return null;
       }
-      const parsedMatrix = parsePasteToGrid(text, html);
+      const parsedMatrix = behavior === 'split-cells' ? parsePasteToGrid(text, html) : null;
 
       event.preventDefault();
       if (parsedMatrix && (parsedMatrix.length > 1 || parsedMatrix[0].length > 1)) {
         if (!isGridWithinLimits(parsedMatrix)) {
           showToast('Paste is too large. Paste a smaller selection.', 'error');
-          return true;
+          return null;
         }
-        const cleanedMatrix = parsedMatrix.map((row) => row.map((cell) => sanitizeInputText(cell)));
-        onCommitPaste(parsedMatrix, cleanedMatrix);
-        showCleanupNotification('Pasted and cleaned table matrix');
-        return true;
-      }
-
-      if (parsedMatrix === null && html && html.includes('<table') && !isMarkdownTable(text)) {
-        logger.warn('Table parse failed, using text fallback');
-        showToast('Table parse failed, using text fallback', 'error');
+        onCommitPaste(
+          parsedMatrix,
+          clean
+            ? parsedMatrix.map((row) => row.map((cell) => sanitizeInputText(cell)))
+            : parsedMatrix,
+        );
+        return { grid: parsedMatrix };
       }
 
       const textarea = event.currentTarget;
@@ -142,30 +141,19 @@ export function useGridActions({
       const current = convertBrToNewlines(currentGrid[rowIndex]?.[colIndex] || '');
       const before = current.substring(0, textarea.selectionStart);
       const after = current.substring(textarea.selectionEnd);
-      const cleanedPaste = sanitizeInputText(text);
       const rawGrid = currentGrid.map((row) => [...row]);
-      const cleanedGrid = currentGrid.map((row) => [...row]);
-      rawGrid[rowIndex][colIndex] = before + text + after;
-      cleanedGrid[rowIndex][colIndex] = before + cleanedPaste + after;
+      const normalizedText = text.replace(/\r\n?/g, '\n');
+      rawGrid[rowIndex][colIndex] = before + normalizedText + after;
       if (!isGridWithinLimits(rawGrid)) {
         showToast('Paste is too large. Paste a smaller selection.', 'error');
-        return true;
+        return null;
       }
-      onCommitPaste(rawGrid, cleanedGrid);
-
-      const rawLineBreaks = text.replace(/\r\n?/g, '\n').split('\n').length - 1;
-      const cleanedLineBreaks = cleanedPaste.replace(/\r\n?/g, '\n').split('\n').length - 1;
-      const removedLineBreaks = rawLineBreaks - cleanedLineBreaks;
-      if (removedLineBreaks > 0) {
-        showCleanupNotification(
-          `Removed ${removedLineBreaks} accidental line ${removedLineBreaks === 1 ? 'break' : 'breaks'}`,
-        );
-      } else if (cleanedPaste !== text) {
-        showCleanupNotification('Pasted and cleaned text');
-      }
-      return true;
+      const cleanedGrid = currentGrid.map((row) => [...row]);
+      cleanedGrid[rowIndex][colIndex] = before + sanitizeInputText(normalizedText) + after;
+      onCommitPaste(rawGrid, clean ? cleanedGrid : rawGrid);
+      return { grid: rawGrid, cursor: before.length + normalizedText.length };
     },
-    [onCommitPaste, showCleanupNotification],
+    [onCommitPaste],
   );
 
   const applyPreset = useCallback(

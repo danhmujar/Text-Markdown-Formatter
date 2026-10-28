@@ -55,7 +55,7 @@ test.describe('pwa - installable offline mode', () => {
     await expect(page.locator('#formatter-textarea-0-0')).toBeVisible();
     await page.locator('#formatter-textarea-0-0').fill(persistedMarkdown);
     await page.waitForTimeout(700);
-    await page.locator('#toggle-edit-mode-0-0').click();
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await expect(page.locator('#formatter-preview-0-0')).toContainText(
       'Persisted content stays available.',
     );
@@ -81,13 +81,13 @@ test.describe('pwa - installable offline mode', () => {
         'Persisted content stays available.',
       );
 
-      await page.locator('#toggle-edit-mode-0-0').click();
+      await page.getByRole('button', { name: 'Edit', exact: true }).click();
       await expect(page.locator('#formatter-textarea-0-0')).toBeVisible();
       await page
         .locator('#formatter-textarea-0-0')
         .fill('# Offline check\n\nEdited while offline.');
       await page.waitForTimeout(700);
-      await page.locator('#toggle-edit-mode-0-0').click();
+      await page.getByRole('button', { name: 'Preview', exact: true }).click();
       await expect(page.locator('#formatter-preview-0-0')).toContainText('Edited while offline.');
 
       await page.locator('#header-undo-btn').click();

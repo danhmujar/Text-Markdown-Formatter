@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.15.0';
+export const APP_VERSION = '0.16.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-10-28',
+    title: 'Preview-first paste and workspace editing',
+    description:
+      'Pastes are cleaned and previewed automatically, including detected multi-cell data. A workspace-wide Edit mode lets you edit all cells and choose whether new pastes stay in one cell or split into cells; pasted text remains uncleaned until you select Clean. The Edit and Preview button follows the selected theme.',
+  },
   {
     date: '2026-09-29',
     title: 'Preserve Markdown table emphasis and literal line-break examples',

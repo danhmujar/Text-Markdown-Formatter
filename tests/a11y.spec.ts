@@ -34,8 +34,9 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(settingsBtn).toBeFocused();
   });
 
-  test('pasted hard wraps clean automatically and remain reversible', async ({ page }) => {
+  test('pasted hard wraps stay editable until cleaned and remain reversible', async ({ page }) => {
     await page.goto('/');
+    await page.getByRole('button', { name: 'Edit', exact: true }).click();
     const textarea = page.locator('#formatter-textarea-0-0');
     await expect(textarea).toBeVisible();
 
@@ -49,15 +50,9 @@ test.describe('a11y - WCAG 2.1 AA', () => {
       );
     }, wrapped);
 
-    await expect(page.locator('#formatter-preview-0-0')).toContainText(
-      'Since 2008, the Company has adhered to the French corporate governance code for listed companies published by Afep and Medef Code, available on the following websites and reports.',
-    );
-    await expect(
-      page.getByRole('region', { name: 'Cleaned text' }).getByRole('status'),
-    ).toContainText('Removed 2 accidental line breaks');
-
-    await page.locator('#toggle-edit-mode-0-0').click();
-    await expect(page.locator('#formatter-textarea-0-0')).toHaveValue(wrapped.replace(/\n/g, ' '));
+    await expect(textarea).toHaveValue(wrapped);
+    await page.locator('#btn-format-clean-0-0').click();
+    await expect(textarea).toHaveValue(wrapped.replace(/\n/g, ' '));
 
     await page.locator('#header-undo-btn').click();
     await expect(page.locator('#formatter-textarea-0-0')).toHaveValue(wrapped);
@@ -273,7 +268,7 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await page.locator('#formatter-textarea-0-0').fill('Shared font size sample');
     await page.locator('#font-size-increase-btn').click();
     await expect(page.getByText('15pt', { exact: true })).toBeVisible();
-    await page.locator('#toggle-edit-mode-0-0').click();
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await expect(page.locator('#formatter-preview-0-0 p')).toHaveCount(1);
     expect(
       await page
