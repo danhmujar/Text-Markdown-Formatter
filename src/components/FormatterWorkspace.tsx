@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { ClipboardPayload, PasteSelection } from '@/utils/clipboard';
 import { AlertTriangle, Check, ChevronDown, Copy, Settings2, Sparkles } from 'lucide-react';
 import type { PasteBehavior, StyleOptions } from '../types';
 import { convertBrToNewlines, isMarkdownTable } from '../utils/markdownFormatter';
@@ -45,10 +46,18 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
     const [showSettings, setShowSettings] = useState(false);
     const settingsRef = useRef<HTMLDivElement>(null);
     const settingsTriggerRef = useRef<HTMLButtonElement>(null);
+    const pendingPasteFocus = useRef<{ target: string; cursor?: number } | null>(null);
     const numRows = grid.length;
     const numCols = Math.max(...grid.map((row) => row.length), 1);
     const gridRef = useRef(grid);
     gridRef.current = grid;
+    const pasteVersion = useMemo(
+      () => ({ grid, editing, pasteBehavior }),
+      [grid, editing, pasteBehavior],
+    );
+    const pasteVersionRef = useRef(pasteVersion);
+    pasteVersionRef.current = pasteVersion;
+    const getPasteVersion = useCallback(() => pasteVersionRef.current, []);
     const getContent = useCallback(
       (rowIndex: number, colIndex: number) =>
         convertBrToNewlines(gridRef.current[rowIndex]?.[colIndex] || ''),
@@ -61,6 +70,7 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
       handleCellChange,
       handleClearCell,
       handlePasteOnCell,
+      pasteIntoCell,
       setSingleLayout,
       setLeftRightLayout,
       setUpDownLayout,
@@ -80,6 +90,17 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
       listTerminator,
       setListTerminator,
     } = useFormatterActions({ getContent, onContentChange: handleCellChange });
+
+    useLayoutEffect(() => {
+      const pending = pendingPasteFocus.current;
+      if (!pending || !editing) return;
+      const textarea = textareaRefs.current[pending.target];
+      if (!textarea) return;
+      pendingPasteFocus.current = null;
+      textarea.focus();
+      const cursor = pending.cursor ?? textarea.value.length;
+      textarea.setSelectionRange(cursor, cursor);
+    }, [grid, editing, textareaRefs]);
 
     useEffect(() => {
       if (focusRequest > 0) textareaRefs.current['0-0']?.focus();
@@ -124,14 +145,27 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
         );
         if (!result || !editing) return;
         const target = result.cursor === undefined ? '0-0' : `${rowIndex}-${colIndex}`;
-        setTimeout(() => {
-          const textarea = textareaRefs.current[target];
-          textarea?.focus();
-          if (result.cursor !== undefined)
-            textarea?.setSelectionRange(result.cursor, result.cursor);
-        }, 0);
+        pendingPasteFocus.current = { target, cursor: result.cursor };
       },
       [handlePasteOnCell, pasteBehavior, editing, textareaRefs],
+    );
+
+    const handleButtonPaste = useCallback(
+      (row: number, col: number, payload: ClipboardPayload, selection: PasteSelection) => {
+        const result = pasteIntoCell(
+          payload,
+          selection,
+          row,
+          col,
+          editing ? pasteBehavior : 'split-cells',
+          !editing,
+        );
+        if (!result) return;
+        onEditingChange(true);
+        const target = result.cursor === undefined ? '0-0' : `${row}-${col}`;
+        pendingPasteFocus.current = { target, cursor: result.cursor };
+      },
+      [pasteIntoCell, editing, pasteBehavior, onEditingChange, textareaRefs],
     );
 
     const handleCellInput = useCallback(
@@ -302,6 +336,8 @@ export const FormatterWorkspace: React.FC<FormatterWorkspaceProps> = React.memo(
                     onCopy={onCopyCell}
                     onKeyDown={handleTextareaKeyDown}
                     onPaste={handleCellPaste}
+                    onButtonPaste={handleButtonPaste}
+                    getPasteVersion={getPasteVersion}
                     onChange={handleCellInput}
                     onApplyNumbering={handleApplyNumbering}
                     onApplyInlineFormat={handleApplyInlineFormat}

@@ -261,7 +261,7 @@ test.describe('a11y remediation', () => {
     await expectNoAxeViolations(page);
     await page.locator('#comparison-back-btn').click();
 
-    await page.getByRole('button', { name: 'About this app' }).click();
+    await page.getByRole('button', { name: 'Help' }).click();
     // Let the dialog entrance finish so axe scans final colors, not mid-fade blends.
     await page.waitForTimeout(400);
     await expectNoAxeViolations(page);
@@ -297,9 +297,10 @@ test.describe('a11y remediation', () => {
   test('small-screen changelog reaches its final entry by keyboard', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 500 });
     await page.goto('/');
-    await page.getByRole('button', { name: 'About this app' }).click();
+    await page.getByRole('button', { name: 'Help' }).click();
     await page.getByRole('button', { name: 'View changelog' }).click();
     const entries = page.getByRole('region', { name: 'Changelog entries' });
+    await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
     await expect(entries).toBeFocused();
     await page.keyboard.press('End');

@@ -1,6 +1,6 @@
 import { logger } from './logger';
 import { sanitizeHtml } from './security/sanitize';
-import { isWrappedParagraph } from './textWrap';
+import { isWrappedParagraph, normalizeTabbedProse } from './textWrap';
 
 export const MAX_GRID_ROWS = 100;
 export const MAX_GRID_COLUMNS = 50;
@@ -282,6 +282,10 @@ export function parsePasteToGrid(text: string, html?: string): string[][] | null
       logger.warn('HTML table parsing failed:', e);
     }
   }
+
+  // Word-by-word tabs in prose are spacing artifacts, not grid columns.
+  // Keep this after HTML table parsing so genuine rich tables retain priority.
+  if (normalizeTabbedProse(text) !== text) return null;
 
   // Check text with tabs or multiple lines
   if (text) {

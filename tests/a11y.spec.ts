@@ -24,7 +24,9 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(panel).toHaveAttribute('aria-labelledby', 'settings-panel-title');
     await page.locator('#add-row-btn').focus();
     await page.keyboard.press('Tab');
-    await expect(page.locator('#formatter-textarea-0-0')).toBeFocused();
+    await expect(
+      page.getByRole('button', { name: 'Paste into Cleaned Text', exact: true }),
+    ).toBeFocused();
     await page.locator('#formatter-heading').click();
     await expect(panel).toBeHidden();
 
@@ -63,63 +65,42 @@ test.describe('a11y - WCAG 2.1 AA', () => {
     await expect(page.locator('#formatter-textarea-0-0')).toBeFocused();
   });
 
-  test('About and changelog dialogs have accessible focus management', async ({ page }) => {
+  test('Help, About and changelog preserve modal navigation and focus', async ({ page }) => {
     await page.goto('/');
-    const fab = page.getByRole('button', { name: 'About this app' });
+    const fab = page.getByRole('button', { name: 'Help', exact: true });
     await fab.click();
-    const aboutDialog = page.locator('[role="dialog"][aria-labelledby="about-dialog-title"]');
-    const closeAbout = page.getByRole('button', { name: 'Close About dialog' });
-    const changelogTrigger = page.getByRole('button', { name: 'View changelog' });
-    const linkedin = page.getByRole('link', { name: 'Connect on LinkedIn' });
-
-    await expect(aboutDialog).toHaveAttribute('aria-modal', 'true');
-    await expect(aboutDialog).toHaveAttribute('aria-labelledby', 'about-dialog-title');
+    const dialog = page.getByRole('dialog');
+    const close = page.getByRole('button', { name: 'Close Help dialog' });
+    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+    await expect(close).toBeFocused();
+    await expect(page.locator('#app-background')).toHaveAttribute('inert', '');
+    await expect(dialog).toContainText('Format text for Catalyst');
+    await page.getByRole('button', { name: 'Keyboard shortcuts', exact: true }).click();
+    await expect(dialog).toContainText('Shift + Tab');
+    await page.getByRole('button', { name: 'About this app', exact: true }).click();
     await expect(
       page.getByRole('heading', { name: 'About Text & Markdown Formatter' }),
     ).toBeVisible();
-    await expect(page.locator('#app-background')).toHaveAttribute('inert', '');
-    await expect(closeAbout).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(changelogTrigger).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(linkedin).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(closeAbout).toBeFocused();
-    await changelogTrigger.click();
-
-    await expect(aboutDialog).toBeHidden();
-    const changelogDialog = page.locator(
-      '[role="dialog"][aria-labelledby="changelog-dialog-title"]',
-    );
-    await expect(changelogDialog).toBeVisible();
-    await expect(changelogDialog).toHaveAttribute('aria-modal', 'true');
-    await expect(changelogDialog).toHaveAttribute('aria-labelledby', 'changelog-dialog-title');
+    await expect(page.getByRole('link', { name: 'Connect on LinkedIn' })).toBeVisible();
+    await page.getByRole('button', { name: 'Getting started', exact: true }).click();
+    await page.getByRole('button', { name: 'View changelog' }).click();
     await expect(page.getByRole('heading', { name: 'Changelog', exact: true })).toBeVisible();
-    await expect(changelogDialog).toContainText(`Version ${APP_VERSION}`);
-    await expect(changelogDialog).toContainText('Release information');
-    await expect(changelogDialog).toContainText(
-      'About now includes local version and changelog details.',
-    );
-    const closeChangelog = page.getByRole('button', { name: 'Close changelog dialog' });
-    const changelogEntries = page.getByRole('region', { name: 'Changelog entries' });
-    await expect(closeChangelog).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(changelogEntries).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(closeChangelog).toBeFocused();
+    await expect(dialog).toContainText(`Version ${APP_VERSION}`);
+    await expect(page.getByRole('button', { name: 'Close changelog dialog' })).toBeFocused();
+    await page.getByRole('button', { name: 'Back to Help' }).click();
+    await expect(page.getByRole('heading', { name: 'Help', exact: true })).toBeVisible();
+    await expect(close).toBeFocused();
     await page.keyboard.press('Shift+Tab');
-    await expect(changelogEntries).toBeFocused();
-
+    await expect(page.getByRole('region', { name: 'Help content' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(close).toBeFocused();
     await page.keyboard.press('Escape');
-    await expect(changelogDialog).toBeHidden();
+    await expect(dialog).toBeHidden();
     await expect(fab).toBeFocused();
-
-    await fab.click();
-    const backdrop = page.locator('[role="presentation"]');
-    await backdrop.click({ position: { x: 2, y: 2 } });
-    await expect(aboutDialog).toBeHidden();
     await expect(page.locator('#app-background')).not.toHaveAttribute('inert', '');
+    await fab.click();
+    await page.locator('[role="presentation"]').click({ position: { x: 2, y: 2 } });
+    await expect(dialog).toBeHidden();
   });
 
   test('standalone Comparison mode keeps formatter state and aligned diff state', async ({

@@ -2,7 +2,7 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.16.0**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.17.0**.
 
 ## Features
 
@@ -16,7 +16,10 @@ Convert input text and Markdown — with nested lists, tables, custom line break
 - **UX** — undo/redo with 60-snapshot debounced history (`useGridHistory.ts:8`), palette + animated slider theming (8 color themes × light/dark, `useTheme.ts:32`), shared font family & size (9–24pt), presets, and toasts.
 - **Workspace Persistence** — grid content is restored on reload and saved to `localStorage` under `text-markdown-formatter:workspace` (version 2) with debounced writes and resource limits; **New** clears the workspace and removes the saved state.
 - **Standalone Comparison workspace** — open Comparison from the Header, paste independent Left and Right text, then Compare to see aligned line- and word-level discrepancy highlighting with spacer rows. Clear empties both sides and returns to the blank editing view; Comparison uses the Formatter’s shared font-size setting.
-- **About & Release Information** — a fixed About FAB opens app details, version metadata, developer credit for Danh Michael Mujar, and a separate changelog dialog with static release entries.
+- **Help & Release Information** — the fixed ? button opens Getting started, Keyboard shortcuts, and About sections, with developer credit and changelog navigation. See the [v0.17.0 release notes](docs/changelog-v0.17.0.md).
+- **Visible Paste Controls** — Formatter cells and both Comparison editors have Paste buttons with selection-aware insertion and clipboard error feedback. Formatter paste shares the existing cleanup, table handling, and Undo path; Comparison keeps plain text.
+- **Tabbed Prose Repair** — recognized word-by-word tabs and visual line wraps are repaired automatically in both Formatter paste modes, including clipboard text ending in a newline. Structured content and genuine rich tables remain protected.
+- **Flush-left Lettered Lists** — Tab converts Roman or numeric-dot items to flush-left letters; Enter continues lettering and Shift+Tab returns to the next preceding parent marker.
 - **Installable offline support** — the app ships a generated service worker and web manifest, so after one successful online load it installs like a native app and keeps working without a network. The saved workspace stays local, the external font falls back to system fonts offline, and a newly deployed build appears as a persistent Reload toast that never interrupts editing on its own. The `Offline` badge is advisory: it reports the browser’s network hint, not cached-app availability or successful reachability.
 - **Theming** — CSS variables (`styles/themes.css:1`) ported from `Calculator` (default plus seven named themes × light/dark at 5% lighten), native keyboard-operable theme radios, `body.theme-*` + `body.dark-theme` classes, `localStorage` `formatter-theme-v1` persistence, and a 68×34 animated light/dark toggle.
 - **Accessibility** — WCAG 2.1 AA axe checks, skip link, keyboard-labeled controls, a non-modal Comparison workspace, modal About/changelog dialogs with focus trapping and inert background content, Escape-to-close, focus restoration, `aria-live` counters, and `jsx-a11y` linting.
@@ -107,7 +110,7 @@ src/
     Header.tsx           # palette (ThemePicker) + slider (ThemeSlider), font/size, undo/redo, New, Comparison
     FormatterWorkspace.tsx # combined grid layout, controls, and preview
     FormatterCell.tsx    # per-cell textarea, counters, preview, and paste handling
-    AboutDialog.tsx      # About FAB, app details, version, developer credit, and changelog link
+    AboutDialog.tsx      # Help guide, shortcuts, About details, and changelog navigation
     ChangelogDialog.tsx  # static release metadata in a separate dialog
     ComparisonWorkspace.tsx # standalone Left/Right editors and comparison workflow
     ComparisonResult.tsx # aligned line/word diff renderer with spacer rows

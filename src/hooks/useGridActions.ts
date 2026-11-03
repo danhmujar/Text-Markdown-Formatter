@@ -11,6 +11,8 @@ import {
 import { analyzeSyntaxWarnings } from '../utils/syntaxValidator';
 import { showToast } from '../components/Toast';
 import type { PasteBehavior } from '../types';
+import { normalizeTabbedProse } from '@/utils/textWrap';
+import type { ClipboardPayload, PasteSelection } from '@/utils/clipboard';
 
 interface UseGridActionsArgs {
   grid: string[][];
@@ -103,25 +105,22 @@ export function useGridActions({
     [getCellLabel, handleCellChange, showCleanupNotification],
   );
 
-  const handlePasteOnCell = useCallback(
+  const pasteIntoCell = useCallback(
     (
-      event: ReactClipboardEvent<HTMLTextAreaElement>,
+      { text, html }: ClipboardPayload,
+      selection: PasteSelection,
       rowIndex: number,
       colIndex: number,
       behavior: PasteBehavior,
       clean: boolean,
     ): { grid: string[][]; cursor?: number } | null => {
-      const text = event.clipboardData.getData('text/plain');
       if (!text) return null;
-      const html = event.clipboardData.getData('text/html');
       if (!isPasteWithinLimits(text)) {
-        event.preventDefault();
         showToast('Paste is too large. Paste a smaller selection.', 'error');
         return null;
       }
       const parsedMatrix = behavior === 'split-cells' ? parsePasteToGrid(text, html) : null;
 
-      event.preventDefault();
       if (parsedMatrix && (parsedMatrix.length > 1 || parsedMatrix[0].length > 1)) {
         if (!isGridWithinLimits(parsedMatrix)) {
           showToast('Paste is too large. Paste a smaller selection.', 'error');
@@ -136,11 +135,10 @@ export function useGridActions({
         return { grid: parsedMatrix };
       }
 
-      const textarea = event.currentTarget;
       const currentGrid = gridRef.current;
       const current = convertBrToNewlines(currentGrid[rowIndex]?.[colIndex] || '');
-      const before = current.substring(0, textarea.selectionStart);
-      const after = current.substring(textarea.selectionEnd);
+      const before = current.substring(0, selection.start);
+      const after = current.substring(selection.end);
       const rawGrid = currentGrid.map((row) => [...row]);
       const normalizedText = text.replace(/\r\n?/g, '\n');
       rawGrid[rowIndex][colIndex] = before + normalizedText + after;
@@ -149,11 +147,36 @@ export function useGridActions({
         return null;
       }
       const cleanedGrid = currentGrid.map((row) => [...row]);
-      cleanedGrid[rowIndex][colIndex] = before + sanitizeInputText(normalizedText) + after;
-      onCommitPaste(rawGrid, clean ? cleanedGrid : rawGrid);
-      return { grid: rawGrid, cursor: before.length + normalizedText.length };
+      const prose = normalizeTabbedProse(normalizedText);
+      const insertedText = clean ? sanitizeInputText(prose) : prose;
+      cleanedGrid[rowIndex][colIndex] = before + insertedText + after;
+      onCommitPaste(rawGrid, cleanedGrid);
+      return { grid: cleanedGrid, cursor: before.length + insertedText.length };
     },
     [onCommitPaste],
+  );
+
+  const handlePasteOnCell = useCallback(
+    (
+      event: ReactClipboardEvent<HTMLTextAreaElement>,
+      row: number,
+      col: number,
+      behavior: PasteBehavior,
+      clean: boolean,
+    ) => {
+      const text = event.clipboardData.getData('text/plain');
+      if (!text) return null;
+      event.preventDefault();
+      return pasteIntoCell(
+        { text, html: event.clipboardData.getData('text/html') },
+        { start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd },
+        row,
+        col,
+        behavior,
+        clean,
+      );
+    },
+    [pasteIntoCell],
   );
 
   const applyPreset = useCallback(
@@ -230,6 +253,7 @@ export function useGridActions({
     handleClearCell,
     handleSmartCleanupCell,
     handlePasteOnCell,
+    pasteIntoCell,
     setSingleLayout,
     setLeftRightLayout,
     setUpDownLayout,

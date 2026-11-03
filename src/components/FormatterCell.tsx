@@ -14,6 +14,8 @@ import {
   NumberingFormat,
 } from '../utils/markdownFormatter';
 import { EditToolbar } from './EditToolbar';
+import { PasteButton } from '@/components/PasteButton';
+import type { ClipboardPayload, PasteSelection } from '@/utils/clipboard';
 
 interface FormatterCellProps {
   rowIndex: number;
@@ -45,6 +47,13 @@ interface FormatterCellProps {
     colIndex: number,
   ) => void;
   onChange: (rowIndex: number, colIndex: number, value: string) => void;
+  getPasteVersion: () => unknown;
+  onButtonPaste: (
+    row: number,
+    col: number,
+    payload: ClipboardPayload,
+    selection: PasteSelection,
+  ) => void;
   onSmartClean: (rowIndex: number, colIndex: number) => void;
   onApplyNumbering: (rowIndex: number, colIndex: number, format: NumberingFormat) => void;
   onApplyInlineFormat: (rowIndex: number, colIndex: number, wrapper: string, label: string) => void;
@@ -69,6 +78,8 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
   onKeyDown,
   onPaste,
   onChange,
+  getPasteVersion,
+  onButtonPaste,
   onSmartClean,
   onApplyNumbering,
   onApplyInlineFormat,
@@ -77,6 +88,7 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
 }) {
   const [showWarnings, setShowWarnings] = useState(false);
   const warningTriggerRef = useRef<HTMLButtonElement>(null);
+  const selectionRef = useRef<PasteSelection | null>(null);
   const isDark = options.theme === 'dark';
   const isEditMode = content.length === 0 || mode === 'edit';
   const warnings = useMemo(() => analyzeSyntaxWarnings(content), [content]);
@@ -107,7 +119,6 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [showWarnings]);
-  const showCellHeader = showLabel || warnings.length > 0 || Boolean(content);
 
   return (
     <div
@@ -119,81 +130,83 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
       }}
       className="flex h-full flex-col overflow-clip rounded-lg border shadow-sm transition focus-within:ring-1 focus-within:ring-blue-500/40"
     >
-      {showCellHeader ? (
-        <div
-          className="sticky left-0 z-10 flex min-h-10 max-w-[calc(100vw-2rem)] shrink-0 items-center justify-between gap-2 border-b px-3 py-1.5 text-xs"
-          style={{ backgroundColor: 'var(--surface-bg)', borderColor: 'var(--border-color)' }}
-        >
-          <div className="flex min-w-0 shrink-0 items-center gap-2">
-            <span
-              id={`formatter-cell-label-${rowIndex}-${colIndex}`}
-              className={`${showLabel ? '' : 'sr-only '}shrink-0 text-[11px] font-medium text-[var(--text-secondary)]`}
+      <div
+        className="sticky left-0 z-10 flex min-h-10 max-w-[calc(100vw-2rem)] shrink-0 items-center justify-between gap-2 border-b px-3 py-1.5 text-xs"
+        style={{ backgroundColor: 'var(--surface-bg)', borderColor: 'var(--border-color)' }}
+      >
+        <div className="flex min-w-0 shrink-0 items-center gap-2">
+          <span
+            id={`formatter-cell-label-${rowIndex}-${colIndex}`}
+            className={`${showLabel ? '' : 'sr-only '}shrink-0 text-[11px] font-medium text-[var(--text-secondary)]`}
+          >
+            {label}
+          </span>
+          {warnings.length > 0 && (
+            <button
+              ref={warningTriggerRef}
+              type="button"
+              onClick={() => setShowWarnings((visible) => !visible)}
+              aria-expanded={showWarnings}
+              aria-controls={`formatter-warnings-${rowIndex}-${colIndex}`}
+              aria-label={`${warnings.length} syntax ${warnings.length === 1 ? 'warning' : 'warnings'} for ${label}`}
+              className={`flex min-h-11 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-8 ${
+                isDark
+                  ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
+                  : 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
+              }`}
             >
-              {label}
-            </span>
-            {warnings.length > 0 && (
-              <button
-                ref={warningTriggerRef}
-                type="button"
-                onClick={() => setShowWarnings((visible) => !visible)}
-                aria-expanded={showWarnings}
-                aria-controls={`formatter-warnings-${rowIndex}-${colIndex}`}
-                aria-label={`${warnings.length} syntax ${warnings.length === 1 ? 'warning' : 'warnings'} for ${label}`}
-                className={`flex min-h-11 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-h-8 ${
-                  isDark
-                    ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
-                    : 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-color)]'
-                }`}
-              >
-                <AlertTriangle aria-hidden="true" className="h-3 w-3" />
-                {warnings.length}
-                {showWarnings ? (
-                  <ChevronUp aria-hidden="true" className="h-3 w-3" />
-                ) : (
-                  <ChevronDown aria-hidden="true" className="h-3 w-3" />
-                )}
-              </button>
-            )}
-          </div>
-
-          <div className="flex min-w-0 flex-nowrap items-center justify-end gap-1.5 overflow-x-auto">
-            {content && (
-              <button
-                type="button"
-                onClick={() => onCopy(rowIndex, colIndex)}
-                aria-label={`Copy formatted ${label} to Catalyst`}
-                className={`flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-8 ${
-                  isCopied
-                    ? 'border-emerald-600 bg-emerald-600 text-white'
-                    : 'border-transparent text-[var(--primary-foreground)]'
-                }`}
-                style={isCopied ? undefined : { backgroundColor: 'var(--primary-blue)' }}
-              >
-                {isCopied ? (
-                  <Check aria-hidden="true" className="h-3 w-3" />
-                ) : (
-                  <Copy aria-hidden="true" className="h-3 w-3" />
-                )}
-                <span>{isCopied ? 'Copied' : 'Copy to Catalyst'}</span>
-              </button>
-            )}
-            {content && (
-              <button
-                type="button"
-                onClick={() => onClear(rowIndex, colIndex)}
-                aria-label={`Clear ${label}`}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-red-600 sm:min-h-8 sm:min-w-8"
-              >
-                <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+              <AlertTriangle aria-hidden="true" className="h-3 w-3" />
+              {warnings.length}
+              {showWarnings ? (
+                <ChevronUp aria-hidden="true" className="h-3 w-3" />
+              ) : (
+                <ChevronDown aria-hidden="true" className="h-3 w-3" />
+              )}
+            </button>
+          )}
         </div>
-      ) : (
-        <span id={`formatter-cell-label-${rowIndex}-${colIndex}`} className="sr-only">
-          {label}
-        </span>
-      )}
+
+        <div className="flex min-w-0 flex-nowrap items-center justify-end gap-1.5 overflow-x-auto">
+          <PasteButton
+            label={label}
+            getVersion={getPasteVersion}
+            getSelection={() =>
+              selectionRef.current ?? { start: editorContent.length, end: editorContent.length }
+            }
+            onPaste={(payload, selection) => onButtonPaste(rowIndex, colIndex, payload, selection)}
+          />
+          {content && (
+            <button
+              type="button"
+              onClick={() => onCopy(rowIndex, colIndex)}
+              aria-label={`Copy formatted ${label} to Catalyst`}
+              className={`flex min-h-11 items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:min-h-8 ${
+                isCopied
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-transparent text-[var(--primary-foreground)]'
+              }`}
+              style={isCopied ? undefined : { backgroundColor: 'var(--primary-blue)' }}
+            >
+              {isCopied ? (
+                <Check aria-hidden="true" className="h-3 w-3" />
+              ) : (
+                <Copy aria-hidden="true" className="h-3 w-3" />
+              )}
+              <span>{isCopied ? 'Copied' : 'Copy to Catalyst'}</span>
+            </button>
+          )}
+          {content && (
+            <button
+              type="button"
+              onClick={() => onClear(rowIndex, colIndex)}
+              aria-label={`Clear ${label}`}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-red-600 sm:min-h-8 sm:min-w-8"
+            >
+              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
 
       {showWarnings && warnings.length > 0 && (
         <div
@@ -237,6 +250,13 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
           <textarea
             ref={(element) => registerTextarea(rowIndex, colIndex, element)}
             id={`formatter-textarea-${rowIndex}-${colIndex}`}
+            onSelect={(event) => {
+              if (document.activeElement !== event.currentTarget) return;
+              selectionRef.current = {
+                start: event.currentTarget.selectionStart,
+                end: event.currentTarget.selectionEnd,
+              };
+            }}
             value={editorContent}
             onChange={(event) => onChange(rowIndex, colIndex, event.target.value)}
             onKeyDown={(event) => onKeyDown(event, rowIndex, colIndex)}

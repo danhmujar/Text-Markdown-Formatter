@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { PasteButton } from '@/components/PasteButton';
+import type { ClipboardPayload, PasteSelection } from '@/utils/clipboard';
 import { ArrowLeft, Eraser, GitCompare, Pencil } from 'lucide-react';
 import { ComparisonResult } from './ComparisonResult';
 import { BUTTON_VARIANTS } from './ui';
@@ -22,6 +24,32 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
   const [view, setView] = useState<ComparisonView>('editing');
 
   const leftEditorRef = useRef<HTMLTextAreaElement>(null);
+  const rightEditorRef = useRef<HTMLTextAreaElement>(null);
+  const selections = useRef<{ left: PasteSelection | null; right: PasteSelection | null }>({
+    left: null,
+    right: null,
+  });
+  const version = useMemo(() => ({ leftText, rightText, view }), [leftText, rightText, view]);
+  const versionRef = useRef(version);
+  versionRef.current = version;
+  const pasteSide = (
+    side: 'left' | 'right',
+    payload: ClipboardPayload,
+    selection: PasteSelection,
+  ) => {
+    const current = side === 'left' ? leftText : rightText;
+    const text = payload.text.replace(/\r\n?/g, '\n');
+    const before = current.slice(0, selection.start);
+    const after = current.slice(selection.end);
+    (side === 'left' ? setLeftText : setRightText)(before + text + after);
+    const cursor = before.length + text.length;
+    selections.current[side] = { start: cursor, end: cursor };
+    setTimeout(() => {
+      const editor = side === 'left' ? leftEditorRef.current : rightEditorRef.current;
+      editor?.focus();
+      editor?.setSelectionRange(cursor, cursor);
+    }, 0);
+  };
   const previousViewRef = useRef(view);
 
   useEffect(() => {
@@ -40,6 +68,7 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
     }
     setLeftText('');
     setRightText('');
+    selections.current = { left: null, right: null };
     setView('editing');
   };
 
@@ -116,9 +145,19 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
               }}
               aria-labelledby="comparison-left-heading"
             >
-              <h2 id="comparison-left-heading" className="mb-2 text-sm font-semibold">
-                Left
-              </h2>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h2 id="comparison-left-heading" className="text-sm font-semibold">
+                  Left
+                </h2>
+                <PasteButton
+                  label="Left"
+                  getVersion={() => versionRef.current}
+                  getSelection={() =>
+                    selections.current.left ?? { start: leftText.length, end: leftText.length }
+                  }
+                  onPaste={(payload, selection) => pasteSide('left', payload, selection)}
+                />
+              </div>
               <label className="sr-only" htmlFor="comparison-left-textarea">
                 Left
               </label>
@@ -126,6 +165,13 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
                 ref={leftEditorRef}
                 id="comparison-left-textarea"
                 value={leftText}
+                onSelect={(event) => {
+                  if (document.activeElement === event.currentTarget)
+                    selections.current.left = {
+                      start: event.currentTarget.selectionStart,
+                      end: event.currentTarget.selectionEnd,
+                    };
+                }}
                 onChange={(event) => setLeftText(event.target.value)}
                 placeholder="Paste or type the left version here..."
                 className={editorClassName}
@@ -141,14 +187,32 @@ export const ComparisonWorkspace: React.FC<ComparisonWorkspaceProps> = ({
               }}
               aria-labelledby="comparison-right-heading"
             >
-              <h2 id="comparison-right-heading" className="mb-2 text-sm font-semibold">
-                Right
-              </h2>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h2 id="comparison-right-heading" className="text-sm font-semibold">
+                  Right
+                </h2>
+                <PasteButton
+                  label="Right"
+                  getVersion={() => versionRef.current}
+                  getSelection={() =>
+                    selections.current.right ?? { start: rightText.length, end: rightText.length }
+                  }
+                  onPaste={(payload, selection) => pasteSide('right', payload, selection)}
+                />
+              </div>
               <label className="sr-only" htmlFor="comparison-right-textarea">
                 Right
               </label>
               <textarea
                 id="comparison-right-textarea"
+                ref={rightEditorRef}
+                onSelect={(event) => {
+                  if (document.activeElement === event.currentTarget)
+                    selections.current.right = {
+                      start: event.currentTarget.selectionStart,
+                      end: event.currentTarget.selectionEnd,
+                    };
+                }}
                 value={rightText}
                 onChange={(event) => setRightText(event.target.value)}
                 placeholder="Paste or type the right version here..."

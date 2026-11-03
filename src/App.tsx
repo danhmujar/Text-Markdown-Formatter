@@ -96,7 +96,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (appMode !== 'formatter') return;
+      if (appMode !== 'formatter' || aboutOpen || changelogOpen) return;
       if (event.altKey && event.key.toLowerCase() === 'n') {
         event.preventDefault();
         handleClearAll();
@@ -124,7 +124,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [appMode, handleClearAll, redo, undo]);
+  }, [appMode, aboutOpen, changelogOpen, handleClearAll, redo, undo]);
 
   const getFormattedContent = useCallback(
     (rowIndex: number, colIndex: number) => {
@@ -206,6 +206,10 @@ export default function App() {
       <ChangelogDialog
         open={changelogOpen}
         onClose={() => setChangelogOpen(false)}
+        onBackToHelp={() => {
+          setChangelogOpen(false);
+          setAboutOpen(true);
+        }}
         triggerRef={aboutTriggerRef}
         backgroundRef={appBackgroundRef}
       />

@@ -1,4 +1,4 @@
-import { isWrappedParagraph } from './textWrap';
+import { isWrappedParagraph, normalizeTabbedProse } from './textWrap';
 import { isMarkdownTable } from './tableConvert';
 import { parseMath } from './math';
 
@@ -323,7 +323,9 @@ export function smartCleanupMarkdown(
 
   // 0. Unwrap hard-wrapped paragraphs and indented list-item continuations
   // copied from PDFs, Word, and email.
-  const unwrapped = unwrapIndentedListContinuations(unwrapIfWrapped(text));
+  const unwrapped = unwrapIndentedListContinuations(
+    unwrapIfWrapped(isTyping ? text : normalizeTabbedProse(text)),
+  );
   if (unwrapped !== text) {
     text = unwrapped;
     spacesCleaned = true;

@@ -1,6 +1,36 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.16.0';
+export const APP_VERSION = '0.17.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-11-03',
+    title: 'v0.17.0 — Help guide and keyboard shortcuts',
+    description:
+      'The bottom-left ? button now opens Help with Getting started, Keyboard shortcuts, and About sections. Learn the Formatter and Comparison workflows, paste modes, cleanup, Undo, and supported list controls. About retains the developer credit and LinkedIn link, and the changelog includes Back to Help. Help supports keyboard scrolling, focus trapping, Escape dismissal, and narrow screens. Existing shortcuts are documented; no new bold or italic key bindings were added.',
+  },
+  {
+    date: '2026-11-03',
+    title: 'Paste buttons for Formatter and Comparison',
+    description:
+      'Visible Paste buttons are available in every Formatter cell and both Comparison editors. Paste replaces selected text, inserts at the last cursor position, or appends when no position is recorded. Pasting from Formatter Preview switches to Edit and focuses the inserted text. Formatter buttons share the existing cleanup, table handling, limits, and Undo path; Comparison preserves plain text. Pending reads prevent duplicate requests, discard stale results, and explain blocked access, empty clipboards, or oversized content.',
+  },
+  {
+    date: '2026-11-03',
+    title: 'Repair word-by-word tabs in pasted paragraphs',
+    description:
+      'Recognized prose copied with tabs between words now stays in one Formatter cell, with ordinary spaces and joined visual line wraps, in both paste modes. Clean uses the same recognition helper. Blank paragraph boundaries, structured Markdown, code, and ambiguous short input are protected; rich HTML tables retain priority. Fixed detection when clipboard text ends with a newline, including the financial-report sample that previously became a 6 × 35 grid. Undo restores the original pasted spacing.',
+  },
+  {
+    date: '2026-11-03',
+    title: 'Flush-left lettered list conversion',
+    description:
+      'Tab now converts a Roman or numeric-dot item to a flush-left a. item without three leading spaces. Further Tab presses leave that lettered item unchanged. Enter continues the letters, while Shift+Tab or Enter on an empty lettered item returns to the next preceding parent number when available. Cursor placement remains within the edited line. Existing indented lists and multi-line selection indentation retain their previous behavior.',
+  },
+  {
+    date: '2026-11-03',
+    title: 'Paste focus and Help keyboard safeguards',
+    description:
+      'Formatter button paste now restores focus after the Edit textarea mounts, avoiding a Preview-to-Edit timing issue. Workspace keyboard shortcuts are inactive while Help, About, or the changelog is open. New Help and Paste controls have visible focus indicators and 44px touch targets. Regression coverage includes clipboard errors, selections, raw-paste Undo, table splitting, list controls, mobile Help, and accessible dialog navigation.',
+  },
   {
     date: '2026-10-28',
     title: 'Preview-first paste and workspace editing',
@@ -59,7 +89,7 @@ export const CHANGELOG_ENTRIES = [
     date: '2026-09-22',
     title: 'Catalyst copy fidelity and supported inline LaTeX rendering',
     description:
-      'Edit mode now displays report notes that use <br> tags as ordinary editable line breaks while retaining the cell\'s original break format through typing, paste, Undo/Redo, and workspace restoration. Copy to Catalyst reconstructs <br> tags in the plain-text clipboard payload even after editing removes the original tags, while rich HTML keeps the same visible line structure and Markdown tables retain their newline-safe behavior. The shared renderer also converts the supported inline LaTeX forms \\ge and \\geq to ≥ and \\text{CO}_2\\text{eq} to CO₂eq across preview and rich copy, without changing code spans. Regression coverage now includes the report-note sample, editable line-break normalization, copy reversion, history metadata, persistence, and supported math symbols.',
+      "Edit mode now displays report notes that use <br> tags as ordinary editable line breaks while retaining the cell's original break format through typing, paste, Undo/Redo, and workspace restoration. Copy to Catalyst reconstructs <br> tags in the plain-text clipboard payload even after editing removes the original tags, while rich HTML keeps the same visible line structure and Markdown tables retain their newline-safe behavior. The shared renderer also converts the supported inline LaTeX forms \\ge and \\geq to ≥ and \\text{CO}_2\\text{eq} to CO₂eq across preview and rich copy, without changing code spans. Regression coverage now includes the report-note sample, editable line-break normalization, copy reversion, history metadata, persistence, and supported math symbols.",
   },
   {
     date: '2026-09-18',

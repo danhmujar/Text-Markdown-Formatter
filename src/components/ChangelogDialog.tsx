@@ -7,12 +7,14 @@ import { Dialog, DialogContent, useBackgroundInert } from './ui';
 interface ChangelogDialogProps {
   open: boolean;
   onClose: () => void;
+  onBackToHelp: () => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
   backgroundRef: React.RefObject<HTMLDivElement | null>;
 }
 export const ChangelogDialog: React.FC<ChangelogDialogProps> = ({
   open,
   onClose,
+  onBackToHelp,
   triggerRef,
   backgroundRef,
 }) => {
@@ -52,11 +54,18 @@ export const ChangelogDialog: React.FC<ChangelogDialogProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close changelog dialog"
-            className="rounded p-1 focus-visible:ring-2"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded p-1 focus-visible:ring-2"
           >
             <X aria-hidden="true" />
           </button>
         </header>
+        <button
+          type="button"
+          onClick={onBackToHelp}
+          className="min-h-11 shrink-0 border-b border-[var(--border-color)] px-4 text-left text-sm underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-blue)]"
+        >
+          Back to Help
+        </button>
         <div
           tabIndex={0}
           role="region"

@@ -376,7 +376,7 @@ function renumberFollowingList(text: string, lineStart: number, parsed: ParsedLi
  * Smart Enter for roman- and numeric-led lists: appends the terminator
  * (";" or ":", '' disables) at the cursor and continues with the next
  * marker. "(i) Test" becomes "(i) Test;" plus "(ii) "; "1. Test" becomes
- * "1. Test;" plus "2. ". Tab-created "   a. sub" lines continue with "   b. ".
+ * "1. Test;" plus "2. ". Tab-created "a. sub" lines continue with "b. ".
  * Returns null for prefix-only lines (caller falls through to the
  * existing exit/dedent behavior) and for unrelated list styles.
  */
@@ -390,7 +390,7 @@ export function applySmartListEnter(
   const precedingText = value.substring(0, lineStart);
   const parsed = parseListLine(fullLine, precedingText);
   if (!parsed || parsed.isOnlyPrefix) {
-    if (parsed?.isOnlyPrefix && parsed.kind === 'alpha-dot' && parsed.indent) {
+    if (parsed?.isOnlyPrefix && parsed.kind === 'alpha-dot') {
       return applyListDedentSelection(value, cursor, selectionEnd);
     }
     return null;
@@ -428,8 +428,8 @@ function formatNextTopMarker(marker: { kind: 'roman' | 'numeric'; num: number })
 }
 
 /**
- * Tab on a top-level "(ii) " or "2. " line swaps it to a "   a. " sub-item;
- * Tab on an already-indented sub-item adds one more 3-space level.
+ * Tab on a top-level "(ii) " or "2. " line swaps it to a flush-left "a. " item.
+ * Flush-left lettered items stay unchanged; legacy indented items retain their behavior.
  * Returns null for unrelated lines (caller leaves default behavior).
  */
 export function applyListIndent(value: string, cursor: number): ListEditResult | null {
@@ -463,11 +463,15 @@ function applyListIndentLine(value: string, cursor: number): ListEditResult | nu
   if (parsed && (parsed.kind === 'roman' || parsed.kind === 'numeric-dot')) {
     const rest = parsed.content;
     const spacing = parsed.prefix.replace(/^(?:\([^)]+\)|\d+[.)]|[a-zA-Z][.)])/, '') || ' ';
-    const newLine = `   a.${spacing}${rest}`;
+    const newLine = `a.${spacing}${rest}`;
     return {
       text: value.substring(0, lineStart) + newLine + value.substring(lineEnd),
-      newCursor: cursor + (newLine.length - fullLine.length),
+      newCursor: Math.max(lineStart, cursor + (newLine.length - fullLine.length)),
     };
+  }
+
+  if (parsed && parsed.kind === 'alpha-dot' && !parsed.indent) {
+    return { text: value, newCursor: cursor };
   }
 
   if (parsed && parsed.kind === 'alpha-dot' && parsed.indent) {
@@ -482,7 +486,7 @@ function applyListIndentLine(value: string, cursor: number): ListEditResult | nu
 }
 
 /**
- * Shift+Tab on a one-level "   a. " sub-item converts it back to the next
+ * Shift+Tab on a flush-left or one-level "   a. " item converts it to the next
  * parent roman marker (e.g. after "(i)" it becomes "(ii) "); deeper levels
  * lose one 3-space indent. Returns null when there is nothing to dedent.
  */
@@ -518,12 +522,13 @@ function applyListDedentLine(value: string, cursor: number): ListEditResult | nu
   const { lineStart, lineEnd, fullLine } = splitLineAt(value, cursor);
 
   const parsed = parseListLine(fullLine);
-  if (!parsed || parsed.kind !== 'alpha-dot' || !parsed.indent) return null;
+  if (!parsed || parsed.kind !== 'alpha-dot') return null;
   const { indent, content: rest } = parsed;
 
   let newLine: string;
   if (indent.length <= 3) {
     const prev = findPrecedingTopMarker(value, lineStart);
+    if (!prev && !indent) return null;
     newLine = prev === null ? fullLine.trimStart() : `${formatNextTopMarker(prev)}${rest}`;
   } else {
     newLine = fullLine.slice(3);

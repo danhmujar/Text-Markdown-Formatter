@@ -171,9 +171,7 @@ describe('isMarkdownTable and prepareCopiedText', () => {
     const input = 'Use `<br>` for line breaks.<br>Next paragraph.';
 
     expect(convertBrToNewlines(input)).toBe('Use `<br>` for line breaks.\nNext paragraph.');
-    expect(convertBrToNewlines('Use `<br>` for line breaks.')).toBe(
-      'Use `<br>` for line breaks.',
-    );
+    expect(convertBrToNewlines('Use `<br>` for line breaks.')).toBe('Use `<br>` for line breaks.');
   });
 
   it('detects valid markdown tables accurately', () => {
@@ -315,10 +313,51 @@ describe('applySmartListEnter', () => {
 });
 
 describe('applyListIndent / applyListDedent', () => {
-  it('swaps top-level (ii) to a 3-space sub-item', () => {
+  it('swaps top-level (ii) to a flush-left lettered item', () => {
     const value = '(i) Test;\n(ii) ';
     const result = applyListIndent(value, value.length);
-    expect(result?.text).toBe('(i) Test;\n   a. ');
+    expect(result?.text).toBe('(i) Test;\na. ');
+    expect(result?.newCursor).toBe(result?.text.length);
+  });
+
+  it('converts numeric items while preserving content and marker spacing', () => {
+    const value = '1. Main\n2.   Detail';
+    expect(applyListIndent(value, value.length)?.text).toBe('1. Main\na.   Detail');
+  });
+
+  it('keeps repeated Tab on flush-left letters unchanged', () => {
+    const value = '(i) Main\na. Detail';
+    expect(applyListIndent(value, value.length)).toEqual({
+      text: value,
+      newCursor: value.length,
+    });
+  });
+
+  it('continues flush-left letters and returns empty items to the parent', () => {
+    const value = '(i) Main\na. Detail';
+    expect(applySmartListEnter(value, value.length)?.text).toBe('(i) Main\na. Detail;\nb. ');
+    const empty = '(i) Main\nb. ';
+    expect(applySmartListEnter(empty, empty.length)?.text).toBe('(i) Main\n(ii) ');
+    expect(applySmartListEnter('a. ', 3)).toBeNull();
+  });
+
+  it('returns flush-left letters to Roman or numeric parents with Shift+Tab', () => {
+    for (const [parent, next] of [
+      ['(i)', '(ii)'],
+      ['1.', '2.'],
+    ]) {
+      const value = `${parent} Main\na. Detail`;
+      const result = applyListDedent(value, value.length);
+      expect(result?.text).toBe(`${parent} Main\n${next} Detail`);
+      expect(result?.newCursor).toBe(result?.text.length);
+    }
+    expect(applyListDedent('a. Detail', 9)).toBeNull();
+  });
+
+  it('keeps the cursor within the converted line when Tab is pressed at its start', () => {
+    const value = '(i) Main\n(ii) Detail';
+    const start = value.indexOf('(ii)');
+    expect(applyListIndent(value, start)?.newCursor).toBe(start);
   });
 
   it('adds one indent level to an already-indented sub-item', () => {
