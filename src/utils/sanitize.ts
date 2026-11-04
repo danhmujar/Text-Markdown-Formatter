@@ -191,20 +191,18 @@ export function sanitizeOutputHtml(rawHtml: string, options: SanitizeOptions = {
   }
 }
 
-export async function copyFormattedTextToClipboard(
+export function prepareClipboardHtml(
   htmlContent: string,
-  plainText: string,
   options: { sanitize?: boolean } = { sanitize: true },
-): Promise<boolean> {
-  try {
-    // Security sanitization is always enforced (security: true); options.sanitize controls compat stripping
-    const cleanHtml = sanitizeOutputHtml(htmlContent, {
-      security: true,
-      compat: options.sanitize !== false,
-    });
+): string {
+  // Security sanitization is always enforced (security: true); options.sanitize controls compat stripping
+  const cleanHtml = sanitizeOutputHtml(htmlContent, {
+    security: true,
+    compat: options.sanitize !== false,
+  });
 
-    // Full standalone HTML document wrapper tailored for Microsoft Word, Excel, Google Sheets, and Outlook parsing
-    const fullHtml = `<!DOCTYPE html>
+  // Full standalone HTML document wrapper tailored for Microsoft Word, Excel, Google Sheets, and Outlook parsing
+  return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -224,15 +222,17 @@ ${cleanHtml}
 <!--EndFragment-->
 </body>
 </html>`;
+}
 
+export async function copyFormattedTextToClipboard(
+  htmlContent: string,
+  plainText: string,
+  options: { sanitize?: boolean } = { sanitize: true },
+): Promise<boolean> {
+  try {
+    const fullHtml = prepareClipboardHtml(htmlContent, options);
     if (navigator.clipboard && window.ClipboardItem) {
-      const htmlBlob = new Blob([fullHtml], { type: 'text/html' });
-      const textBlob = new Blob([plainText], { type: 'text/plain' });
-      const clipboardItem = new ClipboardItem({
-        'text/html': htmlBlob,
-        'text/plain': textBlob,
-      });
-      await navigator.clipboard.write([clipboardItem]);
+      await writePreparedClipboard(fullHtml, plainText);
       return true;
     }
   } catch (err) {
@@ -275,4 +275,13 @@ ${cleanHtml}
   }
 
   return false;
+}
+
+/** Writes the same native clipboard formats for button and editor selection copy. */
+export async function writePreparedClipboard(fullHtml: string, plainText: string): Promise<void> {
+  const clipboardItem = new ClipboardItem({
+    'text/html': new Blob([fullHtml], { type: 'text/html' }),
+    'text/plain': new Blob([plainText], { type: 'text/plain' }),
+  });
+  await navigator.clipboard.write([clipboardItem]);
 }

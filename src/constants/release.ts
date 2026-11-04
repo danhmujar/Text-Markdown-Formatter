@@ -1,6 +1,12 @@
 export const APP_NAME = 'Text & Markdown Formatter';
-export const APP_VERSION = '0.17.0';
+export const APP_VERSION = '0.18.0';
 export const CHANGELOG_ENTRIES = [
+  {
+    date: '2026-11-04',
+    title: 'v0.18.0 — Copy selected text to Catalyst in Edit and Preview',
+    description:
+      'Select part of a Formatter cell in Edit or Preview, then press Ctrl+C or right-click and choose Copy to prepare only that selection for Catalyst. Edit processes the exact selected Markdown; Preview copies visible text with enclosing bold, italic, and link formatting, list numbering, table boundaries, and formula text without duplicate accessibility content. Both modes share the working Copy to Catalyst clipboard writer and retain native copy-event data when clipboard access is denied. Full-cell and Copy all actions remain available. Help explains the selection options, and regression tests cover the complete financial-measures example, partial formatting, lists, tables, code, selection boundaries, and clipboard failures.',
+  },
   {
     date: '2026-11-03',
     title: 'v0.17.0 — Help guide and keyboard shortcuts',

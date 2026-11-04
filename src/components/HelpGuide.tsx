@@ -83,6 +83,12 @@ export function HelpGuide({ shortcuts = false }: { shortcuts?: boolean }) {
             <strong>Copy to Catalyst</strong> for one cell or <strong>Copy all to Catalyst</strong>{' '}
             for the workspace.
           </li>
+          <li>
+            To copy part of a cell, select text in <strong>Edit</strong> or <strong>Preview</strong>{' '}
+            and press Ctrl+C or right-click and choose Copy. Only the selection is prepared for
+            Catalyst. Preview copies visible text with its formatting. In Edit, include Markdown
+            markers in the selection to copy their formatting.
+          </li>
         </ol>
       </section>
       <section>

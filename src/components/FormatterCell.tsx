@@ -12,7 +12,11 @@ import {
   convertBrToNewlines,
   ListTerminator,
   NumberingFormat,
+  prepareCopiedText,
 } from '../utils/markdownFormatter';
+import { logger } from '@/utils/logger';
+import { copySelection } from '@/utils/selectionCopy';
+import { getPreviewSelection } from '@/utils/previewSelection';
 import { EditToolbar } from './EditToolbar';
 import { PasteButton } from '@/components/PasteButton';
 import type { ClipboardPayload, PasteSelection } from '@/utils/clipboard';
@@ -261,6 +265,18 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             onChange={(event) => onChange(rowIndex, colIndex, event.target.value)}
             onKeyDown={(event) => onKeyDown(event, rowIndex, colIndex)}
             onPaste={(event) => onPaste(event, rowIndex, colIndex)}
+            onCopy={(event) => {
+              const textarea = event.currentTarget;
+              const selected = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
+              if (!selected || !event.clipboardData) return;
+              try {
+                const plainText = prepareCopiedText(selected, selected);
+                const html = buildInlineStyledHtml(selected, { ...options, theme: 'light' }, true);
+                copySelection(event, html, plainText);
+              } catch (error) {
+                logger.warn('Selection copy failed, using native copy:', error);
+              }
+            }}
             aria-labelledby={`formatter-cell-label-${rowIndex}-${colIndex}`}
             aria-describedby={`formatter-footer-${rowIndex}-${colIndex}`}
             placeholder="Paste text from PDF, Word, or email…"
@@ -277,6 +293,20 @@ export const FormatterCell: React.FC<FormatterCellProps> = React.memo(function F
             tabIndex={0}
             role="region"
             aria-label={`Formatted preview for ${label}`}
+            onCopy={(event) => {
+              try {
+                const selected = getPreviewSelection(event.currentTarget, window.getSelection());
+                if (!selected?.html) return;
+                const html = buildInlineStyledHtml(
+                  selected.html,
+                  { ...options, theme: 'light' },
+                  true,
+                );
+                copySelection(event, html, selected.text);
+              } catch (error) {
+                logger.warn('Preview selection copy failed, using native copy:', error);
+              }
+            }}
             dangerouslySetInnerHTML={{ __html: htmlFormatted }}
             className={`h-full w-full select-text overflow-auto p-4 font-sans leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
               isDark ? 'text-slate-100' : 'text-slate-900'

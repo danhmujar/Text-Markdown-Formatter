@@ -2,10 +2,11 @@
 
 Convert input text and Markdown — with nested lists, tables, custom line breaks, and real-time syntax warnings — into formatted output optimized for **Word, Outlook, Excel, Google Sheets, and Google Docs**. Paste stays clean thanks to aggressive sanitization and a `StartFragment`-wrapped clipboard payload.
 
-> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.17.0**.
+> Stack: Vite 6 + React 19 + TypeScript (strict) + Tailwind CSS 4 · Markdown via `marked` + `DOMPurify` · Tests with Vitest + Playwright + axe-core. Current release: **0.18.0**.
 
 ## Features
 
+- **Copy Selected Text to Catalyst** — select text in Edit or Preview, then use Ctrl+C or right-click Copy. Edit processes the selected Markdown; Preview preserves visible text and its rich formatting. Both use Catalyst-safe clipboard output, with native fallback when clipboard access is denied. The existing buttons still copy a whole cell or the workspace.
 - **2D Grid Editor** — grows from 1×1 to 100 rows × 50 columns, with Single, Left/Right, Top/Bottom, and 2×2 presets plus per-cell counters and toolbar actions.
 - **Live Preview** — inline-styled HTML with LRU cache (`htmlBuilder.ts:43`), per-theme colors, nested list bullets (`disc`/`circle`/`square`), and table styles that survive paste.
 - **LaTeX Math** — locally bundled KaTeX renders inline `$…$` / `\(…\)` and display `$$…$$` / `\[…\]` expressions in preview and rich HTML copy; plain text retains the original source delimiters.
